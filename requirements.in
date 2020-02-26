@@ -1,0 +1,6 @@
+figcan==0.0.*
+flask==1.1.*
+flask-classful==0.14.*
+flask-jwt-simple==0.0.*
+flask-marshmallow==0.11.*
+pyyaml==5.*
