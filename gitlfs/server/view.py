@@ -1,10 +1,9 @@
 """Flask-Classful View Classes
 """
 from flask_classful import FlaskView
+from webargs.flaskparser import parser  # type: ignore
 
-from . import representation
-
-# _view_classes = []
+from . import representation, schema
 
 
 class BaseView(FlaskView):
@@ -12,12 +11,10 @@ class BaseView(FlaskView):
     functionality
     """
     representations = {'application/json': representation.output_json,
-                       'flask-classful/default': representation.output_json}
+                       'application/vnd.git-lfs+json': representation.output_git_lfs_json,
+                       'flask-classful/default': representation.output_git_lfs_json}
 
     trailing_slash = False
-
-    # def __init_subclass__(cls, **kwargs):
-    #     _view_classes.append(cls)
 
     @classmethod
     def register(cls, app, route_base=None, subdomain=None, route_prefix=None, trailing_slash=None,
@@ -36,13 +33,5 @@ class BatchView(BaseView):
     def post(self, organization, repo):
         """Batch operations
         """
-        return ["batch", organization, repo]
-
-
-# def register_all(app):
-#     """Register all views with the Flask app
-#     """
-#     log = logging.getLogger(__name__)
-#     for v in _view_classes:
-#         log.debug("Registering view class %s at %s", v.__class__.__name__, v.get_route_base())
-#         v.register(app)
+        input = parser.parse(schema.batch_request_schema)
+        return ["batch", organization, repo, input]

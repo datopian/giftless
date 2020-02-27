@@ -13,8 +13,10 @@ flask==1.1.1              # via -r requirements.in (line 2), flask-classful, fla
 itsdangerous==1.1.0       # via flask
 jinja2==2.11.1            # via flask
 markupsafe==1.1.1         # via jinja2
-marshmallow==3.5.0        # via flask-marshmallow
+marshmallow-enum==1.5.1   # via -r requirements.in (line 6)
+marshmallow==3.5.0        # via flask-marshmallow, marshmallow-enum, webargs
 pyjwt==1.7.1              # via flask-jwt-simple
-pyyaml==5.3               # via -r requirements.in (line 6)
+pyyaml==5.3               # via -r requirements.in (line 7)
 six==1.14.0               # via flask-marshmallow
+webargs==5.5.3            # via -r requirements.in (line 8)
 werkzeug==1.0.0           # via flask

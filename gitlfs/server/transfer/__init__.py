@@ -43,7 +43,9 @@ def init_flask_app(app):
     - Register any Flask views provided by these adapters
     """
     config = app.config.get('TRANSFER_ADAPTERS', {})
-    _registered_adapters.update({k: _init_adapter(v) for k, v in config.items()})
+    adapters = {k: _init_adapter(v) for k, v in config.items()}
+    for k, adapter in adapters.items():
+        register_adapter(k, adapter)
 
     views = [view
              for adapter in _registered_adapters.values() if isinstance(adapter, ViewProvider)
@@ -51,6 +53,12 @@ def init_flask_app(app):
 
     for view in views:
         view.register(app)
+
+
+def register_adapter(key: str, adapter: TransferAdapter):
+    """Register a transfer adapter
+    """
+    _registered_adapters[key] = adapter
 
 
 def match_transfer_adapter(transfers: List[str]) -> Optional[Tuple[str, TransferAdapter]]:

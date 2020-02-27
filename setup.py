@@ -13,7 +13,9 @@ setup(
         'flask-classful',
         'flask-jwt-simple',
         'flask-marshmallow',
+        'marshmallow-enum',
         'pyyaml',
+        'webargs'
     ],
     package_data={}
 )

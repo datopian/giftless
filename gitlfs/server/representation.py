@@ -7,6 +7,7 @@ See http://flask-classful.teracy.org/#adding-resource-representations-get-real-c
 """
 import json
 from datetime import datetime
+from functools import partial
 
 from flask import make_response
 
@@ -20,9 +21,7 @@ class CustomJsonEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-def output_json(data, code, headers=None):
-    content_type = 'application/json'
-
+def output_json(data, code, headers=None, content_type='application/json'):
     dumped = json.dumps(data, cls=CustomJsonEncoder)
     if headers:
         headers.update({'Content-Type': content_type})
@@ -30,3 +29,6 @@ def output_json(data, code, headers=None):
         headers = {'Content-Type': content_type}
     response = make_response(dumped, code, headers)
     return response
+
+
+output_git_lfs_json = partial(output_json, content_type='application/vnd.git-lfs+json')
