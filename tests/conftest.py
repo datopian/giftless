@@ -24,6 +24,6 @@ def app_context(app):
 
 
 @pytest.fixture()
-def test_client(context: AppContext):
-    test_client = context.app.test_client()
+def test_client(app_context: AppContext):
+    test_client = app_context.app.test_client()
     return test_client

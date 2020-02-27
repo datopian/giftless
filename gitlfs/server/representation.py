@@ -11,6 +11,8 @@ from functools import partial
 
 from flask import make_response
 
+GIT_LFS_MIME_TYPE = 'application/vnd.git-lfs+json'
+
 
 class CustomJsonEncoder(json.JSONEncoder):
     """Custom JSON encoder that can support some additional required types
@@ -31,4 +33,4 @@ def output_json(data, code, headers=None, content_type='application/json'):
     return response
 
 
-output_git_lfs_json = partial(output_json, content_type='application/vnd.git-lfs+json')
+output_git_lfs_json = partial(output_json, content_type=GIT_LFS_MIME_TYPE)

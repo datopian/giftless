@@ -12,7 +12,7 @@ class BaseView(FlaskView):
     functionality
     """
     representations = {'application/json': representation.output_json,
-                       'application/vnd.git-lfs+json': representation.output_git_lfs_json,
+                       representation.GIT_LFS_MIME_TYPE: representation.output_git_lfs_json,
                        'flask-classful/default': representation.output_git_lfs_json}
 
     trailing_slash = False

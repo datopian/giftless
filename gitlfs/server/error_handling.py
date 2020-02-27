@@ -1,9 +1,10 @@
-"""Handle errors by returning RFC-7808 (Problem Details for HTTP APIs) error payload
-"""
-from typing import Any, Dict
+"""Handle errors according to the Git LFS spec
 
-from flask import jsonify
+See https://github.com/git-lfs/git-lfs/blob/master/docs/api/batch.md#response-errors
+"""
 from werkzeug.exceptions import default_exceptions
+
+from .representation import output_git_lfs_json
 
 
 class ApiErrorHandler:
@@ -14,33 +15,13 @@ class ApiErrorHandler:
 
     def init_app(self, app):
         for code in default_exceptions:
-            app.errorhandler(code)(self.app_api_problem_json)
+            app.errorhandler(code)(self.error_as_json)
 
     @classmethod
-    def app_api_problem_json(cls, ex):
-        """Generic application/problem+json error handler
+    def error_as_json(cls, ex):
+        """Handle errors by returning a JSON response
         """
         code = ex.code if hasattr(ex, 'code') else 500
-        data = {"type": "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html",
-                "title": ex.name if hasattr(ex, 'name') else "Internal Server Error",
-                "detail": ex.description if hasattr(ex, 'description') else str(ex),
-                "status": code}
+        data = {"message": ex.description if hasattr(ex, 'description') else str(ex)}
 
-        if hasattr(ex, 'exc'):
-            data.update(cls._extract_extra_data(ex.exc))
-
-        response = jsonify(data)
-        response.headers['Content-Type'] = 'application/problem+json'
-        response.status_code = code
-
-        return response
-
-    @classmethod
-    def _extract_extra_data(cls, exception: Any) -> Dict[str, Any]:
-        """Extract additional information fields from exception
-        """
-        extra_data = {}
-        if hasattr(exception, 'messages'):
-            extra_data['messages'] = exception.messages
-
-        return extra_data
+        return output_git_lfs_json(data=data, code=code)
