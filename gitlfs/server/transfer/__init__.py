@@ -3,7 +3,8 @@
 See https://github.com/git-lfs/git-lfs/blob/master/docs/api/basic-transfers.md
 for more information about what transfer APIs do in Git LFS.
 """
-from typing import Dict, List, Optional, Tuple
+from functools import partial
+from typing import Callable, Dict, List, Tuple
 
 from gitlfs.server.util import get_callable
 from gitlfs.server.view import BaseView
@@ -14,14 +15,16 @@ _registered_adapters: Dict[str, 'TransferAdapter'] = {}
 class TransferAdapter:
     """A transfer adapter tells Git LFS Server how to respond to batch API requests
     """
-    def upload_action(self, oid: str, size: int) -> Dict:
+    def upload(self, organization: str, repo: str, oid: str, size: int) -> Dict:
         raise NotImplementedError("This transfer adapter is not fully implemented")
 
-    def download_action(self, oid: str, size: int) -> Dict:
+    def download(self, organization: str, repo: str, oid: str, size: int) -> Dict:
         raise NotImplementedError("This transfer adapter is not fully implemented")
 
-    def verify_action(self, oid: str, size: int) -> Dict:
-        raise NotImplementedError("This transfer adapter is not fully implemented")
+    def get_action(self, name: str, organization: str, repo: str) -> Callable[[str, int], Dict]:
+        """Shortcut for quickly getting an action callable for transfer adapter objects
+        """
+        return partial(getattr(self, name), organization=organization, repo=repo)
 
 
 class ViewProvider:
@@ -61,11 +64,11 @@ def register_adapter(key: str, adapter: TransferAdapter):
     _registered_adapters[key] = adapter
 
 
-def match_transfer_adapter(transfers: List[str]) -> Optional[Tuple[str, TransferAdapter]]:
+def match_transfer_adapter(transfers: List[str]) -> Tuple[str, TransferAdapter]:
     for t in transfers:
         if t in _registered_adapters:
             return t, _registered_adapters[t]
-    return None
+    raise ValueError("Unable to match any transfer adapter: {}".format(transfers))
 
 
 def _init_adapter(config: Dict) -> TransferAdapter:

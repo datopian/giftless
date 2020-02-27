@@ -2,8 +2,9 @@
 """
 from flask_classful import FlaskView
 from webargs.flaskparser import parser  # type: ignore
+from werkzeug.exceptions import UnprocessableEntity
 
-from . import representation, schema
+from . import representation, schema, transfer
 
 
 class BaseView(FlaskView):
@@ -33,5 +34,18 @@ class BatchView(BaseView):
     def post(self, organization, repo):
         """Batch operations
         """
-        input = parser.parse(schema.batch_request_schema)
-        return ["batch", organization, repo, input]
+        payload = parser.parse(schema.batch_request_schema)
+        try:
+            transfer_type, adapter = transfer.match_transfer_adapter(payload['transfers'])
+        except ValueError as e:
+            raise UnprocessableEntity(e)
+
+        response = {"transfer": transfer_type}
+        action = adapter.get_action(payload['operation'].value, organization, repo)
+        response['objects'] = [action(**o) for o in payload['objects']]
+
+        # TODO: Check if *all* objects have errors and if so return 422
+        # TODO: Check Accept header
+        # TODO: do we need an output schema?
+
+        return response

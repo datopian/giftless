@@ -34,7 +34,7 @@ class BatchRequest(ma.Schema):
     operation = EnumField(Operation, required=True)
     transfers = fields.List(fields.String, required=False, missing=['basic'])
     ref = fields.Nested(RefSchema, required=False)
-    objects = fields.Nested(ObjectSchema, validate=validate.Length(min=1), many=True)
+    objects = fields.Nested(ObjectSchema, validate=validate.Length(min=1), many=True, required=True)
 
 
 batch_request_schema = BatchRequest()

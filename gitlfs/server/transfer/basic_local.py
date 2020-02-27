@@ -41,14 +41,11 @@ class LocalTransferAdapter(TransferAdapter, ViewProvider):
     def __init__(self, storage: Optional[LocalStorage]):
         self.storage = storage
 
-    def upload_action(self, oid: str, size: int) -> Dict:
-        pass
+    def upload(self, organization: str, repo: str, oid: str, size: int) -> Dict:
+        return {"data": ['upload', organization, repo, oid, size]}
 
-    def download_action(self, oid: str, size: int) -> Dict:
-        pass
-
-    def verify_action(self, oid: str, size: int) -> Dict:
-        pass
+    def download(self, organization: str, repo: str, oid: str, size: int) -> Dict:
+        return {"data": ['upload', organization, repo, oid, size]}
 
     def get_views(self):
         return [ObjectsView]
