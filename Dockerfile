@@ -29,6 +29,7 @@ RUN useradd -d /app gitlfs
 USER gitlfs
 WORKDIR /app
 
-ENTRYPOINT ["tini", "uwsgi", "--", \
-            "-s", "127.0.0.1:5000", "-M", "-T", "--threads", "2", "-p", "2", \
-            "--manage-script-name", "--callable", "app"]
+ENTRYPOINT ["tini", "uwsgi", "--"]
+
+CMD ["-s", "127.0.0.1:5000", "-M", "-T", "--threads", "2", "-p", "2", \
+     "--manage-script-name", "--callable", "app"]

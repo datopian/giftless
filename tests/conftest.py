@@ -1,5 +1,3 @@
-import os
-
 import pytest
 from flask.ctx import AppContext
 

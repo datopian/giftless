@@ -1,10 +1,9 @@
 """Main Flask application initialization code
 """
-
 from flask import Flask
 from flask_marshmallow import Marshmallow  # type: ignore
 
-from . import config, view
+from . import config, transfer, view
 from .error_handling import ApiErrorHandler
 from .jwt import jwt
 
@@ -21,6 +20,11 @@ def init_app(app=None, additional_config=None):
     Marshmallow(app)
     jwt.init_app(app)
 
-    view.register_all(app)
+    view.BatchView.register(app)
+
+    # TODO: configure authentication
+
+    # Load configured transfer adapters
+    transfer.init_flask_app(app)
 
     return app
