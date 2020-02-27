@@ -15,7 +15,8 @@ default_transfer_config = {
             "storage_class": "LocalStorage",
             "storage_options": {
                 "path": "lfs-storage"
-            }
+            },
+            "action_lifetime": 900,
         }
     }
 }

@@ -5,6 +5,8 @@ Stores files on the local disk.
 import os
 from typing import Dict, Optional
 
+from flask import url_for
+
 from gitlfs.server.transfer import TransferAdapter, ViewProvider
 from gitlfs.server.util import get_callable
 from gitlfs.server.view import BaseView
@@ -36,16 +38,48 @@ class LocalStorage:
             os.makedirs(self.path)
 
 
-class LocalTransferAdapter(TransferAdapter, ViewProvider):
+class BasicStreamedTransferAdapter(TransferAdapter, ViewProvider):
 
-    def __init__(self, storage: Optional[LocalStorage]):
+    def __init__(self, storage: Optional[LocalStorage], action_lifetime: int):
         self.storage = storage
+        self.action_lifetime = action_lifetime
 
     def upload(self, organization: str, repo: str, oid: str, size: int) -> Dict:
-        return {"data": ['upload', organization, repo, oid, size]}
+        # TODO: check if file exists, if so ommit the "actions" key
+        return {"oid": oid,
+                "size": size,
+                "authenticated": True,
+                "actions": {
+                    "upload": {
+                        "href": ObjectsView.get_storage_url('put', organization, repo, oid),
+                        "header": {
+                            "Authorization": "Basic yourmamaisauthorized"
+                        },
+                        "expires_in": self.action_lifetime
+                    },
+                    "verify": {
+                        "href": ObjectsView.get_storage_url('verify', organization, repo, oid),
+                        "header": {
+                            "Authorization": "Basic yourmamaisauthorized"
+                        },
+                        "expires_in": self.action_lifetime
+                    }
+                }}
 
     def download(self, organization: str, repo: str, oid: str, size: int) -> Dict:
-        return {"data": ['upload', organization, repo, oid, size]}
+        # TODO: check that the user can download the file (exists?)
+        return {"oid": oid,
+                "size": size,
+                "authenticated": True,
+                "actions": {
+                    "download": {
+                        "href": ObjectsView.get_storage_url('get', organization, repo, oid),
+                        "header": {
+                            "Authorization": "Basic yourmamaisauthorized"
+                        },
+                        "expires_in": self.action_lifetime
+                    }
+                }}
 
     def get_views(self):
         return [ObjectsView]
@@ -68,9 +102,16 @@ class ObjectsView(BaseView):
     def verify(self, organization, repo, oid):
         return ["local-base-verify", organization, repo, oid]
 
+    @classmethod
+    def get_storage_url(cls, operation: str, organization: str, repo: str, oid: str) -> str:
+        """Get the URL for upload / download requests for this object
+        """
+        op_name = f'{cls.__name__}:{operation}'
+        return url_for(op_name, organization=organization, repo=repo, oid=oid, _external=True)
 
-def factory(storage_class, storage_options):
+
+def factory(storage_class, storage_options, action_lifetime):
     """Factory for basic transfer adapter with local storage
     """
     storage = get_callable(storage_class, __name__)
-    return LocalTransferAdapter(storage(**storage_options))
+    return BasicStreamedTransferAdapter(storage(**storage_options), action_lifetime)
