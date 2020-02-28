@@ -34,8 +34,8 @@ class ViewProvider:
     It allows the adapter to also register additional routes -> views with the
     py-git-lfs-server Flask app.
     """
-    def get_views(self) -> List[BaseView]:
-        return []
+    def register_views(self, app):
+        pass
 
 
 def init_flask_app(app):
@@ -50,12 +50,8 @@ def init_flask_app(app):
     for k, adapter in adapters.items():
         register_adapter(k, adapter)
 
-    views = [view
-             for adapter in _registered_adapters.values() if isinstance(adapter, ViewProvider)
-             for view in adapter.get_views()]
-
-    for view in views:
-        view.register(app)
+    for adapter in (a for a in _registered_adapters.values() if isinstance(a, ViewProvider)):
+        adapter.register_views(app)
 
 
 def register_adapter(key: str, adapter: TransferAdapter):

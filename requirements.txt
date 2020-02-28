@@ -6,17 +6,17 @@
 #
 click==7.0                # via flask
 figcan==0.0.4             # via -r requirements.in (line 1)
-flask-classful==0.14.2    # via -r requirements.in (line 3)
-flask-jwt-simple==0.0.3   # via -r requirements.in (line 4)
-flask-marshmallow==0.11.0  # via -r requirements.in (line 5)
+git+https://github.com/teracyhq/flask-classful.git@3bbab31#egg=flask-classful  # via -r requirements.in (line 4)
+flask-jwt-simple==0.0.3   # via -r requirements.in (line 5)
+flask-marshmallow==0.11.0  # via -r requirements.in (line 6)
 flask==1.1.1              # via -r requirements.in (line 2), flask-classful, flask-jwt-simple, flask-marshmallow
 itsdangerous==1.1.0       # via flask
 jinja2==2.11.1            # via flask
 markupsafe==1.1.1         # via jinja2
-marshmallow-enum==1.5.1   # via -r requirements.in (line 6)
+marshmallow-enum==1.5.1   # via -r requirements.in (line 7)
 marshmallow==3.5.0        # via flask-marshmallow, marshmallow-enum, webargs
 pyjwt==1.7.1              # via flask-jwt-simple
-pyyaml==5.3               # via -r requirements.in (line 7)
+pyyaml==5.3               # via -r requirements.in (line 8)
 six==1.14.0               # via flask-marshmallow
-webargs==5.5.3            # via -r requirements.in (line 8)
+webargs==5.5.3            # via -r requirements.in (line 9)
 werkzeug==1.0.0           # via flask
