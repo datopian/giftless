@@ -10,11 +10,14 @@ import shutil
 from typing import BinaryIO, Dict, Optional
 
 from flask import url_for, request, Response
+from flask_classful import route
+from webargs.flaskparser import parser  # type: ignore
 
 from gitlfs.server.transfer import TransferAdapter, ViewProvider
 from gitlfs.server.util import get_callable
 from gitlfs.server.view import BaseView
-from gitlfs.server.exc import NotFound
+from gitlfs.server.exc import NotFound, InvalidPayload
+from gitlfs.server.schema import ObjectSchema
 
 
 class LocalStorage:
@@ -92,8 +95,19 @@ class ObjectsView(BaseView):
         else:
             raise NotFound("The object was not found")
 
+    @route('/verify', methods=['POST'])
     def verify(self, organization, repo):
-        return ["local-base-verify", organization, repo]
+        schema = ObjectSchema()
+        payload = parser.parse(schema)
+        prefix = os.path.join(organization, repo)
+
+        if not self.storage.exists(prefix, payload['oid']):
+            raise NotFound("The object was not found")
+
+        if self.storage.get_size(prefix, payload['oid']) != payload['size']:
+            raise InvalidPayload("Object size does not match")
+
+        return Response(status=200)
 
     @classmethod
     def get_storage_url(cls, operation: str, organization: str, repo: str, oid: Optional[str] = None) -> str:
