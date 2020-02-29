@@ -6,7 +6,7 @@ from typing import Dict, Optional
 import figcan
 import yaml
 
-ENV_PREFIX = 'GITLFS_'
+ENV_PREFIX = 'GIFTLESS_'
 
 default_transfer_config = {
     "basic": figcan.Extensible({
