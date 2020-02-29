@@ -2,25 +2,43 @@
 
 This transfer adapter offers 'basic' transfers by streaming uploads / downloads
 through the Git LFS HTTP server. It can use different storage backends (local,
-cloud, ...).
+cloud, ...). This module implements the local storage backend, but defines an
+interface through which additional streaming backends can be implemented.
 """
 
 import os
 import shutil
+from abc import ABC
 from typing import BinaryIO, Dict, Optional
 
-from flask import url_for, request, Response
+from flask import Response, request, url_for
 from flask_classful import route
 from webargs.flaskparser import parser  # type: ignore
 
+from gitlfs.server.exc import InvalidPayload, NotFound
+from gitlfs.server.schema import ObjectSchema
 from gitlfs.server.transfer import TransferAdapter, ViewProvider
 from gitlfs.server.util import get_callable
 from gitlfs.server.view import BaseView
-from gitlfs.server.exc import NotFound, InvalidPayload
-from gitlfs.server.schema import ObjectSchema
 
 
-class LocalStorage:
+class StreamingStorage(ABC):
+    """Interface for streaming storage adapters
+    """
+    def get(self, prefix: str, oid: str) -> BinaryIO:
+        pass
+
+    def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
+        pass
+
+    def exists(self, prefix: str, oid: str) -> bool:
+        pass
+
+    def get_size(self, prefix: str, oid: str) -> int:
+        pass
+
+
+class LocalStorage(StreamingStorage):
     """Local storage implementation
 
     # TODO: do we need directory hashing?
@@ -68,9 +86,8 @@ class LocalStorage:
 class ObjectsView(BaseView):
 
     route_base = '<organization>/<repo>/objects/storage'
-    storage: LocalStorage
 
-    def __init__(self, storage):
+    def __init__(self, storage: StreamingStorage):
         self.storage = storage
 
     def put(self, organization, repo, oid):
@@ -114,12 +131,13 @@ class ObjectsView(BaseView):
         """Get the URL for upload / download requests for this object
         """
         op_name = f'{cls.__name__}:{operation}'
-        return url_for(op_name, organization=organization, repo=repo, oid=oid, _external=True)
+        url: str = url_for(op_name, organization=organization, repo=repo, oid=oid, _external=True)
+        return url
 
 
-class BasicStreamedTransferAdapter(TransferAdapter, ViewProvider):
+class BasicStreamingTransferAdapter(TransferAdapter, ViewProvider):
 
-    def __init__(self, storage: Optional[LocalStorage], action_lifetime: int):
+    def __init__(self, storage: StreamingStorage, action_lifetime: int):
         self.storage = storage
         self.action_lifetime = action_lifetime
 
@@ -190,4 +208,4 @@ def factory(storage_class, storage_options, action_lifetime):
     """Factory for basic transfer adapter with local storage
     """
     storage = get_callable(storage_class, __name__)
-    return BasicStreamedTransferAdapter(storage(**storage_options), action_lifetime)
+    return BasicStreamingTransferAdapter(storage(**storage_options), action_lifetime)

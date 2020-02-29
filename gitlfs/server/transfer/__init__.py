@@ -7,7 +7,6 @@ from functools import partial
 from typing import Callable, Dict, List, Tuple
 
 from gitlfs.server.util import get_callable
-from gitlfs.server.view import BaseView
 
 _registered_adapters: Dict[str, 'TransferAdapter'] = {}
 

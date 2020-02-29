@@ -1,5 +1,6 @@
 """Test helpers
 """
+import os
 
 
 def batch_request_payload(delete_keys=(), **kwargs):
@@ -12,7 +13,7 @@ def batch_request_payload(delete_keys=(), **kwargs):
         "objects": [
             {
                 "oid": "12345678",
-                "size": 123
+                "size": 8
             }
         ]
     }
@@ -22,3 +23,18 @@ def batch_request_payload(delete_keys=(), **kwargs):
 
     payload.update(kwargs)
     return payload
+
+
+def create_file_in_storage(storage_path, org, repo, filename, size=1):
+    """Put a dummy file in the storage path for a specific org / repo / oid combination
+
+    This is useful where we want to test download / verify actions without relying on
+    'put' actions to work
+
+    This assumes cleanup is done somewhere else (e.g. in the 'storage_path' fixture)
+    """
+    repo_path = os.path.join(storage_path, org, repo)
+    os.makedirs(repo_path)
+    with open(os.path.join(repo_path, filename), 'wb') as f:
+        for c in (b'0' for _ in range(size)):
+            f.write(c)

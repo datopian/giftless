@@ -1,15 +1,37 @@
+import shutil
+
 import pytest
 from flask.ctx import AppContext
 
 from gitlfs.server.app import init_app
 
 
-@pytest.fixture(scope='session')
-def app():
+@pytest.fixture()
+def storage_path(tmp_path):
+    path = tmp_path / "lfs-tests"
+    path.mkdir()
+    try:
+        yield str(tmp_path)
+    finally:
+        shutil.rmtree(path)
+
+
+@pytest.fixture()
+def app(storage_path):
     """Session fixture to configure the Flask app
     """
-    app = init_app()
-    app.config['TESTING'] = True
+    app = init_app(additional_config={
+        "TESTING": True,
+        "TRANSFER_ADAPTERS": {
+            "basic": {
+                "options": {
+                    "storage_options": {
+                        "path": storage_path
+                    }
+                }
+            }
+        }
+    })
     return app
 
 
