@@ -1,6 +1,6 @@
-# Makefile for py-git-lfs-server
+# Makefile for giftless
 
-PACKAGE_DIRS := gitlfs
+PACKAGE_DIRS := giftless
 TESTS_DIR := tests
 
 SHELL := bash

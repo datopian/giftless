@@ -1,4 +1,4 @@
-# Dockerfile for uWSGI wrapped Git LFS Server
+# Dockerfile for uWSGI wrapped Giftless Git LFS Server
 
 FROM python:3.7-slim
 

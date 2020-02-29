@@ -15,11 +15,11 @@ from flask import Response, request, url_for
 from flask_classful import route
 from webargs.flaskparser import parser  # type: ignore
 
-from gitlfs.server.exc import InvalidPayload, NotFound
-from gitlfs.server.schema import ObjectSchema
-from gitlfs.server.transfer import TransferAdapter, ViewProvider
-from gitlfs.server.util import get_callable
-from gitlfs.server.view import BaseView
+from giftless.exc import InvalidPayload, NotFound
+from giftless.schema import ObjectSchema
+from giftless.transfer import TransferAdapter, ViewProvider
+from giftless.util import get_callable
+from giftless.view import BaseView
 
 
 class StreamingStorage(ABC):

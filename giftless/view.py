@@ -4,7 +4,7 @@ from flask_classful import FlaskView
 from webargs.flaskparser import parser  # type: ignore
 from werkzeug.exceptions import UnprocessableEntity
 
-from . import representation, schema, transfer
+from giftless import representation, schema, transfer
 
 
 class BaseView(FlaskView):

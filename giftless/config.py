@@ -10,7 +10,7 @@ ENV_PREFIX = 'GITLFS_'
 
 default_transfer_config = {
     "basic": figcan.Extensible({
-        "factory": "gitlfs.server.transfer.basic_streaming:factory",
+        "factory": "giftless.transfer.basic_streaming:factory",
         "options": figcan.Extensible({
             "storage_class": "LocalStorage",
             "storage_options": {

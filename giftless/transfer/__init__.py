@@ -6,7 +6,7 @@ for more information about what transfer APIs do in Git LFS.
 from functools import partial
 from typing import Callable, Dict, List, Tuple
 
-from gitlfs.server.util import get_callable
+from giftless.util import get_callable
 
 _registered_adapters: Dict[str, 'TransferAdapter'] = {}
 

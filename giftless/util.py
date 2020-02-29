@@ -23,4 +23,4 @@ def get_callable(callable_str: str, base_package: Optional[str] = None) -> Calla
     else:
         raise ValueError("Expecting base_package to be set if only class name is provided")
 
-    return getattr(module, callable_name)
+    return getattr(module, callable_name)  # type: ignore

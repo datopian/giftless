@@ -3,7 +3,8 @@
 from flask import Flask
 from flask_marshmallow import Marshmallow  # type: ignore
 
-from . import config, transfer, view
+from giftless import config, transfer, view
+
 from .error_handling import ApiErrorHandler
 from .jwt import jwt
 

@@ -2,7 +2,7 @@
 """
 import pytest
 
-from gitlfs.server import transfer
+from giftless import transfer
 
 
 @pytest.fixture()

@@ -3,7 +3,7 @@ import shutil
 import pytest
 from flask.ctx import AppContext
 
-from gitlfs.server.app import init_app
+from giftless.app import init_app
 
 
 @pytest.fixture()

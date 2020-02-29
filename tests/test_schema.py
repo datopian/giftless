@@ -4,7 +4,7 @@
 import pytest
 from marshmallow import ValidationError
 
-from gitlfs.server import schema
+from giftless import schema
 
 from .helpers import batch_request_payload
 

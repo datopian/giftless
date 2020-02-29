@@ -16,20 +16,20 @@ class Operation(Enum):
     download = 'download'
 
 
-class RefSchema(ma.Schema):
+class RefSchema(ma.Schema):  # type: ignore
     """ref field schema
     """
     name = fields.String(required=True)
 
 
-class ObjectSchema(ma.Schema):
+class ObjectSchema(ma.Schema):  # type: ignore
     """object field schema
     """
     oid = fields.String(required=True)
     size = fields.Integer(required=True, validate=validate.Range(min=0))
 
 
-class BatchRequest(ma.Schema):
+class BatchRequest(ma.Schema):  # type: ignore
 
     operation = EnumField(Operation, required=True)
     transfers = fields.List(fields.String, required=False, missing=['basic'])
