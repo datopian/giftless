@@ -151,16 +151,12 @@ class BasicStreamingTransferAdapter(TransferAdapter, ViewProvider):
             response['actions'] = {
                 "upload": {
                     "href": ObjectsView.get_storage_url('put', organization, repo, oid),
-                    "header": {
-                        "Authorization": "Basic yourmamaisauthorized"
-                    },
+                    "header": {},
                     "expires_in": self.action_lifetime
                 },
                 "verify": {
                     "href": ObjectsView.get_storage_url('verify', organization, repo),
-                    "header": {
-                        "Authorization": "Basic yourmamaisauthorized"
-                    },
+                    "header": {},
                     "expires_in": self.action_lifetime
                 }
             }
@@ -190,9 +186,7 @@ class BasicStreamingTransferAdapter(TransferAdapter, ViewProvider):
                 "actions": {
                     "download": {
                         "href": ObjectsView.get_storage_url('get', organization, repo, oid),
-                        "header": {
-                            "Authorization": "Basic yourmamaisauthorized"
-                        },
+                        "header": {},
                         "expires_in": self.action_lifetime
                     }
                 }
