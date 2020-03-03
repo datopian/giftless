@@ -16,7 +16,7 @@ from abc import ABC
 from typing import Any, Dict
 
 from giftless.transfer import TransferAdapter, ViewProvider
-from giftless.transfer.basic_streaming import VerifyView, VerifiableStorage
+from giftless.transfer.basic_streaming import VerifiableStorage, VerifyView
 from giftless.util import get_callable
 
 

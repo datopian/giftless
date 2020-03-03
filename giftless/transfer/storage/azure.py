@@ -1,12 +1,11 @@
 import os
+from typing import Any, BinaryIO, Dict, Optional
 
-from typing import Dict, Any, BinaryIO, Optional
-
-from azure.core.exceptions import ResourceNotFoundError, ResourceExistsError
+from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient
 
-from giftless.transfer.basic_streaming import StreamingStorage
 from giftless.transfer.basic_external import ExternalStorage
+from giftless.transfer.basic_streaming import StreamingStorage
 
 
 class AzureBlobsStorage(StreamingStorage, ExternalStorage):
