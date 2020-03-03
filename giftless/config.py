@@ -13,12 +13,12 @@ default_transfer_config = {
         "factory": "giftless.transfer.basic_streaming:factory",
         "options": figcan.Extensible({
             "storage_class": "LocalStorage",
-            "storage_options": {
+            "storage_options": figcan.Extensible({
                 "path": "lfs-storage"
-            },
+            }),
             "action_lifetime": 900,
         })
-    })
+    }),
 }
 
 default_config = {
@@ -43,7 +43,8 @@ def _compose_config(additional_config: Optional[Dict] = None) -> figcan.Configur
     config = figcan.Configuration(default_config)
     if os.environ.get(f'{ENV_PREFIX}CONFIG_FILE'):
         with open(os.environ[f'{ENV_PREFIX}CONFIG_FILE']) as f:
-            config.apply(yaml.safe_load(f))
+            config_from_file = yaml.safe_load(f)
+            config.apply(config_from_file)
         os.environ.pop(f'{ENV_PREFIX}CONFIG_FILE')
     if additional_config:
         config.apply(additional_config)

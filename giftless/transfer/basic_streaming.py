@@ -22,7 +22,18 @@ from giftless.util import get_callable
 from giftless.view import BaseView
 
 
-class StreamingStorage(ABC):
+class VerifiableStorage(ABC):
+    """A storage backend that supports object verification API
+
+    All streaming backends should be 'verifiable'.
+    """
+    def verify_object(self, prefix: str, oid: str, size: int) -> bool:
+        """Check that object exists and has the right size
+        """
+        pass
+
+
+class StreamingStorage(VerifiableStorage, ABC):
     """Interface for streaming storage adapters
     """
     def get(self, prefix: str, oid: str) -> BinaryIO:
@@ -37,6 +48,11 @@ class StreamingStorage(ABC):
     def get_size(self, prefix: str, oid: str) -> int:
         pass
 
+    def verify_object(self, prefix: str, oid: str, size: int):
+        """Verify that an object exists
+        """
+        return self.exists(prefix, oid) and self.get_size(prefix, oid) == size
+
 
 class LocalStorage(StreamingStorage):
     """Local storage implementation
@@ -45,7 +61,7 @@ class LocalStorage(StreamingStorage):
     #       seems to me that in a single org/repo prefix this is not needed as we do not expect
     #       thousands of files per repo or thousands or repos per org
     """
-    def __init__(self, path: str = None):
+    def __init__(self, path: str = None, **_):
         if path is None:
             path = 'lfs-storage'
         self.path = path
@@ -83,6 +99,37 @@ class LocalStorage(StreamingStorage):
             os.makedirs(path)
 
 
+class VerifyView(BaseView):
+    """Verify an object
+
+    This view is actually not basic_streaming specific, and is used by other
+    transfer adapters that need a 'verify' action as well.
+    """
+
+    route_base = '<organization>/<repo>/objects/storage'
+
+    def __init__(self, storage: VerifiableStorage):
+        self.storage = storage
+
+    @route('/verify', methods=['POST'])
+    def verify(self, organization, repo):
+        schema = ObjectSchema()
+        payload = parser.parse(schema)
+        prefix = os.path.join(organization, repo)
+
+        if not self.storage.verify_object(prefix, payload['oid'], payload['size']):
+            raise InvalidPayload("Object does not exist or size does not match")
+        return Response(status=200)
+
+    @classmethod
+    def get_verify_url(cls, organization: str, repo: str, oid: Optional[str] = None) -> str:
+        """Get the URL for upload / download requests for this object
+        """
+        op_name = f'{cls.__name__}:verify'
+        url: str = url_for(op_name, organization=organization, repo=repo, oid=oid, _external=True)
+        return url
+
+
 class ObjectsView(BaseView):
 
     route_base = '<organization>/<repo>/objects/storage'
@@ -111,20 +158,6 @@ class ObjectsView(BaseView):
             return Response(file, direct_passthrough=True, status=200)
         else:
             raise NotFound("The object was not found")
-
-    @route('/verify', methods=['POST'])
-    def verify(self, organization, repo):
-        schema = ObjectSchema()
-        payload = parser.parse(schema)
-        prefix = os.path.join(organization, repo)
-
-        if not self.storage.exists(prefix, payload['oid']):
-            raise NotFound("The object was not found")
-
-        if self.storage.get_size(prefix, payload['oid']) != payload['size']:
-            raise InvalidPayload("Object size does not match")
-
-        return Response(status=200)
 
     @classmethod
     def get_storage_url(cls, operation: str, organization: str, repo: str, oid: Optional[str] = None) -> str:
@@ -155,7 +188,7 @@ class BasicStreamingTransferAdapter(TransferAdapter, ViewProvider):
                     "expires_in": self.action_lifetime
                 },
                 "verify": {
-                    "href": ObjectsView.get_storage_url('verify', organization, repo),
+                    "href": VerifyView.get_verify_url(organization, repo),
                     "header": {},
                     "expires_in": self.action_lifetime
                 }
@@ -196,6 +229,7 @@ class BasicStreamingTransferAdapter(TransferAdapter, ViewProvider):
 
     def register_views(self, app):
         ObjectsView.register(app, init_argument=self.storage)
+        VerifyView.register(app, init_argument=self.storage)
 
 
 def factory(storage_class, storage_options, action_lifetime):

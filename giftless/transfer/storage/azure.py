@@ -1,0 +1,115 @@
+import os
+
+from typing import Dict, Any, BinaryIO, Optional
+
+from azure.core.exceptions import ResourceNotFoundError, ResourceExistsError
+from azure.storage.blob import BlobServiceClient
+
+from giftless.transfer.basic_streaming import StreamingStorage
+from giftless.transfer.basic_external import ExternalStorage
+
+
+class AzureBlobsStorage(StreamingStorage, ExternalStorage):
+    """Azure Blob Storage backend supporting streaming and direct-to-cloud
+    transfers.
+
+    """
+    def __init__(self, connection_string: str, container_name: str, path_prefix: Optional[str] = None, **_):
+        self.container_name = container_name
+        self.path_prefix = path_prefix
+        self.blob_svc_client = BlobServiceClient.from_connection_string(connection_string)
+        self._init_container()
+
+    def get(self, prefix: str, oid: str) -> BinaryIO:
+        blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
+                                                           blob=self._get_blob_path(prefix, oid))
+        return blob_client.download_blob().chunks()
+
+    def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
+        blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
+                                                           blob=self._get_blob_path(prefix, oid))
+        blob_client.upload_blob(data_stream)
+        return data_stream.tell()
+
+    def exists(self, prefix: str, oid: str) -> bool:
+        try:
+            self.get_size(prefix, oid)
+            return True
+        except ResourceNotFoundError:
+            return False
+
+    def get_size(self, prefix: str, oid: str) -> int:
+        blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
+                                                           blob=self._get_blob_path(prefix, oid))
+        props = blob_client.get_blob_properties()
+        return props.size
+
+    def verify_object(self, prefix: str, oid: str, size: int) -> bool:
+        try:
+            return self.get_size(prefix, oid) == size
+        except ResourceNotFoundError:
+            return False
+
+    def get_upload_action(self, prefix: str, oid: str, size: int) -> Dict[str, Any]:
+        if self.verify_object(prefix, oid, size):
+            # No upload required, we already have this object
+            return {}
+
+        return {
+            "actions": {
+                "upload": {
+                    "href": self._get_signed_url(prefix, oid),
+                    "header": {},
+                    "expires_in": 900
+                }
+            }
+        }
+
+    def get_download_action(self, prefix: str, oid: str, size: int) -> Dict[str, Any]:
+        try:
+            if self.get_size(prefix, oid) != size:
+                return {"error": {
+                    "code": 422,
+                    "message": "Object size does not match"
+                }}
+        except ResourceNotFoundError:
+            # Object does not exist, return 404
+            return {"error": {
+                "code": 404,
+                "message": "Object does not exist"
+            }}
+
+        return {
+            "actions": {
+                "download": {
+                    "href": self._get_signed_url(prefix, oid),
+                    "header": {},
+                    "expires_in": 900
+                }
+            }
+        }
+
+    def _get_blob_path(self, prefix: str, oid: str) -> str:
+        """Get the path to a blob in storage
+        """
+        if not self.path_prefix:
+            storage_prefix = ''
+        elif self.path_prefix[0] == '/':
+            storage_prefix = self.path_prefix[1:]
+        else:
+            storage_prefix = self.path_prefix
+        return os.path.join(storage_prefix, prefix, oid)
+
+    def _get_signed_url(self, prefix: str, oid: str) -> str:
+        blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
+                                                           blob=self._get_blob_path(prefix, oid))
+        # TODO: generate SAS
+        return blob_client.url
+
+    def _init_container(self):
+        """Create the storage container
+        """
+        try:
+            self.blob_svc_client.create_container(self.container_name)
+        except ResourceExistsError:
+            pass
