@@ -2,7 +2,7 @@ import os
 from typing import Any, BinaryIO, Dict, Optional
 
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient  # type: ignore
 
 from giftless.transfer.basic_external import ExternalStorage
 from giftless.transfer.basic_streaming import StreamingStorage
@@ -22,7 +22,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
     def get(self, prefix: str, oid: str) -> BinaryIO:
         blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
                                                            blob=self._get_blob_path(prefix, oid))
-        return blob_client.download_blob().chunks()
+        return blob_client.download_blob().chunks()  # type: ignore
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
         blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
@@ -41,7 +41,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
         blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
                                                            blob=self._get_blob_path(prefix, oid))
         props = blob_client.get_blob_properties()
-        return props.size
+        return props.size  # type: ignore
 
     def verify_object(self, prefix: str, oid: str, size: int) -> bool:
         try:
@@ -103,7 +103,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
         blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
                                                            blob=self._get_blob_path(prefix, oid))
         # TODO: generate SAS
-        return blob_client.url
+        return blob_client.url  # type: ignore
 
     def _init_container(self):
         """Create the storage container

@@ -43,8 +43,8 @@ class BasicExternalBackendTransferAdapter(TransferAdapter, ViewProvider):
 
         prefix = os.path.join(organization, repo)
         response.update(self.storage.get_upload_action(prefix, oid, size))
-        if response.get('actions', {}).get('upload'):
-            response['actions']['verify'] = {
+        if response.get('actions', {}).get('upload'):  # type: ignore
+            response['actions']['verify'] = {  # type: ignore
                 "href": VerifyView.get_verify_url(organization, repo),
                 "header": {},
                 "expires_in": self.action_lifetime
