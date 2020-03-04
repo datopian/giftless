@@ -4,17 +4,82 @@ Giftless a Python implementation of a [Git LFS](1) Server. It is designed
 with flexibility in mind, to allow pluggable storage backends, transfer 
 methods and authentication methods. 
 
+Giftless supports the *basic* Git LFS transfer mode with the following 
+storage backends:
+* Local storage 
+* [Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/) 
+  with direct-to-cloud or streamed transfers 
+
+Additional transfer modes and storage backends could easily be added and
+configured.
+
 Installation & Quick Start
 --------------------------
 
 ### Running using Docker
-TBD
+You can build a Docker image as described below and then run it:
+
+    $ docker run --rm -P 5000:5000 datopian/giftless
+    
+This will run the server in WSGI mode, which will require an HTTP server 
+such as *nginx* to proxy HTTP requests to it. 
+
+Alternatively, you can specify the following command line arguments to 
+have uWSGI run in HTTP mode, if no complex HTTP setup is required:
+
+    $ docker run --rm -P 8080:8080 datopian/giftless \
+        -M -T --threads 2 -p 2 --manage-script-name --callable app \
+        --http 0.0.0.0:8080
+
 
 ### Installing & Running from Source
-TBD
+You can install and run `giftless` from source:
+
+    $ git clone git@gitlab.com:datopian/giftless.git
+    
+    # Initialize a virtual environment
+    $ cd giftless
+    $ python3 -m venv .venv
+    $ . .venv/bin/activate
+    $ (.venv) pip install -r requirements.txt
+    
+    # Install uWSGI or any other WSGI server
+    $ (.venv)  pip install uwsgi
+    
+    # Run uWSGI (this will vary based on your WSGI server of choice)
+    $ (.venv)  uwsgi -M -T --threads 2 -p 2 --manage-script-name \
+        --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
+    
+Note that for non-production use you may avoid using a WSGI server and rely
+on Flask's built in development server. This should **never** be done in a
+production environment:
+
+    $ (.venv) ./flask-develop
 
 ### Configuration
-TBD
+
+You can configure Giftless using a YAML file who's path is provided 
+at runtime as an environment variable:
+
+    $ cat giftless.yaml
+    
+    TRANSFER_ADAPTERS:
+      basic:
+        factory: giftless.transfer.basic_external:factory
+        options:
+          storage_class: ..storage.azure:AzureBlobsStorage
+          storage_options:
+            connection_string: GetYourAzureConnectionStringAndPutItHere==
+            container_name: lfs-storage
+            path_prefix: large-files
+
+    $ export GIFTLESS_CONFIG_FILE=giftless.yaml
+    
+    # Run uWSGI in HTTP mode on port 8080
+    $ uwsgi -M -T --threads 2 -p 2 --manage-script-name \
+        --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
+
+See `giftless/config.py` for some default configuration options. 
 
 Development
 -----------

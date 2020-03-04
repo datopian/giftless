@@ -7,3 +7,4 @@
 *.egg-info
 *.pyc
 /lfs-storage
+/*.local.yaml

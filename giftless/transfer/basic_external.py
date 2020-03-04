@@ -23,10 +23,10 @@ from giftless.util import get_callable
 class ExternalStorage(VerifiableStorage, ABC):
     """Interface for streaming storage adapters
     """
-    def get_upload_action(self, prefix: str, oid: str, size: int) -> Dict[str, Any]:
+    def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
         pass
 
-    def get_download_action(self, prefix: str, oid: str, size: int) -> Dict[str, Any]:
+    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
         pass
 
 
@@ -42,7 +42,7 @@ class BasicExternalBackendTransferAdapter(TransferAdapter, ViewProvider):
                     "authenticated": True}
 
         prefix = os.path.join(organization, repo)
-        response.update(self.storage.get_upload_action(prefix, oid, size))
+        response.update(self.storage.get_upload_action(prefix, oid, size, self.action_lifetime))
         if response.get('actions', {}).get('upload'):  # type: ignore
             response['actions']['verify'] = {  # type: ignore
                 "href": VerifyView.get_verify_url(organization, repo),
@@ -57,7 +57,7 @@ class BasicExternalBackendTransferAdapter(TransferAdapter, ViewProvider):
                     "size": size}
 
         prefix = os.path.join(organization, repo)
-        response.update(self.storage.get_download_action(prefix, oid, size))
+        response.update(self.storage.get_download_action(prefix, oid, size, self.action_lifetime))
         return response
 
     def register_views(self, app):
