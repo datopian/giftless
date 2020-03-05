@@ -26,6 +26,9 @@ default_config = {
     "JWT_SECRET_KEY": None,
     "TRANSFER_ADAPTERS": figcan.Extensible(default_transfer_config),
     "TESTING": False,
+    "AUTHENTICATORS": [
+        'dummy_authenticator'
+    ]
 }
 
 

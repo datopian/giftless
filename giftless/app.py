@@ -5,6 +5,7 @@ from flask_marshmallow import Marshmallow  # type: ignore
 
 from giftless import config, transfer, view
 
+from .authentication import authentication
 from .error_handling import ApiErrorHandler
 from .jwt import jwt
 
@@ -19,6 +20,7 @@ def init_app(app=None, additional_config=None):
 
     ApiErrorHandler(app)
     Marshmallow(app)
+    authentication.init_app(app)
     jwt.init_app(app)
 
     view.BatchView.register(app)

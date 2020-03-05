@@ -5,12 +5,16 @@ from webargs.flaskparser import parser  # type: ignore
 from werkzeug.exceptions import UnprocessableEntity
 
 from giftless import representation, schema, transfer
+from giftless.authentication import authentication as authn
 
 
 class BaseView(FlaskView):
     """This extends on Flask-Classful's base view class to add some common custom
     functionality
     """
+
+    decorators = [authn.login_required]
+
     representations = {'application/json': representation.output_json,
                        representation.GIT_LFS_MIME_TYPE: representation.output_git_lfs_json,
                        'flask-classful/default': representation.output_git_lfs_json}
