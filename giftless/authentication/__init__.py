@@ -8,7 +8,7 @@ from werkzeug.exceptions import Unauthorized as BaseUnauthorized
 
 from giftless.util import get_callable
 
-from .dummy import authenticate as dummy_authenticator  # noqa: F401
+from .allow_anon import authenticate as allow_anon  # noqa: F401
 
 # Types for "Authenticator" callable and "Identity"
 # This can probably be made more specific once our protocol is more clear
