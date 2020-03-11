@@ -170,14 +170,15 @@ class ObjectsView(BaseView):
 
 class BasicStreamingTransferAdapter(TransferAdapter, ViewProvider):
 
+    presign_actions = {'upload', 'download', 'verify'}
+
     def __init__(self, storage: StreamingStorage, action_lifetime: int):
         self.storage = storage
         self.action_lifetime = action_lifetime
 
     def upload(self, organization: str, repo: str, oid: str, size: int) -> Dict:
         response = {"oid": oid,
-                    "size": size,
-                    "authenticated": True}
+                    "size": size}
 
         prefix = os.path.join(organization, repo)
         if not self.storage.exists(prefix, oid) or self.storage.get_size(prefix, oid) != size:
@@ -214,16 +215,13 @@ class BasicStreamingTransferAdapter(TransferAdapter, ViewProvider):
             }
 
         else:
-            response.update({
-                "authenticated": True,
-                "actions": {
-                    "download": {
-                        "href": ObjectsView.get_storage_url('get', organization, repo, oid),
-                        "header": {},
-                        "expires_in": self.action_lifetime
-                    }
+            response['actions'] = {
+                "download": {
+                    "href": ObjectsView.get_storage_url('get', organization, repo, oid),
+                    "header": {},
+                    "expires_in": self.action_lifetime
                 }
-            })
+            }
 
         return response
 

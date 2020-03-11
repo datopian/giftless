@@ -76,5 +76,8 @@ class BatchView(BaseView):
 
                 headers['Authorization'] = f'Bearer {token}'
                 action_spec['header'] = headers
+                action_spec['expires_in'] = JWT.lifetime()
+
+        object['authenticated'] = True
 
         return object

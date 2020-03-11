@@ -45,6 +45,12 @@ class JWT:
             return None
         return cls._handler.generate_token(*args, **kwargs).decode('utf8')
 
+    @classmethod
+    def lifetime(cls) -> Optional[int]:
+        if cls._handler is None:
+            return None
+        return cls._handler.lifetime
+
 
 class JWTHandler:
 
