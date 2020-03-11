@@ -1,9 +1,9 @@
 figcan==0.0.*
 flask==1.1.*
-flask-jwt-simple==0.0.*
 flask-marshmallow==0.11.*
 marshmallow-enum==1.5.*
 pyyaml==5.*
+PyJWT==1.7.*
 webargs==5.5.*
 
 # For now we are using a development version of Flask-Classful which supports

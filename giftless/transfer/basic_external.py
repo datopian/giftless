@@ -32,6 +32,8 @@ class ExternalStorage(VerifiableStorage, ABC):
 
 class BasicExternalBackendTransferAdapter(TransferAdapter, ViewProvider):
 
+    presign_actions = {'verify'}
+
     def __init__(self, storage: ExternalStorage, default_action_lifetime: int):
         self.storage = storage
         self.action_lifetime = default_action_lifetime

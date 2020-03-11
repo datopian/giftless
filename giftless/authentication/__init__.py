@@ -81,6 +81,11 @@ class Authentication:
 
         self._authenticators = [_create_authenticator(a) for a in current_app.config['AUTHENTICATORS']]
 
+    def push_authenticator(self, authenticator):
+        """Push an authenticator at the top of the stack
+        """
+        self._authenticators.insert(0, authenticator)
+
     def _authenticate(self) -> Identity:
         """Call all registered authenticators until we find an identity
         """

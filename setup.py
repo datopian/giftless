@@ -11,10 +11,10 @@ setup(
         'figcan',
         'flask',
         'flask-classful',
-        'flask-jwt-simple',
         'flask-marshmallow',
         'marshmallow-enum',
         'pyyaml',
+        'PyJWT',
         'webargs'
     ],
     package_data={}

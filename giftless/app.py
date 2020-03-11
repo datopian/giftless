@@ -7,7 +7,7 @@ from giftless import config, transfer, view
 
 from .authentication import authentication
 from .error_handling import ApiErrorHandler
-from .jwt import jwt
+from .jwt import JWT
 
 
 def init_app(app=None, additional_config=None):
@@ -20,12 +20,11 @@ def init_app(app=None, additional_config=None):
 
     ApiErrorHandler(app)
     Marshmallow(app)
+
     authentication.init_app(app)
-    jwt.init_app(app)
+    JWT(app)
 
     view.BatchView.register(app)
-
-    # TODO: configure authentication
 
     # Load configured transfer adapters
     transfer.init_flask_app(app)

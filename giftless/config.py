@@ -22,13 +22,18 @@ default_transfer_config = {
 }
 
 default_config = {
-    "JWT_ALGORITHM": 'HS256',
     "JWT_SECRET_KEY": None,
     "TRANSFER_ADAPTERS": figcan.Extensible(default_transfer_config),
     "TESTING": False,
     "AUTHENTICATORS": [
         'allow_anon'
-    ]
+    ],
+    "JWT": {
+        'enabled': False,
+        'options': figcan.Extensible({
+            'secret_key': 'change-me',
+        })
+    }
 }
 
 
