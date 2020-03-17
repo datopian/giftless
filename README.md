@@ -54,7 +54,7 @@ Note that for non-production use you may avoid using a WSGI server and rely
 on Flask's built in development server. This should **never** be done in a
 production environment:
 
-    $ (.venv) ./flask-develop
+    $ (.venv) ./flask-develop.sh
 
 ### Configuration
 
