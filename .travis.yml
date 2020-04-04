@@ -4,11 +4,23 @@ python:
   - 3.7
   - 3.8
 
+env:
+  global:
+    - CC_TEST_REPORTER_ID=cca5a6743728de037cb47d4a845e35c682b4469c0f9c52851f4f3824dd471f87
+
 install:
   - pip install -r requirements.txt
   - pip install coveralls
 
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+
 script: make test PYTEST_EXTRA_ARGS="--cov=giftless"
+
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 
 after_success:
   - coveralls

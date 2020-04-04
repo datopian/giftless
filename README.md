@@ -2,6 +2,7 @@ Giftless - a Pluggable Git LFS Server
 =====================================
 
 [![Build Status](https://travis-ci.org/datopian/giftless.svg?branch=master)](https://travis-ci.org/datopian/giftless)
+[![Maintainability](https://api.codeclimate.com/v1/badges/58f05c5b5842c8bbbdbb/maintainability)](https://codeclimate.com/github/datopian/giftless/maintainability)
 
 Giftless a Python implementation of a [Git LFS](1) Server. It is designed 
 with flexibility in mind, to allow pluggable storage backends, transfer 
