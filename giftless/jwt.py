@@ -15,7 +15,7 @@ from typing import Optional
 
 import jwt
 
-from giftless.authentication import Unauthorized, authentication
+from giftless.auth import Unauthorized, authentication
 
 
 class JWT:
@@ -60,7 +60,7 @@ class JWTHandler:
 
     def __init__(self, secret_key: str, lifetime: int = DEFAULT_LIFETIME, algorithm: str = DEFAULT_ALGORITHM,
                  public_key: Optional[str] = None, issuer: Optional[str] = None, audience: Optional[str] = None,
-                 leeway: int = DEFAULT_LEEWAY):
+                 leeway: int = DEFAULT_LEEWAY, key_id: Optional[str] = None):
         self.algorithm = algorithm
         self.lifetime = lifetime
         self.leeway = leeway
@@ -68,6 +68,7 @@ class JWTHandler:
         self.public_key = public_key
         self.issuer = issuer
         self.audience = audience
+        self.key_id = key_id
 
     def authenticate(self, request):
         """Authenticate a request
@@ -76,9 +77,11 @@ class JWTHandler:
         if token is None:
             return None
 
-        # Check if this is a JWT token
+        # Check if this is a JWT token, and if it has the expected key ID
         try:
-            jwt.get_unverified_header(token)
+            header = jwt.get_unverified_header(token)
+            if self.key_id and self.key_id != header.get('kid'):
+                return None
         except jwt.PyJWTError:
             return None
 
@@ -93,12 +96,18 @@ class JWTHandler:
         """
         payload = {"exp": datetime.now() + timedelta(seconds=self.lifetime),
                    "sub": subject}
+
         if self.issuer:
             payload['iss'] = self.issuer
+
         if self.audience:
             payload['aud'] = self.audience
 
-        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
+        headers = {}
+        if self.key_id:
+            headers['kid'] = self.key_id
+
+        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm, headers=headers)
 
     def _get_token(self, request) -> Optional[str]:
         """Extract JWT token from request

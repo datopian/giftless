@@ -26,12 +26,13 @@ default_config = {
     "TRANSFER_ADAPTERS": figcan.Extensible(default_transfer_config),
     "TESTING": False,
     "AUTHENTICATORS": [
-        'allow_anon'
+        'giftless.auth.allow_anon:read_only'
     ],
     "JWT": {
         'enabled': False,
         'options': figcan.Extensible({
             'secret_key': 'change-me',
+            'key_id': 'giftless-internal-jwt-key'
         })
     }
 }

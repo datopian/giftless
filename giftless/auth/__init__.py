@@ -1,5 +1,6 @@
-"""Abstract authentication for Flask
+"""Abstract authentication and authorization layer
 """
+
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -8,12 +9,12 @@ from werkzeug.exceptions import Unauthorized as BaseUnauthorized
 
 from giftless.util import get_callable
 
-from .allow_anon import authenticate as allow_anon  # noqa: F401
+from . import allow_anon  # noqa: F401
+from .identity import Identity
 
-# Types for "Authenticator" callable and "Identity"
+# Type for "Authenticator"
 # This can probably be made more specific once our protocol is more clear
-Identity = Optional[Any]
-Authenticator = Callable[[Any], Identity]
+Authenticator = Callable[[Any], 'Identity']
 
 # We'll use the Werkzeug exception for Unauthorized, but encapsulate it
 Unauthorized = BaseUnauthorized
@@ -35,9 +36,15 @@ class Authentication:
         app.config.setdefault('AUTHENTICATORS', [])
 
     def get_identity(self) -> Identity:
-        if not hasattr(g, 'user') or g.user is None:
-            g.user = self._authenticate()
-        return g.user
+        if hasattr(g, 'user') and isinstance(g.user, Identity):
+            return g.user
+
+        g.user = self._authenticate()
+        if g.user is None:
+            # Fall back to returning an anon user with no permissions
+            return allow_anon.AnonymousUser()
+        else:
+            return g.user
 
     def login_required(self, f):
         """A typical Flask "login_required" view decorator
@@ -86,7 +93,7 @@ class Authentication:
         """
         self._authenticators.insert(0, authenticator)
 
-    def _authenticate(self) -> Identity:
+    def _authenticate(self) -> Optional[Identity]:
         """Call all registered authenticators until we find an identity
         """
         self.init_authenticators()

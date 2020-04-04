@@ -4,10 +4,10 @@ from typing import Any, Dict
 
 from flask_classful import FlaskView
 from webargs.flaskparser import parser  # type: ignore
-from werkzeug.exceptions import UnprocessableEntity
 
-from giftless import representation, schema, transfer
-from giftless.authentication import authentication as authn
+from giftless import exc, representation, schema, transfer
+from giftless.auth import authentication as authn
+from giftless.auth.identity import Permission
 from giftless.jwt import JWT
 from giftless.transfer import TransferAdapter
 
@@ -33,6 +33,12 @@ class BaseView(FlaskView):
         return super().register(app, route_base, subdomain, route_prefix, trailing_slash, method_dashified, base_class,
                                 **rule_options)
 
+    def _check_authorization(self, organization, repo, permission, oid=None):
+        """Check the current user is authorized to perform an action
+        """
+        if not authn.get_identity().is_authorized(organization, repo, permission, oid):
+            raise exc.Forbidden("Your are not authorized to perform this action")
+
 
 class BatchView(BaseView):
     """Batch operations
@@ -43,10 +49,14 @@ class BatchView(BaseView):
         """Batch operations
         """
         payload = parser.parse(schema.batch_request_schema)
+
         try:
             transfer_type, adapter = transfer.match_transfer_adapter(payload['transfers'])
         except ValueError as e:
-            raise UnprocessableEntity(e)
+            raise exc.InvalidPayload(e)
+
+        permission = Permission.WRITE if payload['operation'] == schema.Operation.upload else Permission.READ
+        self._check_authorization(organization, repo, permission)
 
         response = {"transfer": transfer_type}
         action = adapter.get_action(payload['operation'].value, organization, repo)

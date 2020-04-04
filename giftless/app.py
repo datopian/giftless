@@ -5,7 +5,7 @@ from flask_marshmallow import Marshmallow  # type: ignore
 
 from giftless import config, transfer, view
 
-from .authentication import authentication
+from .auth import authentication
 from .error_handling import ApiErrorHandler
 from .jwt import JWT
 
