@@ -10,7 +10,6 @@ env:
 
 install:
   - pip install -r requirements.txt
-  - pip install coveralls
 
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
@@ -22,9 +21,6 @@ script: make test PYTEST_EXTRA_ARGS="--cov=giftless"
 after_script:
   - coverage xml
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
-
-after_success:
-  - coveralls
 
 cache:
   directories:
