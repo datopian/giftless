@@ -6,11 +6,12 @@ python:
 
 install:
   - pip install -r requirements.txt
+  - pip install coveralls
 
-script: make test
+script: make test PYTEST_EXTRA_ARGS="--cov=giftless"
 
-#after_success:
-#  - coveralls
+after_success:
+  - coveralls
 
 cache:
   directories:

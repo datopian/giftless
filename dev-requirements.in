@@ -4,3 +4,4 @@ pytest-flake8==1.0.*
 pytest-isort==0.3.*
 pytest-mypy==0.5.*
 pytest-env==0.6.*
+pytest-cov==2.8.*

@@ -1,5 +1,8 @@
 Giftless - a Pluggable Git LFS Server
 =====================================
+
+[![Build Status](https://travis-ci.org/datopian/giftless.svg?branch=master)](https://travis-ci.org/datopian/giftless)
+
 Giftless a Python implementation of a [Git LFS](1) Server. It is designed 
 with flexibility in mind, to allow pluggable storage backends, transfer 
 methods and authentication methods. 
@@ -141,6 +144,7 @@ Will build a Docekr image tagged `mycompany/giftless:1.2.3`.
 License
 -------
 Copyright (C) 2020, Viderum, Inc. 
+
 Giftless is free / open source software and is distributed under the terms of 
 the MIT license. See [LICENSE](LICENSE) for details.  
 
