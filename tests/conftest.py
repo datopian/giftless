@@ -33,6 +33,7 @@ def app(storage_path):
             }
         }
     })
+    app.config.update({"SERVER_NAME": 'giftless.local'})
     return app
 
 

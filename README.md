@@ -40,7 +40,7 @@ have uWSGI run in HTTP mode, if no complex HTTP setup is required:
 ### Installing & Running from Source
 You can install and run `giftless` from source:
 
-    $ git clone git@gitlab.com:datopian/giftless.git
+    $ git clone https://github.com/datopian/giftless.git
     
     # Initialize a virtual environment
     $ cd giftless
