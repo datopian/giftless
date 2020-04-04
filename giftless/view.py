@@ -26,12 +26,10 @@ class BaseView(FlaskView):
     trailing_slash = False
 
     @classmethod
-    def register(cls, app, route_base=None, subdomain=None, route_prefix=None, trailing_slash=None,
-                 method_dashified=None, base_class=None, **rule_options):
-        if base_class is None:
-            base_class = BaseView
-        return super().register(app, route_base, subdomain, route_prefix, trailing_slash, method_dashified, base_class,
-                                **rule_options)
+    def register(cls, *args, **kwargs):
+        if kwargs.get('base_class') is None:
+            kwargs['base_class'] = BaseView
+        return super().register(*args, **kwargs)
 
     def _check_authorization(self, organization, repo, permission, oid=None):
         """Check the current user is authorized to perform an action
