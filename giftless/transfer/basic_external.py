@@ -40,12 +40,12 @@ class BasicExternalBackendTransferAdapter(TransferAdapter, ViewProvider):
 
     def upload(self, organization: str, repo: str, oid: str, size: int) -> Dict:
         response = {"oid": oid,
-                    "size": size,
-                    "authenticated": True}
+                    "size": size}
 
         prefix = os.path.join(organization, repo)
         response.update(self.storage.get_upload_action(prefix, oid, size, self.action_lifetime))
         if response.get('actions', {}).get('upload'):  # type: ignore
+            response['authenticated'] = True
             response['actions']['verify'] = {  # type: ignore
                 "href": VerifyView.get_verify_url(organization, repo),
                 "header": {},
@@ -60,6 +60,9 @@ class BasicExternalBackendTransferAdapter(TransferAdapter, ViewProvider):
 
         prefix = os.path.join(organization, repo)
         response.update(self.storage.get_download_action(prefix, oid, size, self.action_lifetime))
+        if response.get('actions', {}).get('download'):  # type: ignore
+            response['authenticated'] = True
+
         return response
 
     def register_views(self, app):

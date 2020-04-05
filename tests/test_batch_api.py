@@ -9,10 +9,6 @@ from .helpers import batch_request_payload, create_file_in_storage
 def test_upload_batch_request(test_client):
     """Test an invalid payload error
     """
-    # app_config.update({"AUTHENTICATORS": [
-    #     'giftless.auth.allow_anon:read_write'
-    # ]})
-
     request_payload = batch_request_payload(operation='upload')
     response = test_client.post('/myorg/myrepo/objects/batch',
                                 json=request_payload)

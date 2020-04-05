@@ -56,7 +56,67 @@ def test_upload_action_existing_file():
     assert response == {
         "oid": 'abcdef123456',
         "size": 1234,
-        "authenticated": True
+    }
+
+
+@pytest.mark.usefixtures('app_context')
+def test_download_action_existing_file():
+    storage = MockExternalStorageBackend()
+    adapter = basic_external.BasicExternalBackendTransferAdapter(storage, 900)
+
+    # Add an "existing object"
+    storage.existing_objects[('myorg/myrepo', 'abcdef123456')] = 1234
+    response = adapter.download('myorg', 'myrepo', 'abcdef123456', 1234)
+
+    assert response == {
+        "oid": 'abcdef123456',
+        "size": 1234,
+        "authenticated": True,
+        "actions": {
+            "download": {
+                "href": 'https://cloudstorage.example.com/myorg/myrepo/abcdef123456?expires_in=900',
+                "header": {},
+                "expires_in": 900
+            }
+        }
+    }
+
+
+@pytest.mark.usefixtures('app_context')
+def test_download_action_non_existing_file():
+    storage = MockExternalStorageBackend()
+    adapter = basic_external.BasicExternalBackendTransferAdapter(storage, 900)
+
+    # Add an "existing object"
+    storage.existing_objects[('myorg/myrepo', '123456abcdef')] = 1234
+    response = adapter.download('myorg', 'myrepo', 'abcdef123456', 1234)
+
+    assert response == {
+        "oid": 'abcdef123456',
+        "size": 1234,
+        "error": {
+            "code": 404,
+            "message": "Object does not exist"
+        }
+    }
+
+
+@pytest.mark.usefixtures('app_context')
+def test_download_action_size_mismatch():
+    storage = MockExternalStorageBackend()
+    adapter = basic_external.BasicExternalBackendTransferAdapter(storage, 900)
+
+    # Add an "existing object"
+    storage.existing_objects[('myorg/myrepo', 'abcdef123456')] = 1234
+    response = adapter.download('myorg', 'myrepo', 'abcdef123456', 12345)
+
+    assert response == {
+        "oid": 'abcdef123456',
+        "size": 12345,
+        "error": {
+            "code": 422,
+            "message": "Object size does not match"
+        }
     }
 
 
