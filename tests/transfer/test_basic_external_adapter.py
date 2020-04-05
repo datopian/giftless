@@ -3,6 +3,7 @@ from typing import Any, Dict, Tuple
 import pytest
 
 from giftless.transfer import basic_external
+from giftless.transfer.exc import ObjectNotFound
 
 
 def test_factory_returns_object():
@@ -131,11 +132,16 @@ class MockExternalStorageBackend(basic_external.ExternalStorage):
         self.existing_objects: Dict[Tuple[str, str], int] = {}
         self.base_url = base_url
 
-    def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
-        if (prefix, oid) in self.existing_objects and self.existing_objects[(prefix, oid)] == size:
-            # No upload required, we already have this object
-            return {}
+    def exists(self, prefix: str, oid: str) -> bool:
+        return (prefix, oid) in self.existing_objects
 
+    def get_size(self, prefix: str, oid: str) -> int:
+        try:
+            return self.existing_objects[(prefix, oid)]
+        except KeyError:
+            raise ObjectNotFound("Object does not exist")
+
+    def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
         return {
             "actions": {
                 "upload": {
@@ -147,19 +153,6 @@ class MockExternalStorageBackend(basic_external.ExternalStorage):
         }
 
     def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
-        try:
-            if self.existing_objects[(prefix, oid)] != size:
-                return {"error": {
-                    "code": 422,
-                    "message": "Object size does not match"
-                }}
-        except KeyError:
-            # Object does not exist, return 404
-            return {"error": {
-                "code": 404,
-                "message": "Object does not exist"
-            }}
-
         return {
             "actions": {
                 "download": {

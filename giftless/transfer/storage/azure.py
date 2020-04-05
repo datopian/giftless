@@ -7,6 +7,7 @@ from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient
 
 from giftless.transfer.basic_external import ExternalStorage
 from giftless.transfer.basic_streaming import StreamingStorage
+from giftless.transfer.exc import ObjectNotFound
 
 
 class AzureBlobsStorage(StreamingStorage, ExternalStorage):
@@ -39,22 +40,15 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
             return False
 
     def get_size(self, prefix: str, oid: str) -> int:
-        blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
-                                                           blob=self._get_blob_path(prefix, oid))
-        props = blob_client.get_blob_properties()
-        return props.size  # type: ignore
-
-    def verify_object(self, prefix: str, oid: str, size: int) -> bool:
         try:
-            return self.get_size(prefix, oid) == size
+            blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
+                                                               blob=self._get_blob_path(prefix, oid))
+            props = blob_client.get_blob_properties()
+            return props.size  # type: ignore
         except ResourceNotFoundError:
-            return False
+            raise ObjectNotFound("Object does not exist")
 
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
-        if self.verify_object(prefix, oid, size):
-            # No upload required, we already have this object
-            return {}
-
         return {
             "actions": {
                 "upload": {
@@ -68,19 +62,6 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
         }
 
     def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
-        try:
-            if self.get_size(prefix, oid) != size:
-                return {"error": {
-                    "code": 422,
-                    "message": "Object size does not match"
-                }}
-        except ResourceNotFoundError:
-            # Object does not exist, return 404
-            return {"error": {
-                "code": 404,
-                "message": "Object does not exist"
-            }}
-
         return {
             "actions": {
                 "download": {
