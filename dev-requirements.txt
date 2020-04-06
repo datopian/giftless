@@ -31,6 +31,6 @@ pytest-mypy==0.5.0        # via -r dev-requirements.in
 pytest==5.3.5             # via -r dev-requirements.in, pytest-cov, pytest-env, pytest-flake8, pytest-isort, pytest-mypy
 six==1.14.0               # via packaging, pip-tools
 typed-ast==1.4.1          # via mypy
-typing-extensions==3.7.4.1  # via mypy
+typing-extensions==3.7.4.2  # via mypy
 wcwidth==0.1.8            # via pytest
 zipp==3.0.0               # via importlib-metadata

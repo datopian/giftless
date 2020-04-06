@@ -3,19 +3,19 @@
 See https://github.com/git-lfs/git-lfs/blob/master/docs/api/basic-transfers.md
 for more information about what transfer APIs do in Git LFS.
 """
+from abc import ABC
 from functools import partial
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
+from giftless.auth import PreAuthorizedActionAuthenticator, authentication
 from giftless.util import get_callable
 
 _registered_adapters: Dict[str, 'TransferAdapter'] = {}
 
 
-class TransferAdapter:
+class TransferAdapter(ABC):
     """A transfer adapter tells Git LFS Server how to respond to batch API requests
     """
-    presign_actions: Optional[Set[str]] = None
-
     def upload(self, organization: str, repo: str, oid: str, size: int) -> Dict:
         raise NotImplementedError("This transfer adapter is not fully implemented")
 
@@ -26,6 +26,17 @@ class TransferAdapter:
         """Shortcut for quickly getting an action callable for transfer adapter objects
         """
         return partial(getattr(self, name), organization=organization, repo=repo)
+
+
+class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
+    """A transfer adapter that can pre-authohrize one or more of the actions it supports
+    """
+    preauth_handler: Optional[PreAuthorizedActionAuthenticator] = None
+
+    def _preauth_action(self, action: Dict[str, Any]) -> Dict[str, Any]:
+        if self.preauth_handler:
+            return self.preauth_handler.authorize_action(action)
+        return action
 
 
 class ViewProvider:
@@ -71,5 +82,8 @@ def match_transfer_adapter(transfers: List[str]) -> Tuple[str, TransferAdapter]:
 def _init_adapter(config: Dict) -> TransferAdapter:
     """Call adapter factory to create a transfer adapter instance
     """
-    factory = get_callable(config['factory'])
-    return factory(**config.get('options', {}))  # type: ignore
+    factory = get_callable(config['factory'])  # type: Callable[..., TransferAdapter]
+    adapter: TransferAdapter = factory(**config.get('options', {}))
+    if isinstance(adapter, PreAuthorizingTransferAdapter):
+        adapter.preauth_handler = authentication.preauth_handler
+    return adapter

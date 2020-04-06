@@ -5,6 +5,7 @@ from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from flask import current_app, g, request
+from typing_extensions import Protocol
 from werkzeug.exceptions import Unauthorized as BaseUnauthorized
 
 from giftless.util import get_callable
@@ -12,12 +13,31 @@ from giftless.util import get_callable
 from . import allow_anon  # noqa: F401
 from .identity import Identity
 
-# Type for "Authenticator"
-# This can probably be made more specific once our protocol is more clear
-Authenticator = Callable[[Any], 'Identity']
-
 # We'll use the Werkzeug exception for Unauthorized, but encapsulate it
 Unauthorized = BaseUnauthorized
+
+
+# Type for "Authenticator"
+# This can probably be made more specific once our protocol is more clear
+class Authenticator(Protocol):
+    """Authenticators are callables (an object or function) that can authenticate
+    a request and provide an identity object
+    """
+    def __call__(self, request: Any) -> Optional[Identity]:
+        raise NotImplementedError('This is a protocol definition and should not be called directly')
+
+
+class PreAuthorizedActionAuthenticator(Authenticator):
+    """Pre-authorized action authenticators are special authenticators
+    that can also pre-authorize a follow-up action to the Git LFS server
+
+    They serve to both pre-authorize Git LFS actions and check these actions
+    are authorized as they come in.
+    """
+    def authorize_action(self, action: Dict[str, Any]) -> Dict[str, Any]:
+        """Authorize an action
+        """
+        raise NotImplementedError('Implement this method in inheriting classes')
 
 
 class Authentication:
@@ -26,6 +46,7 @@ class Authentication:
         self._default_identity = default_identity
         self._authenticators: List[Authenticator] = []
         self._unauthorized_handler: Optional[Callable] = None
+        self.preauth_handler: Optional[PreAuthorizedActionAuthenticator] = None
 
         if app is not None:
             self.init_app(app)
@@ -33,7 +54,7 @@ class Authentication:
     def init_app(self, app):
         """Initialize the Flask app
         """
-        app.config.setdefault('AUTHENTICATORS', [])
+        app.config.setdefault('AUTH_PROVIDERS', [])
 
     def get_identity(self) -> Identity:
         if hasattr(g, 'user') and isinstance(g.user, Identity):
@@ -86,7 +107,11 @@ class Authentication:
         if self._authenticators:
             return
 
-        self._authenticators = [_create_authenticator(a) for a in current_app.config['AUTHENTICATORS']]
+        self._authenticators = [_create_authenticator(a) for a in current_app.config['AUTH_PROVIDERS']]
+
+        if current_app.config['PRE_AUTHORIZED_ACTION_PROVIDER']:
+            self._preauth_handler = _create_authenticator(current_app.config['PRE_AUTHORIZED_ACTION_PROVIDER'])
+            self.push_authenticator(self._preauth_handler)
 
     def push_authenticator(self, authenticator):
         """Push an authenticator at the top of the stack

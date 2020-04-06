@@ -5,6 +5,7 @@ marshmallow-enum==1.5.*
 pyyaml==5.*
 PyJWT==1.7.*
 webargs==5.5.*
+typing-extensions==3.7.*
 
 # For now we are using a development version of Flask-Classful which supports
 # passing init arguments to view classes when they are registered. Hopefully

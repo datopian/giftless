@@ -7,7 +7,6 @@ from giftless import config, transfer, view
 
 from .auth import authentication
 from .error_handling import ApiErrorHandler
-from .jwt import JWT
 
 
 def init_app(app=None, additional_config=None):
@@ -22,7 +21,6 @@ def init_app(app=None, additional_config=None):
     Marshmallow(app)
 
     authentication.init_app(app)
-    JWT(app)
 
     view.BatchView.register(app)
 

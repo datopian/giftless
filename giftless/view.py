@@ -1,15 +1,11 @@
 """Flask-Classful View Classes
 """
-from typing import Any, Dict
-
 from flask_classful import FlaskView
 from webargs.flaskparser import parser  # type: ignore
 
 from giftless import exc, representation, schema, transfer
 from giftless.auth import authentication as authn
 from giftless.auth.identity import Permission
-from giftless.jwt import JWT
-from giftless.transfer import TransferAdapter
 
 
 class BaseView(FlaskView):
@@ -58,7 +54,7 @@ class BatchView(BaseView):
 
         response = {"transfer": transfer_type}
         action = adapter.get_action(payload['operation'].value, organization, repo)
-        response['objects'] = [self._sign_actions(adapter, action(**o)) for o in payload['objects']]
+        response['objects'] = [action(**o) for o in payload['objects']]
 
         # TODO: Check if *all* objects have errors and if so return 422
         # TODO: Check Accept header
@@ -66,26 +62,3 @@ class BatchView(BaseView):
 
         return response
 
-    def _sign_actions(self, adapter: TransferAdapter, object: Dict[str, Any]):
-        """Sign object actions using JWT token if we need to and JWT is configured
-        """
-        if not adapter.presign_actions:
-            return object
-
-        for action_name, action_spec in object['actions'].items():
-            if action_name in adapter.presign_actions:
-                headers = action_spec.get('header', {})
-                if 'Authorization' in headers or 'authorization' in headers:
-                    continue
-
-                token = JWT.token('foobaz')
-                if token is None:
-                    continue
-
-                headers['Authorization'] = f'Bearer {token}'
-                action_spec['header'] = headers
-                action_spec['expires_in'] = JWT.lifetime()
-
-        object['authenticated'] = True
-
-        return object

@@ -15,7 +15,7 @@ import os
 from abc import ABC
 from typing import Any, Dict
 
-from giftless.transfer import TransferAdapter, ViewProvider
+from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
 from giftless.transfer.basic_streaming import VerifiableStorage, VerifyView
 from giftless.util import get_callable
 
@@ -44,9 +44,7 @@ class ExternalStorage(VerifiableStorage, ABC):
             return False
 
 
-class BasicExternalBackendTransferAdapter(TransferAdapter, ViewProvider):
-
-    presign_actions = {'verify'}
+class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
 
     def __init__(self, storage: ExternalStorage, default_action_lifetime: int):
         self.storage = storage
@@ -64,11 +62,11 @@ class BasicExternalBackendTransferAdapter(TransferAdapter, ViewProvider):
         response.update(self.storage.get_upload_action(prefix, oid, size, self.action_lifetime))
         if response.get('actions', {}).get('upload'):  # type: ignore
             response['authenticated'] = True
-            response['actions']['verify'] = {  # type: ignore
+            response['actions']['verify'] = self._preauth_action({  # type: ignore
                 "href": VerifyView.get_verify_url(organization, repo),
                 "header": {},
                 "expires_in": self.action_lifetime
-            }
+            })
 
         return response
 

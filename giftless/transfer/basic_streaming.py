@@ -17,7 +17,7 @@ from webargs.flaskparser import parser  # type: ignore
 
 from giftless.exc import InvalidPayload, NotFound
 from giftless.schema import ObjectSchema
-from giftless.transfer import TransferAdapter, ViewProvider
+from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
 from giftless.util import get_callable
 from giftless.view import BaseView
 
@@ -168,9 +168,7 @@ class ObjectsView(BaseView):
         return url
 
 
-class BasicStreamingTransferAdapter(TransferAdapter, ViewProvider):
-
-    presign_actions = {'upload', 'download', 'verify'}
+class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
 
     def __init__(self, storage: StreamingStorage, action_lifetime: int):
         self.storage = storage
@@ -183,16 +181,16 @@ class BasicStreamingTransferAdapter(TransferAdapter, ViewProvider):
         prefix = os.path.join(organization, repo)
         if not self.storage.exists(prefix, oid) or self.storage.get_size(prefix, oid) != size:
             response['actions'] = {
-                "upload": {
+                "upload": self._preauth_action({
                     "href": ObjectsView.get_storage_url('put', organization, repo, oid),
                     "header": {},
                     "expires_in": self.action_lifetime
-                },
-                "verify": {
+                }),
+                "verify": self._preauth_action({
                     "href": VerifyView.get_verify_url(organization, repo),
                     "header": {},
                     "expires_in": self.action_lifetime
-                }
+                })
             }
 
         return response
@@ -216,11 +214,11 @@ class BasicStreamingTransferAdapter(TransferAdapter, ViewProvider):
 
         else:
             response['actions'] = {
-                "download": {
+                "download": self._preauth_action({
                     "href": ObjectsView.get_storage_url('get', organization, repo, oid),
                     "header": {},
                     "expires_in": self.action_lifetime
-                }
+                })
             }
 
         return response

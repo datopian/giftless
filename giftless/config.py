@@ -22,19 +22,22 @@ default_transfer_config = {
 }
 
 default_config = {
-    "JWT_SECRET_KEY": None,
     "TRANSFER_ADAPTERS": figcan.Extensible(default_transfer_config),
     "TESTING": False,
-    "AUTHENTICATORS": [
+    "AUTH_PROVIDERS": [
         'giftless.auth.allow_anon:read_only'
     ],
-    "JWT": {
-        'enabled': False,
-        'options': figcan.Extensible({
-            'secret_key': 'change-me',
-            'key_id': 'giftless-internal-jwt-key'
-        })
-    }
+    "PRE_AUTHORIZED_ACTION_PROVIDER": {
+        'factory': 'giftless.auth.jwt:factory',
+        'options': {
+            'algorithm': 'HS256',
+            'private_key': 'change-me',
+            'private_key_file': None,
+            'public_key': None,
+            'public_key_file': None,
+            'key_id': 'giftless-internal-jwt-key',
+        }
+    },
 }
 
 
