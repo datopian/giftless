@@ -56,9 +56,17 @@ class BatchView(BaseView):
         action = adapter.get_action(payload['operation'].value, organization, repo)
         response['objects'] = [action(**o) for o in payload['objects']]
 
+        if all(self._is_error(o, 404) for o in response['objects']):
+            raise exc.NotFound("Cannot find any of the requested objects")
+
         # TODO: Check if *all* objects have errors and if so return 422
         # TODO: Check Accept header
         # TODO: do we need an output schema?
 
         return response
 
+    def _is_error(self, obj, code):
+        try:
+            return obj['error']['code'] == code
+        except KeyError:
+            return False

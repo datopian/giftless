@@ -90,3 +90,23 @@ def test_download_batch_request_two_files_one_missing(test_client, storage_path)
     assert 'actions' not in object
     assert object['error']['code'] == 404
 
+
+def test_download_batch_request_two_files_missing(test_client, storage_path):
+    """Test batch API with a two object download request where one file 404
+    """
+    request_payload = batch_request_payload(operation='download')
+    request_payload['objects'].append({
+        "oid": "12345679",
+        "size": 5555
+    })
+
+    response = test_client.post('/myorg/myrepo/objects/batch',
+                                json=request_payload)
+
+    assert 404 == response.status_code
+    assert 'application/vnd.git-lfs+json' == response.content_type
+
+    payload = response.json
+    assert 'message' in payload
+    assert 'objects' not in payload
+    assert 'transfer' not in payload
