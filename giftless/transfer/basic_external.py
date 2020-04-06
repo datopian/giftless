@@ -62,11 +62,12 @@ class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewPro
         response.update(self.storage.get_upload_action(prefix, oid, size, self.action_lifetime))
         if response.get('actions', {}).get('upload'):  # type: ignore
             response['authenticated'] = True
-            response['actions']['verify'] = self._preauth_action({  # type: ignore
+            headers = self._preauth_headers(organization, repo, actions={'verify'}, oid=oid)
+            response['actions']['verify'] = {  # type: ignore
                 "href": VerifyView.get_verify_url(organization, repo),
-                "header": {},
+                "header": headers,
                 "expires_in": self.action_lifetime
-            })
+            }
 
         return response
 

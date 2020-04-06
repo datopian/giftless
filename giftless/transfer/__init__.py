@@ -5,7 +5,7 @@ for more information about what transfer APIs do in Git LFS.
 """
 from abc import ABC
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 from giftless.auth import PreAuthorizedActionAuthenticator, authentication
 from giftless.util import get_callable
@@ -33,10 +33,11 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
     """
     preauth_handler: Optional[PreAuthorizedActionAuthenticator] = None
 
-    def _preauth_action(self, action: Dict[str, Any]) -> Dict[str, Any]:
+    def _preauth_headers(self, org: str, repo: str, actions: Optional[Set[str]] = None,
+                         oid: Optional[str] = None) -> Dict[str, str]:
         if self.preauth_handler:
-            return self.preauth_handler.authorize_action(action)
-        return action
+            return self.preauth_handler.get_authz_header(authentication.get_identity(), org, repo, actions, oid)
+        return {}
 
 
 class ViewProvider:

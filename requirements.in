@@ -7,6 +7,9 @@ PyJWT==1.7.*
 webargs==5.5.*
 typing-extensions==3.7.*
 
+# We want the latest timezone database so keep this with no pinned version
+pytz
+
 # For now we are using a development version of Flask-Classful which supports
 # passing init arguments to view classes when they are registered. Hopefully
 # it is released as 0.15 soon and we can start pinning to it.

@@ -2,7 +2,7 @@
 """
 
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 from flask import current_app, g, request
 from typing_extensions import Protocol
@@ -34,7 +34,8 @@ class PreAuthorizedActionAuthenticator(Authenticator):
     They serve to both pre-authorize Git LFS actions and check these actions
     are authorized as they come in.
     """
-    def authorize_action(self, action: Dict[str, Any]) -> Dict[str, Any]:
+    def get_authz_header(self, identity: Identity, org: str, repo: str, actions: Optional[Set[str]] = None,
+                         oid: Optional[str] = None) -> Dict[str, str]:
         """Authorize an action
         """
         raise NotImplementedError('Implement this method in inheriting classes')
