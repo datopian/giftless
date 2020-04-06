@@ -1,5 +1,7 @@
 """Flask-Classful View Classes
 """
+from typing import Any, Dict, Optional
+
 from flask_classful import FlaskView
 from webargs.flaskparser import parser  # type: ignore
 
@@ -59,14 +61,16 @@ class BatchView(BaseView):
         if all(self._is_error(o, 404) for o in response['objects']):
             raise exc.NotFound("Cannot find any of the requested objects")
 
-        # TODO: Check if *all* objects have errors and if so return 422
+        if all(self._is_error(o) for o in response['objects']):
+            raise exc.InvalidPayload("Cannot validate any of the requested objects")
+
         # TODO: Check Accept header
         # TODO: do we need an output schema?
 
         return response
 
-    def _is_error(self, obj, code):
+    def _is_error(self, obj: Dict[str, Any], code: Optional[int] = None):
         try:
-            return obj['error']['code'] == code
+            return obj['error']['code'] == code or code is None
         except KeyError:
             return False

@@ -34,7 +34,7 @@ def create_file_in_storage(storage_path, org, repo, filename, size=1):
     This assumes cleanup is done somewhere else (e.g. in the 'storage_path' fixture)
     """
     repo_path = os.path.join(storage_path, org, repo)
-    os.makedirs(repo_path)
+    os.makedirs(repo_path, exist_ok=True)
     with open(os.path.join(repo_path, filename), 'wb') as f:
         for c in (b'0' for _ in range(size)):
             f.write(c)
