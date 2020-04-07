@@ -15,6 +15,7 @@ from flask import Response, request, url_for
 from flask_classful import route
 from webargs.flaskparser import parser  # type: ignore
 
+from giftless.auth.identity import Permission
 from giftless.exc import InvalidPayload, NotFound
 from giftless.schema import ObjectSchema
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
@@ -115,8 +116,10 @@ class VerifyView(BaseView):
     def verify(self, organization, repo):
         schema = ObjectSchema()
         payload = parser.parse(schema)
-        prefix = os.path.join(organization, repo)
 
+        self._check_authorization(organization, repo, Permission.READ_META, oid=payload['oid'])
+
+        prefix = os.path.join(organization, repo)
         if not self.storage.verify_object(prefix, payload['oid'], payload['size']):
             raise InvalidPayload("Object does not exist or size does not match")
         return Response(status=200)
@@ -145,6 +148,7 @@ class ObjectsView(BaseView):
         into the WSGI Server -> Werkzeug -> Flask stack, and it may also depend on specific WSGI
         server implementation and even how a proxy (e.g. nginx) is configured.
         """
+        self._check_authorization(organization, repo, Permission.WRITE, oid=oid)
         stream = request.stream
         self.storage.put(prefix=f'{organization}/{repo}', oid=oid, data_stream=stream)
         return Response(status=200)
@@ -152,6 +156,7 @@ class ObjectsView(BaseView):
     def get(self, organization, repo, oid):
         """Get an file open file stream from local storage
         """
+        self._check_authorization(organization, repo, Permission.READ, oid=oid)
         path = os.path.join(organization, repo)
         if self.storage.exists(path, oid):
             file = self.storage.get(path, oid)
