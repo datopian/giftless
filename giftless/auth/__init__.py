@@ -56,6 +56,7 @@ class Authentication:
         """Initialize the Flask app
         """
         app.config.setdefault('AUTH_PROVIDERS', [])
+        app.config.setdefault('PRE_AUTHORIZED_ACTION_PROVIDER', None)
 
     def get_identity(self) -> Identity:
         if hasattr(g, 'user') and isinstance(g.user, Identity):
@@ -111,8 +112,8 @@ class Authentication:
         self._authenticators = [_create_authenticator(a) for a in current_app.config['AUTH_PROVIDERS']]
 
         if current_app.config['PRE_AUTHORIZED_ACTION_PROVIDER']:
-            self._preauth_handler = _create_authenticator(current_app.config['PRE_AUTHORIZED_ACTION_PROVIDER'])
-            self.push_authenticator(self._preauth_handler)
+            self.preauth_handler = _create_authenticator(current_app.config['PRE_AUTHORIZED_ACTION_PROVIDER'])
+            self.push_authenticator(self.preauth_handler)
 
     def push_authenticator(self, authenticator):
         """Push an authenticator at the top of the stack

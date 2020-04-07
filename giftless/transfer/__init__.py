@@ -7,7 +7,7 @@ from abc import ABC
 from functools import partial
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
-from giftless.auth import PreAuthorizedActionAuthenticator, authentication
+from giftless.auth import Authentication, authentication
 from giftless.util import get_callable
 
 _registered_adapters: Dict[str, 'TransferAdapter'] = {}
@@ -31,12 +31,18 @@ class TransferAdapter(ABC):
 class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
     """A transfer adapter that can pre-authohrize one or more of the actions it supports
     """
-    preauth_handler: Optional[PreAuthorizedActionAuthenticator] = None
+    _auth_module: Optional[Authentication] = None
+
+    def set_auth_module(self, auth_module: Authentication):
+        self._auth_module = auth_module
 
     def _preauth_headers(self, org: str, repo: str, actions: Optional[Set[str]] = None,
                          oid: Optional[str] = None) -> Dict[str, str]:
-        if self.preauth_handler:
-            return self.preauth_handler.get_authz_header(authentication.get_identity(), org, repo, actions, oid)
+        if self._auth_module and self._auth_module.preauth_handler:
+            return self._auth_module.preauth_handler.get_authz_header(
+                self._auth_module.get_identity(), org, repo, actions, oid
+            )
+
         return {}
 
 
@@ -86,5 +92,5 @@ def _init_adapter(config: Dict) -> TransferAdapter:
     factory = get_callable(config['factory'])  # type: Callable[..., TransferAdapter]
     adapter: TransferAdapter = factory(**config.get('options', {}))
     if isinstance(adapter, PreAuthorizingTransferAdapter):
-        adapter.preauth_handler = authentication.preauth_handler
+        adapter.set_auth_module(authentication)
     return adapter
