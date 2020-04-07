@@ -9,7 +9,86 @@ from giftless.auth.identity import DefaultIdentity, Identity, Permission
 
 
 class JWTAuthenticator(PreAuthorizedActionAuthenticator):
+    """Default JWT based authenticator
 
+    This authenticator authenticates users by accepting a well-formed JWT token
+    (in the Authorization header as a Bearer type token). Tokens must be signed
+    by the right key, and also match in terms of audience, issuer and key ID if
+    configured, and of course have valid course expiry / not before times.
+
+    Beyond authentication, JWT tokens may also include authorization payload
+    in the "scopes" claim.
+
+    Multiple scope strings can be provided, and are expected to have the
+    following structure:
+
+        obj:{org}/{repo}/{oid}:{subscope}:{actions}
+
+    or:
+
+        obj:{org}/{repo}/{oid}:{actions}
+
+    Where:
+
+        {org} is the organization of the target object
+
+        {repo} is the repository of the target object. Omitting or replacing
+               with '*' designates we are granting access to all repositories
+               in the organization
+
+        {oid} is the Object ID. Omitting or replacing with '*' designates we
+              are granting access to all objects in the repository
+
+        {subscope} can be 'metadata' or omitted entirely. If 'metadata' is
+                   specified, the scope does not grant access to actual files,
+                   but to metadata only - e.g. objects can be verified to exist
+                   but not downloaded.
+
+        {actions} is a comma separated list of allowed actions. Actions can be
+                  'read', 'write' or 'verify'. If omitted or replaced with a
+                  '*', all actions are permitted.
+
+    Some examples of decoded tokens (added comments are not valid JSON):
+
+        {
+          "exp": 1586253890,           // Token expiry time
+          "sub": "a-users-id",         // Optional user ID
+          "iat": 1586253590,           // Optional, issued at
+          "nbf": 1586253590,           // Optional, not valid before
+          "name": "User Name",         // Optional, user's name
+          "email": "user@example.com", // Optional, user's email
+          "scopes": [
+            // read a specific object
+            "obj:datopian/somerepo/6adada03e86b154be00e25f288fcadc27aef06c47f12f88e3e1985c502803d1b:read",
+
+            // full access to all objects in a repo
+            "obj:datopian/my-repo/*",
+
+            // Read only access to all repositories for an organization
+            "obj:datopian/*:read",
+
+            // Metadata read only access to all objects in a repository
+            "obj:datopian/my-repo:meta:verify",
+          ]
+        }
+
+    Typically a token will include a single scope - but multiple scopes are
+    allowed.
+
+    This authenticator will pass on the attempt to authenticate if no token was
+    provided, or it is not a JWT token, or if a key ID is configured and a
+    provided JWT token does not have the matching "kid" head claim (this allows
+    chaining multiple JWT authenticators if needed).
+
+    However, if a matching but invalid token was provided, a 401 Unauthorized
+    response will be returned. "Invalid" means a token with audience or issuer
+    mismatch (if configured), an expiry time in the past or an "not before"
+    time in the future, or, of course, an invalid signature.
+
+    The "leeway" parameter allows for providing a leeway / grace time to be
+    considered when checking expiry times, to cover for clock skew between
+    servers.
+    """
     DEFAULT_ALGORITHM = 'HS256'
     DEFAULT_LIFETIME = 300
     DEFAULT_LEEWAY = 10
