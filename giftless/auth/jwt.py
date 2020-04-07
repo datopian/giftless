@@ -5,7 +5,7 @@ import jwt
 import pytz
 
 from giftless.auth import PreAuthorizedActionAuthenticator, Unauthorized
-from giftless.auth.identity import DefaultIdentity, Identity
+from giftless.auth.identity import DefaultIdentity, Identity, Permission
 
 
 class JWTAuthenticator(PreAuthorizedActionAuthenticator):
@@ -125,10 +125,56 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
                                    email=jwt_payload.get('email'),
                                    name=jwt_payload.get('name', jwt_payload.get('sub')))
 
-        if 'scopes' in jwt_payload:
-            identity.allow()
+        for scope in jwt_payload.get('scopes', ()):
+            identity.allow(**self._parse_scope(scope))
 
         return identity
+
+    def _parse_scope(self, scope_str: str) -> Dict[str, Any]:
+        """Parse a scope string and conveet it into arguments for Identity.allow()
+        """
+        scope = Scope.from_string(scope_str)
+        if scope.entity_type != 'obj':
+            return {}
+
+        organization = None
+        repo = None
+        oid = None
+
+        if scope.entity_ref is not None:
+            id_parts = [p if p != '*' else None for p in scope.entity_ref.split('/', maxsplit=2)]
+            if len(id_parts) == 3:
+                organization, repo, oid = id_parts
+            elif len(id_parts) == 2:
+                organization, repo = id_parts
+            elif len(id_parts) == 1:
+                organization = id_parts[0]
+
+        permissions = self._parse_scope_permissions(scope)
+
+        return {"organization": organization,
+                "repo": repo,
+                "permissions": permissions,
+                "oid": oid}
+
+    def _parse_scope_permissions(self, scope: 'Scope') -> Set[Permission]:
+        """Extract granted permissions from scope object
+        """
+        permissions_map = {'read': {Permission.READ, Permission.READ_META},
+                           'write': {Permission.WRITE},
+                           'verify': {Permission.READ_META}}
+
+        permissions = set()
+        if scope.actions:
+            for action in scope.actions:
+                permissions.update(permissions_map.get(action, set()))
+        else:
+            permissions = Permission.all()
+
+        if scope.subscope in {'metadata', 'meta'}:
+            permissions = permissions.intersection({Permission.READ_META})
+
+        return permissions
 
 
 class Scope(object):

@@ -6,6 +6,7 @@ import pytest
 import pytz
 
 from giftless.auth import Unauthorized
+from giftless.auth.identity import Permission
 from giftless.auth.jwt import JWTAuthenticator, Scope
 
 # Key used in tests
@@ -46,6 +47,47 @@ def test_jwt_expired_throws_401(app):
     }):
         with pytest.raises(Unauthorized):
             authz(flask.request)
+
+
+@pytest.mark.parametrize('scopes, auth_check, expected', [
+    ([],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ}, False),
+    (['blah:foo/bar:*'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ}, False),
+    (['obj:myorg/myrepo/*'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ}, True),
+    (['obj:myorg/myrepo/*'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE}, True),
+    (['obj:myorg/otherrepo/*'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ}, False),
+    (['obj:myorg/myrepo/*'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ}, True),
+    (['obj:myorg/myrepo/*:read'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE}, False),
+    (['obj:myorg/myrepo/*:write'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE}, True),
+    (['obj:myorg/myrepo/*:read,write'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE}, True),
+    (['obj:myorg/myrepo/*:read,verify'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ_META}, True),
+    (['obj:myorg/myrepo/*:read'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ_META}, True),
+    (['obj:myorg/myrepo/*:meta:*'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ_META}, True),
+    (['obj:myorg/myrepo/*:meta:read,write,verify'],
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ}, False),
+])
+def test_jwt_scopes_authorizate_actions(app, scopes, auth_check, expected):
+    """Test that JWT token scopes can control authorization
+    """
+    authz = JWTAuthenticator(private_key=JWT_KEY, algorithm='HS256')
+    token = _get_test_token(scopes=scopes)
+    with app.test_request_context('/myorg/myrepo/objects/batch', method='POST', headers={
+        "Authorization": f'Bearer {token}'
+    }):
+        identity = authz(flask.request)
+
+    assert identity.is_authorized(**auth_check) is expected
 
 
 def _get_test_token(lifetime=300, headers=None, **kwargs):
