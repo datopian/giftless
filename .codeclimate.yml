@@ -1,5 +1,20 @@
 version: "2" # https://docs.codeclimate.com/docs/advanced-configuration
+
 checks:
   argument-count:
     config:
       threshold: 8
+
+plugins:
+
+  bandit:
+    enabled: true
+
+  git-legal:
+   enabled: true
+    config:
+      allow_affero_copyleft: false
+      allow_strong_copyleft: false
+
+  fixme:
+    enabled: true
