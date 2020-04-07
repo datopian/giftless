@@ -11,7 +11,7 @@ plugins:
     enabled: true
 
   git-legal:
-   enabled: true
+    enabled: true
     config:
       allow_affero_copyleft: false
       allow_strong_copyleft: false
