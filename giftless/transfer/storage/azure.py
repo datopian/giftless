@@ -36,7 +36,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
         try:
             self.get_size(prefix, oid)
             return True
-        except ResourceNotFoundError:
+        except ObjectNotFound:
             return False
 
     def get_size(self, prefix: str, oid: str) -> int:

@@ -18,7 +18,7 @@ from webargs.flaskparser import parser  # type: ignore
 from giftless.auth.identity import Permission
 from giftless.exc import InvalidPayload, NotFound
 from giftless.schema import ObjectSchema
-from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
+from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider, exc
 from giftless.util import get_callable
 from giftless.view import BaseView
 
@@ -30,6 +30,8 @@ class VerifiableStorage(ABC):
     """
     def verify_object(self, prefix: str, oid: str, size: int) -> bool:
         """Check that object exists and has the right size
+
+        This method should not throw an error if the object does not exist, but return False
         """
         pass
 
@@ -52,7 +54,10 @@ class StreamingStorage(VerifiableStorage, ABC):
     def verify_object(self, prefix: str, oid: str, size: int):
         """Verify that an object exists
         """
-        return self.exists(prefix, oid) and self.get_size(prefix, oid) == size
+        try:
+            return self.get_size(prefix, oid) == size
+        except exc.ObjectNotFound:
+            return False
 
 
 class LocalStorage(StreamingStorage):
