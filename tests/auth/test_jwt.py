@@ -76,6 +76,8 @@ def test_jwt_expired_throws_401(app):
      {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ_META}, True),
     (['obj:myorg/myrepo/*:meta:read,write,verify'],
      {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ}, False),
+    ('obj:myorg/myrepo/*:meta:*',
+     {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ_META}, True),
 ])
 def test_jwt_scopes_authorizate_actions(app, scopes, auth_check, expected):
     """Test that JWT token scopes can control authorization

@@ -1,7 +1,7 @@
 """Miscellanea
 """
 import importlib
-from typing import Callable, Optional
+from typing import Any, Callable, Iterable, Optional
 
 
 def get_callable(callable_str: str, base_package: Optional[str] = None) -> Callable:
@@ -24,3 +24,31 @@ def get_callable(callable_str: str, base_package: Optional[str] = None) -> Calla
         raise ValueError("Expecting base_package to be set if only class name is provided")
 
     return getattr(module, callable_name)  # type: ignore
+
+
+def to_iterable(val: Any) -> Iterable:
+    """Get something we can iterate over from an unknown type
+
+    >>> i = to_iterable([1, 2, 3])
+    >>> next(iter(i))
+    1
+
+    >>> i = to_iterable(1)
+    >>> next(iter(i))
+    1
+
+    >>> i = to_iterable(None)
+    >>> next(iter(i)) is None
+    True
+
+    >>> i = to_iterable('foobar')
+    >>> next(iter(i))
+    'foobar'
+
+    >>> i = to_iterable((1, 2, 3))
+    >>> next(iter(i))
+    1
+    """
+    if isinstance(val, Iterable) and not isinstance(val, (str, bytes)):
+        return val
+    return (val,)

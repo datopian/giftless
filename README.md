@@ -32,7 +32,7 @@ such as *nginx* to proxy HTTP requests to it.
 Alternatively, you can specify the following command line arguments to 
 have uWSGI run in HTTP mode, if no complex HTTP setup is required:
 
-    $ docker run --rm -P 8080:8080 datopian/giftless \
+    $ docker run --rm -p 8080:8080 datopian/giftless \
         -M -T --threads 2 -p 2 --manage-script-name --callable app \
         --http 0.0.0.0:8080
 

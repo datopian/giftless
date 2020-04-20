@@ -6,6 +6,7 @@ import pytz
 
 from giftless.auth import PreAuthorizedActionAuthenticator, Unauthorized
 from giftless.auth.identity import DefaultIdentity, Identity, Permission
+from giftless.util import to_iterable
 
 
 class JWTAuthenticator(PreAuthorizedActionAuthenticator):
@@ -204,7 +205,8 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
                                    email=jwt_payload.get('email'),
                                    name=jwt_payload.get('name', jwt_payload.get('sub')))
 
-        for scope in jwt_payload.get('scopes', ()):
+        scopes = to_iterable(jwt_payload.get('scopes', ()))
+        for scope in scopes:
             identity.allow(**self._parse_scope(scope))
 
         return identity
