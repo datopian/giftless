@@ -38,12 +38,14 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
 
     def _preauth_headers(self, org: str, repo: str, actions: Optional[Set[str]] = None,
                          oid: Optional[str] = None) -> Dict[str, str]:
-        if self._auth_module and self._auth_module.preauth_handler:
-            return self._auth_module.preauth_handler.get_authz_header(
-                self._auth_module.get_identity(), org, repo, actions, oid
-            )
+        if not (self._auth_module and self._auth_module.preauth_handler):
+            return {}
 
-        return {}
+        identity = self._auth_module.get_identity()
+        if identity is None:
+            return {}
+
+        return self._auth_module.preauth_handler.get_authz_header(identity, org, repo, actions, oid)
 
 
 class ViewProvider:

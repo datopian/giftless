@@ -24,6 +24,7 @@ default_transfer_config = {
 default_config = {
     "TRANSFER_ADAPTERS": figcan.Extensible(default_transfer_config),
     "TESTING": False,
+    "DEBUG": False,
     "AUTH_PROVIDERS": [
         'giftless.auth.allow_anon:read_only'
     ],

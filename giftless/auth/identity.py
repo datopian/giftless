@@ -34,6 +34,9 @@ class Identity(ABC):
         """
         pass
 
+    def __repr__(self):
+        return '<{} id:{} name:{}>'.format(self.__class__.__name__, self.id, self.name)
+
 
 class DefaultIdentity(Identity):
 

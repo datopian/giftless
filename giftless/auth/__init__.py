@@ -1,6 +1,6 @@
 """Abstract authentication and authorization layer
 """
-
+import logging
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 
@@ -58,16 +58,18 @@ class Authentication:
         app.config.setdefault('AUTH_PROVIDERS', [])
         app.config.setdefault('PRE_AUTHORIZED_ACTION_PROVIDER', None)
 
-    def get_identity(self) -> Identity:
+    def get_identity(self) -> Optional[Identity]:
         if hasattr(g, 'user') and isinstance(g.user, Identity):
             return g.user
 
+        log = logging.getLogger(__name__)
         g.user = self._authenticate()
-        if g.user is None:
-            # Fall back to returning an anon user with no permissions
-            return allow_anon.AnonymousUser()
-        else:
+        if g.user:
+            log.debug("Authenticated identity: %s", g.user)
             return g.user
+
+        log.debug("No authenticated identity could be found")
+        return None
 
     def login_required(self, f):
         """A typical Flask "login_required" view decorator
@@ -109,9 +111,14 @@ class Authentication:
         if self._authenticators:
             return
 
+        log = logging.getLogger(__name__)
+        log.debug("Initializing authenticators, have %d authenticator(s) configured",
+                  len(current_app.config['AUTH_PROVIDERS']))
+
         self._authenticators = [_create_authenticator(a) for a in current_app.config['AUTH_PROVIDERS']]
 
         if current_app.config['PRE_AUTHORIZED_ACTION_PROVIDER']:
+            log.debug("Initializing pre-authorized action provider")
             self.preauth_handler = _create_authenticator(current_app.config['PRE_AUTHORIZED_ACTION_PROVIDER'])
             self.push_authenticator(self.preauth_handler)
 
@@ -145,9 +152,13 @@ def _create_authenticator(spec: Union[str, Dict[str, Any]]) -> Authenticator:
     keys, in which case the factory callable is called with 'options' passed in as argument, and
     the resulting callable is returned.
     """
+    log = logging.getLogger(__name__)
+
     if isinstance(spec, str):
+        log.debug("Creating authenticator: %s", spec)
         return get_callable(spec, __name__)
 
+    log.debug("Creating authenticator using factory: %s", spec['factory'])
     factory = get_callable(spec['factory'], __name__)  # type: Callable[..., Authenticator]
     options = spec.get('options', {})
     return factory(**options)

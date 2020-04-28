@@ -29,10 +29,12 @@ class BaseView(FlaskView):
             kwargs['base_class'] = BaseView
         return super().register(*args, **kwargs)
 
-    def _check_authorization(self, organization, repo, permission, oid=None):
+    @staticmethod
+    def _check_authorization(organization, repo, permission, oid=None):
         """Check the current user is authorized to perform an action
         """
-        if not authn.get_identity().is_authorized(organization, repo, permission, oid):
+        identity = authn.get_identity()
+        if not (identity and identity.is_authorized(organization, repo, permission, oid)):
             raise exc.Forbidden("Your are not authorized to perform this action")
 
 
