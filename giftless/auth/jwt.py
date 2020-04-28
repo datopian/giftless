@@ -94,7 +94,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
     DEFAULT_LIFETIME = 300
     DEFAULT_LEEWAY = 10
 
-    def __init__(self, private_key: Optional[Union[str, bytes]], lifetime: int = DEFAULT_LIFETIME,
+    def __init__(self, private_key: Optional[Union[str, bytes]] = None, lifetime: int = DEFAULT_LIFETIME,
                  algorithm: str = DEFAULT_ALGORITHM, public_key: Optional[str] = None, issuer: Optional[str] = None,
                  audience: Optional[str] = None, leeway: int = DEFAULT_LEEWAY, key_id: Optional[str] = None):
         self.algorithm = algorithm
@@ -142,6 +142,9 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
     def _generate_token(self, **kwargs) -> bytes:
         """Generate a JWT token that can be used later to authenticate a request
         """
+        if not self.private_key:
+            raise ValueError("This authenticator is not configured to generate tokens; Set private_key to fix")
+
         payload: Dict[str, Any] = {
             "exp": datetime.now(tz=pytz.utc) + timedelta(seconds=self.lifetime),
             "iat": datetime.now(tz=pytz.utc),
@@ -179,7 +182,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
         # We got a JWT token, now let's decode and verify it
         try:
-            return jwt.decode(token, key=self.private_key, algorithms=self.algorithm, leeway=self.leeway)
+            return jwt.decode(token, key=self._get_verification_key(), algorithms=self.algorithm, leeway=self.leeway)
         except jwt.PyJWTError as e:
             raise Unauthorized('Expired or otherwise invalid JWT token ({})'.format(str(e)))
 
@@ -256,6 +259,14 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             permissions = permissions.intersection({Permission.READ_META})
 
         return permissions
+
+    def _get_verification_key(self) -> Union[None, str, bytes]:
+        """Get the key used for token verification, based on algorithm
+        """
+        if self.algorithm[0:2] == 'HS':
+            return self.private_key
+        else:
+            return self.public_key
 
 
 class Scope(object):

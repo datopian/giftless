@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 
 import flask
@@ -7,17 +8,33 @@ import pytz
 
 from giftless.auth import Unauthorized
 from giftless.auth.identity import Permission
-from giftless.auth.jwt import JWTAuthenticator, Scope
+from giftless.auth.jwt import JWTAuthenticator, Scope, factory
 
-# Key used in tests
-JWT_KEY = b'some-random-secret'
+# Symmetric key used in tests
+JWT_HS_KEY = b'some-random-secret'
+
+# Asymmetric key files used in tests
+JWT_RS_PRI_KEY = os.path.join(os.path.dirname(__file__), 'data', 'test-key.pem')
+JWT_RS_PUB_KEY = os.path.join(os.path.dirname(__file__), 'data', 'test-key.pub.pem')
 
 
-def test_jwt_can_authorize_request(app):
+def test_jwt_can_authorize_request_symmetric_key(app):
     """Test basic JWT authorizer functionality
     """
-    authz = JWTAuthenticator(private_key=JWT_KEY, algorithm='HS256')
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256')
     token = _get_test_token()
+    with app.test_request_context('/myorg/myrepo/objects/batch', method='POST', headers={
+        "Authorization": f'Bearer {token}'
+    }):
+        identity = authz(flask.request)
+    assert identity.id == 'some-user-id'
+
+
+def test_jwt_can_authorize_request_asymmetric_key(app):
+    """Test basic JWT authorizer functionality
+    """
+    authz = factory(public_key_file=JWT_RS_PUB_KEY, algorithm='RS256')
+    token = _get_test_token(algo='RS256')
     with app.test_request_context('/myorg/myrepo/objects/batch', method='POST', headers={
         "Authorization": f'Bearer {token}'
     }):
@@ -28,7 +45,7 @@ def test_jwt_can_authorize_request(app):
 def test_jwt_with_wrong_kid_doesnt_authorize_request(app):
     """JWT authorizer only considers a JWT token if it has the right key ID in the header
     """
-    authz = JWTAuthenticator(private_key=JWT_KEY, algorithm='HS256', key_id='must-be-this-key')
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256', key_id='must-be-this-key')
     token = _get_test_token()
     with app.test_request_context('/myorg/myrepo/objects/batch', method='POST', headers={
         "Authorization": f'Bearer {token}'
@@ -40,7 +57,7 @@ def test_jwt_with_wrong_kid_doesnt_authorize_request(app):
 def test_jwt_expired_throws_401(app):
     """If we get a JWT token who's expired, we should raise a 401 error
     """
-    authz = JWTAuthenticator(private_key=JWT_KEY, algorithm='HS256')
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256')
     token = _get_test_token(lifetime=-600)  # expired 10 minutes ago
     with app.test_request_context('/myorg/myrepo/objects/batch', method='POST', headers={
         "Authorization": f'Bearer {token}'
@@ -82,7 +99,7 @@ def test_jwt_expired_throws_401(app):
 def test_jwt_scopes_authorizate_actions(app, scopes, auth_check, expected):
     """Test that JWT token scopes can control authorization
     """
-    authz = JWTAuthenticator(private_key=JWT_KEY, algorithm='HS256')
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256')
     token = _get_test_token(scopes=scopes)
     with app.test_request_context('/myorg/myrepo/objects/batch', method='POST', headers={
         "Authorization": f'Bearer {token}'
@@ -92,12 +109,21 @@ def test_jwt_scopes_authorizate_actions(app, scopes, auth_check, expected):
     assert identity.is_authorized(**auth_check) is expected
 
 
-def _get_test_token(lifetime=300, headers=None, **kwargs):
+def _get_test_token(lifetime=300, headers=None, algo='HS256', **kwargs):
     payload = {"exp": datetime.now(tz=pytz.utc) + timedelta(seconds=lifetime),
                "sub": 'some-user-id'}
 
     payload.update(kwargs)
-    return jwt.encode(payload, JWT_KEY, algorithm='HS256', headers=headers).decode('utf8')
+
+    if algo == 'HS256':
+        key = JWT_HS_KEY
+    elif algo == 'RS256':
+        with open(JWT_RS_PRI_KEY) as f:
+            key = f.read()
+    else:
+        raise ValueError("Don't know how to test algo: {}".format(algo))
+
+    return jwt.encode(payload, key, algorithm=algo, headers=headers).decode('utf8')
 
 
 @pytest.mark.parametrize('scope_str, expected', [
