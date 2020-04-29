@@ -39,6 +39,7 @@ default_config = {
             'key_id': 'giftless-internal-jwt-key',
         }
     },
+    "MIDDLEWARE": []
 }
 
 
