@@ -31,13 +31,17 @@ class TransferAdapter(ABC):
 class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
     """A transfer adapter that can pre-authohrize one or more of the actions it supports
     """
+
+    # Lifetime of verify tokens can be very long
+    VERIFY_LIFETIME = 3600 * 12
+
     _auth_module: Optional[Authentication] = None
 
     def set_auth_module(self, auth_module: Authentication):
         self._auth_module = auth_module
 
     def _preauth_headers(self, org: str, repo: str, actions: Optional[Set[str]] = None,
-                         oid: Optional[str] = None) -> Dict[str, str]:
+                         oid: Optional[str] = None, lifetime: Optional[int] = None) -> Dict[str, str]:
         if not (self._auth_module and self._auth_module.preauth_handler):
             return {}
 
@@ -45,7 +49,7 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         if identity is None:
             return {}
 
-        return self._auth_module.preauth_handler.get_authz_header(identity, org, repo, actions, oid)
+        return self._auth_module.preauth_handler.get_authz_header(identity, org, repo, actions, oid, lifetime=lifetime)
 
 
 class ViewProvider:

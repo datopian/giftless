@@ -91,14 +91,14 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
     servers.
     """
     DEFAULT_ALGORITHM = 'HS256'
-    DEFAULT_LIFETIME = 300
+    DEFAULT_LIFETIME = 60
     DEFAULT_LEEWAY = 10
 
-    def __init__(self, private_key: Optional[Union[str, bytes]] = None, lifetime: int = DEFAULT_LIFETIME,
+    def __init__(self, private_key: Optional[Union[str, bytes]] = None, default_lifetime: int = DEFAULT_LIFETIME,
                  algorithm: str = DEFAULT_ALGORITHM, public_key: Optional[str] = None, issuer: Optional[str] = None,
                  audience: Optional[str] = None, leeway: int = DEFAULT_LEEWAY, key_id: Optional[str] = None):
         self.algorithm = algorithm
-        self.lifetime = lifetime
+        self.default_lifetime = default_lifetime
         self.leeway = leeway
         self.private_key = private_key
         self.public_key = public_key
@@ -113,8 +113,8 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         return self._get_identity(token_payload)
 
     def get_authz_header(self, identity: Identity, org: str, repo: str, actions: Optional[Set[str]] = None,
-                         oid: Optional[str] = None) -> Dict[str, str]:
-        token_payload = {"sub": identity.id}
+                         oid: Optional[str] = None, lifetime: Optional[int] = None) -> Dict[str, str]:
+        token_payload: Dict[str, Any] = {"sub": identity.id}
         if self.issuer:
             token_payload['iss'] = self.issuer
         if self.audience:
@@ -126,6 +126,10 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
         # Scopes
         token_payload['scopes'] = self._generate_action_scopes(org, repo, actions, oid)
+
+        # Custom lifetime
+        if lifetime:
+            token_payload['exp'] = datetime.now(tz=pytz.utc) + timedelta(seconds=lifetime)
 
         token = self._generate_token(**token_payload)
         return {'Authorization': f'Bearer {token.decode("utf8")}'}
@@ -146,7 +150,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             raise ValueError("This authenticator is not configured to generate tokens; Set private_key to fix")
 
         payload: Dict[str, Any] = {
-            "exp": datetime.now(tz=pytz.utc) + timedelta(seconds=self.lifetime),
+            "exp": datetime.now(tz=pytz.utc) + timedelta(seconds=self.default_lifetime),
             "iat": datetime.now(tz=pytz.utc),
             "nbf": datetime.now(tz=pytz.utc)
         }

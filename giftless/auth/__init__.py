@@ -35,7 +35,7 @@ class PreAuthorizedActionAuthenticator(Authenticator):
     are authorized as they come in.
     """
     def get_authz_header(self, identity: Identity, org: str, repo: str, actions: Optional[Set[str]] = None,
-                         oid: Optional[str] = None) -> Dict[str, str]:
+                         oid: Optional[str] = None, lifetime: Optional[int] = None) -> Dict[str, str]:
         """Authorize an action
         """
         raise NotImplementedError('Implement this method in inheriting classes')

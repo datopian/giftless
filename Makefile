@@ -48,7 +48,7 @@ release:
 	@echo
 	@echo "Continue? (hit Enter or Ctrl+C to stop"
 	@read
-	$(GIT) tag release-$(VERSION)
+	$(GIT) tag v$(VERSION)
 	$(GIT) push --tags
 	$(PYTHON) -m twine upload dist/*
 

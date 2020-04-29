@@ -7,7 +7,7 @@ import pytest
 import pytz
 
 from giftless.auth import Unauthorized
-from giftless.auth.identity import Permission
+from giftless.auth.identity import DefaultIdentity, Permission
 from giftless.auth.jwt import JWTAuthenticator, Scope, factory
 
 # Symmetric key used in tests
@@ -66,6 +66,38 @@ def test_jwt_expired_throws_401(app):
             authz(flask.request)
 
 
+def test_jwt_pre_authorize_action():
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256', default_lifetime=120)
+    identity = DefaultIdentity(name='joe', email='joe@shmoe.com', id='babab0ba')
+    header = authz.get_authz_header(identity, 'myorg', 'somerepo', actions={'read'})
+
+    auth_type, token = header['Authorization'].split(' ')
+    assert 'Bearer' == auth_type
+
+    payload = jwt.decode(token, JWT_HS_KEY, algorithms='HS256')
+    assert payload['sub'] == 'babab0ba'
+    assert payload['scopes'] == 'obj:myorg/somerepo/*:read'
+
+    # Check that now() - expiration time is within 5 seconds of 120 seconds
+    assert abs((datetime.fromtimestamp(payload['exp']) - datetime.now()).seconds - 120) < 5
+
+
+def test_jwt_pre_authorize_action_custom_lifetime():
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256', default_lifetime=120)
+    identity = DefaultIdentity(name='joe', email='joe@shmoe.com', id='babab0ba')
+    header = authz.get_authz_header(identity, 'myorg', 'somerepo', actions={'read'}, lifetime=3600)
+
+    auth_type, token = header['Authorization'].split(' ')
+    assert 'Bearer' == auth_type
+
+    payload = jwt.decode(token, JWT_HS_KEY, algorithms='HS256')
+    assert payload['sub'] == 'babab0ba'
+    assert payload['scopes'] == 'obj:myorg/somerepo/*:read'
+
+    # Check that now() - expiration time is within 5 seconds of 3600 seconds
+    assert abs((datetime.fromtimestamp(payload['exp']) - datetime.now()).seconds - 3600) < 5
+
+
 @pytest.mark.parametrize('scopes, auth_check, expected', [
     ([],
      {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ}, False),
@@ -109,23 +141,6 @@ def test_jwt_scopes_authorizate_actions(app, scopes, auth_check, expected):
     assert identity.is_authorized(**auth_check) is expected
 
 
-def _get_test_token(lifetime=300, headers=None, algo='HS256', **kwargs):
-    payload = {"exp": datetime.now(tz=pytz.utc) + timedelta(seconds=lifetime),
-               "sub": 'some-user-id'}
-
-    payload.update(kwargs)
-
-    if algo == 'HS256':
-        key = JWT_HS_KEY
-    elif algo == 'RS256':
-        with open(JWT_RS_PRI_KEY) as f:
-            key = f.read()
-    else:
-        raise ValueError("Don't know how to test algo: {}".format(algo))
-
-    return jwt.encode(payload, key, algorithm=algo, headers=headers).decode('utf8')
-
-
 @pytest.mark.parametrize('scope_str, expected', [
     ('org:myorg:*', {'entity_type': 'org', 'entity_ref': 'myorg', 'actions': None, 'subscope': None}),
     ('org:myorg', {'entity_type': 'org', 'entity_ref': 'myorg', 'actions': None, 'subscope': None}),
@@ -161,3 +176,20 @@ def test_scope_stringify(scope, expected):
     """Test scope stringification works as expected
     """
     assert expected == str(scope)
+
+
+def _get_test_token(lifetime=300, headers=None, algo='HS256', **kwargs):
+    payload = {"exp": datetime.now(tz=pytz.utc) + timedelta(seconds=lifetime),
+               "sub": 'some-user-id'}
+
+    payload.update(kwargs)
+
+    if algo == 'HS256':
+        key = JWT_HS_KEY
+    elif algo == 'RS256':
+        with open(JWT_RS_PRI_KEY) as f:
+            key = f.read()
+    else:
+        raise ValueError("Don't know how to test algo: {}".format(algo))
+
+    return jwt.encode(payload, key, algorithm=algo, headers=headers).decode('utf8')

@@ -36,6 +36,7 @@ default_config = {
             'private_key_file': None,
             'public_key': None,
             'public_key_file': None,
+            'default_lifetime': 60,  # 60 seconds for default actions
             'key_id': 'giftless-internal-jwt-key',
         }
     },

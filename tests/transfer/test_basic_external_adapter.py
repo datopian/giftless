@@ -37,7 +37,7 @@ def test_upload_action_new_file():
             "verify": {
                 "href": 'http://giftless.local/myorg/myrepo/objects/storage/verify',
                 "header": {},
-                "expires_in": 900
+                "expires_in": 43200
             }
         }
     }

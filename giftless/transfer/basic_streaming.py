@@ -190,17 +190,17 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
 
         prefix = os.path.join(organization, repo)
         if not self.storage.exists(prefix, oid) or self.storage.get_size(prefix, oid) != size:
-            headers = self._preauth_headers(organization, repo, actions={'verify', 'write'}, oid=oid)
             response['actions'] = {
                 "upload": {
                     "href": ObjectsView.get_storage_url('put', organization, repo, oid),
-                    "header": headers,
+                    "header": self._preauth_headers(organization, repo, actions={'write'}, oid=oid),
                     "expires_in": self.action_lifetime
                 },
                 "verify": {
                     "href": VerifyView.get_verify_url(organization, repo),
-                    "header": headers,
-                    "expires_in": self.action_lifetime
+                    "header": self._preauth_headers(organization, repo, actions={'verify'}, oid=oid,
+                                                    lifetime=self.VERIFY_LIFETIME),
+                    "expires_in": self.VERIFY_LIFETIME
                 }
             }
             response['authenticated'] = True
