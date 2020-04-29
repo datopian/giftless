@@ -39,7 +39,7 @@ docker: requirements.txt
 	$(DOCKER) build --cache-from "$(DOCKER_CACHE_FROM)" -t $(DOCKER_REPO)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
 
 ## Tag and push a release
-release:
+release: $(SENTINELS)/dist
 	@echo
 	@echo "You are about to release $(PACKAGE_NAME) version $(VERSION)"
 	@echo "This will:"
