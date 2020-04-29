@@ -22,10 +22,12 @@ Installation & Quick Start
 --------------------------
 
 ### Running using Docker
-You can build a Docker image as described below and then run it:
+Giftless is available as a Docker image. You can simply use:
 
-    $ docker run --rm -P 5000:5000 datopian/giftless
+    $ docker run --rm -p 5000:5000 datopian/giftless
     
+To pull and run Giftless on a system that supports Docker. 
+
 This will run the server in WSGI mode, which will require an HTTP server 
 such as *nginx* to proxy HTTP requests to it. 
 
@@ -36,6 +38,26 @@ have uWSGI run in HTTP mode, if no complex HTTP setup is required:
         -M -T --threads 2 -p 2 --manage-script-name --callable app \
         --http 0.0.0.0:8080
 
+
+If you need to, you can also build the Docker image locally as 
+described below.
+
+### Installing & Running from Pypi
+You can install Giftless into your Python environment of choice 
+(3.7+) using pip:
+
+    (venv) $ pip install giftless
+
+To run it, you most likely are going to need a WSGI server
+installed such as uWSGI or Gunicorn. Here is an example of 
+how to run Giftless locally with uWSGI:  
+ 
+    # Install uWSGI or any other WSGI server
+    $ (.venv) pip install uwsgi
+    
+    # Run uWSGI (see uWSGI's manual for help on all arguments)
+    $ (.venv)  uwsgi -M -T --threads 2 -p 2 --manage-script-name \
+        --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
 
 ### Installing & Running from Source
 You can install and run `giftless` from source:
@@ -48,13 +70,9 @@ You can install and run `giftless` from source:
     $ . .venv/bin/activate
     $ (.venv) pip install -r requirements.txt
     
-    # Install uWSGI or any other WSGI server
-    $ (.venv)  pip install uwsgi
-    
-    # Run uWSGI (this will vary based on your WSGI server of choice)
-    $ (.venv)  uwsgi -M -T --threads 2 -p 2 --manage-script-name \
-        --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
-    
+You can then proceed to run Giftless with a WSGI server as 
+described above. 
+
 Note that for non-production use you may avoid using a WSGI server and rely
 on Flask's built in development server. This should **never** be done in a
 production environment:
@@ -85,6 +103,41 @@ at runtime as an environment variable:
         --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
 
 See `giftless/config.py` for some default configuration options. 
+
+#### Transfer Adapters
+
+TBD
+
+#### Authenticators
+
+TBD
+
+#### Pre-Authorized Action Authenticators
+
+TBD
+
+#### Using Arbitrary WSGI Middleware
+
+TBD
+
+##### Fixing Generated URLs when Running Behind a Proxy
+
+You can use the `ProxyFix` Werkzeug middleware to fix issues caused when 
+Giftless runs behind a reverse proxy, causing generated URLs to not match
+the URLs expected by clients:
+
+```yaml
+MIDDLEWARE:
+  - class: werkzeug.middleware.proxy_fix:ProxyFix
+    kwargs:
+      x_host: 1
+      x_port: 1
+      x_prefix: 1
+```
+
+##### Adding CORS Support
+
+TBD
 
 Development
 -----------
