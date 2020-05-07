@@ -3,7 +3,7 @@
 from enum import Enum
 
 from flask_marshmallow import Marshmallow  # type: ignore
-from marshmallow import fields, validate
+from marshmallow import fields, pre_load, validate
 from marshmallow_enum import EnumField
 
 ma = Marshmallow()
@@ -27,6 +27,19 @@ class ObjectSchema(ma.Schema):  # type: ignore
     """
     oid = fields.String(required=True)
     size = fields.Integer(required=True, validate=validate.Range(min=0))
+
+    extra = fields.Dict(required=False, missing=dict)
+
+    @pre_load
+    def set_extra_fields(self, data, **_):
+        extra = {}
+        rest = {}
+        for k, v in data.items():
+            if k.startswith('x-'):
+                extra[k[2:]] = v
+            else:
+                rest[k] = v
+        return {'extra': extra, **rest}
 
 
 class BatchRequest(ma.Schema):  # type: ignore

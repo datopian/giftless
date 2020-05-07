@@ -5,7 +5,7 @@ for more information about what transfer APIs do in Git LFS.
 """
 from abc import ABC
 from functools import partial
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from giftless.auth import Authentication, authentication
 from giftless.util import get_callable
@@ -16,10 +16,12 @@ _registered_adapters: Dict[str, 'TransferAdapter'] = {}
 class TransferAdapter(ABC):
     """A transfer adapter tells Git LFS Server how to respond to batch API requests
     """
-    def upload(self, organization: str, repo: str, oid: str, size: int) -> Dict:
+    def upload(self, organization: str, repo: str, oid: str, size: int,
+               extra: Optional[Dict[str, Any]] = None) -> Dict:
         raise NotImplementedError("This transfer adapter is not fully implemented")
 
-    def download(self, organization: str, repo: str, oid: str, size: int) -> Dict:
+    def download(self, organization: str, repo: str, oid: str, size: int,
+                 extra: Optional[Dict[str, Any]] = None) -> Dict:
         raise NotImplementedError("This transfer adapter is not fully implemented")
 
     def get_action(self, name: str, organization: str, repo: str) -> Callable[[str, int], Dict]:

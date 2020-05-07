@@ -13,7 +13,7 @@ implement the `ExternalStorage` interface defined here.
 
 import os
 from abc import ABC
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
 from giftless.transfer.basic_streaming import VerifiableStorage, VerifyView
@@ -25,10 +25,12 @@ from . import exc
 class ExternalStorage(VerifiableStorage, ABC):
     """Interface for streaming storage adapters
     """
-    def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
+    def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
+                          extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         pass
 
-    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
+    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
+                            extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         pass
 
     def exists(self, prefix: str, oid: str) -> bool:
@@ -50,7 +52,7 @@ class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewPro
         self.storage = storage
         self.action_lifetime = default_action_lifetime
 
-    def upload(self, organization: str, repo: str, oid: str, size: int) -> Dict:
+    def upload(self, organization: str, repo: str, oid: str, size: int, extra: Optional[Dict[str, Any]] = None) -> Dict:
         prefix = os.path.join(organization, repo)
         response = {"oid": oid,
                     "size": size}
@@ -59,7 +61,7 @@ class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewPro
             # No upload required, we already have this object
             return response
 
-        response.update(self.storage.get_upload_action(prefix, oid, size, self.action_lifetime))
+        response.update(self.storage.get_upload_action(prefix, oid, size, self.action_lifetime, extra))
         if response.get('actions', {}).get('upload'):  # type: ignore
             response['authenticated'] = True
             headers = self._preauth_headers(organization, repo, actions={'verify'}, oid=oid,
@@ -72,14 +74,15 @@ class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewPro
 
         return response
 
-    def download(self, organization: str, repo: str, oid: str, size: int) -> Dict:
+    def download(self, organization: str, repo: str, oid: str, size: int,
+                 extra: Optional[Dict[str, Any]] = None) -> Dict:
         prefix = os.path.join(organization, repo)
         response = {"oid": oid,
                     "size": size}
 
         try:
             self._check_object(prefix, oid, size)
-            response.update(self.storage.get_download_action(prefix, oid, size, self.action_lifetime))
+            response.update(self.storage.get_download_action(prefix, oid, size, self.action_lifetime, extra))
         except exc.StorageError as e:
             response['error'] = e.as_dict()
 

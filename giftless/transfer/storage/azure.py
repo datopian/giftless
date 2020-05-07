@@ -48,7 +48,9 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
         except ResourceNotFoundError:
             raise ObjectNotFound("Object does not exist")
 
-    def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
+    def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
+                          extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        filename = extra.get('filename') if extra else None
         return {
             "actions": {
                 "upload": {
@@ -61,7 +63,9 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
             }
         }
 
-    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
+    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
+                            extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        filename = extra.get('filename') if extra else None
         return {
             "actions": {
                 "download": {
