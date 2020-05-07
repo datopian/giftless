@@ -35,3 +35,17 @@ def test_batch_request_default_transfer():
     input = batch_request_payload(delete_keys=['transfers'])
     parsed = schema.BatchRequest().load(input)
     assert ['basic'] == parsed['transfers']
+
+
+def test_object_schema_accepts_x_fields():
+    payload = {"oid": "123abc", "size": 1212, "x-filename": "foobarbaz", "x-mtime": 123123123123}
+    parsed = schema.ObjectSchema().load(payload)
+    assert "foobarbaz" == parsed['extra']['filename']
+    assert 123123123123 == parsed['extra']['mtime']
+    assert "123abc" == parsed['oid']
+
+
+def test_object_schema_rejects_unknown_fields():
+    payload = {"oid": "123abc", "size": 1212, "x-filename": "foobarbaz", "more": "stuff"}
+    with pytest.raises(ValidationError):
+        schema.ObjectSchema().load(payload)

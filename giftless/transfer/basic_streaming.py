@@ -9,7 +9,7 @@ interface through which additional streaming backends can be implemented.
 import os
 import shutil
 from abc import ABC
-from typing import BinaryIO, Dict, Optional
+from typing import Any, BinaryIO, Dict, Optional
 
 from flask import Response, request, url_for
 from flask_classful import route
@@ -184,7 +184,7 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
         self.storage = storage
         self.action_lifetime = action_lifetime
 
-    def upload(self, organization: str, repo: str, oid: str, size: int) -> Dict:
+    def upload(self, organization: str, repo: str, oid: str, size: int, extra: Optional[Dict[str, Any]] = None) -> Dict:
         response = {"oid": oid,
                     "size": size}
 
@@ -207,7 +207,8 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
 
         return response
 
-    def download(self, organization: str, repo: str, oid: str, size: int) -> Dict:
+    def download(self, organization: str, repo: str, oid: str, size: int,
+                 extra: Optional[Dict[str, Any]] = None) -> Dict:
         response = {"oid": oid,
                     "size": size}
 

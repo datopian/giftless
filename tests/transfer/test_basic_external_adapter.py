@@ -1,4 +1,5 @@
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
+from urllib.parse import urlencode
 
 import pytest
 
@@ -31,6 +32,30 @@ def test_upload_action_new_file():
         "actions": {
             "upload": {
                 "href": 'https://cloudstorage.example.com/myorg/myrepo/abcdef123456?expires_in=900',
+                "header": {"x-foo-bar": "bazbaz"},
+                "expires_in": 900
+            },
+            "verify": {
+                "href": 'http://giftless.local/myorg/myrepo/objects/storage/verify',
+                "header": {},
+                "expires_in": 43200
+            }
+        }
+    }
+
+
+@pytest.mark.usefixtures('app_context')
+def test_upload_action_extras_are_passed():
+    adapter = basic_external.factory('{}:MockExternalStorageBackend'.format(__name__), {}, 900)
+    response = adapter.upload('myorg', 'myrepo', 'abcdef123456', 1234, {"filename": "foo.csv"})
+
+    assert response == {
+        "oid": 'abcdef123456',
+        "size": 1234,
+        "authenticated": True,
+        "actions": {
+            "upload": {
+                "href": 'https://cloudstorage.example.com/myorg/myrepo/abcdef123456?expires_in=900&filename=foo.csv',
                 "header": {"x-foo-bar": "bazbaz"},
                 "expires_in": 900
             },
@@ -121,6 +146,29 @@ def test_download_action_size_mismatch():
     }
 
 
+@pytest.mark.usefixtures('app_context')
+def test_download_action_extras_are_passed():
+    storage = MockExternalStorageBackend()
+    adapter = basic_external.BasicExternalBackendTransferAdapter(storage, 900)
+
+    # Add an "existing object"
+    storage.existing_objects[('myorg/myrepo', 'abcdef123456')] = 1234
+    response = adapter.download('myorg', 'myrepo', 'abcdef123456', 1234, {"filename": "foo.csv"})
+
+    assert response == {
+        "oid": 'abcdef123456',
+        "size": 1234,
+        "authenticated": True,
+        "actions": {
+            "download": {
+                "href": 'https://cloudstorage.example.com/myorg/myrepo/abcdef123456?expires_in=900&filename=foo.csv',
+                "header": {},
+                "expires_in": 900
+            }
+        }
+    }
+
+
 class MockExternalStorageBackend(basic_external.ExternalStorage):
     """A mock adapter for the basic external transfer adapter
 
@@ -141,27 +189,32 @@ class MockExternalStorageBackend(basic_external.ExternalStorage):
         except KeyError:
             raise ObjectNotFound("Object does not exist")
 
-    def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
+    def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
+                          extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         return {
             "actions": {
                 "upload": {
-                    "href": self._get_signed_url(prefix, oid, expires_in),
+                    "href": self._get_signed_url(prefix, oid, expires_in, extra),
                     "header": {"x-foo-bar": "bazbaz"},
                     "expires_in": expires_in
                 }
             }
         }
 
-    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int) -> Dict[str, Any]:
+    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
+                            extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         return {
             "actions": {
                 "download": {
-                    "href": self._get_signed_url(prefix, oid, expires_in),
+                    "href": self._get_signed_url(prefix, oid, expires_in, extra),
                     "header": {},
                     "expires_in": 900
                 }
             }
         }
 
-    def _get_signed_url(self, prefix: str, oid: str, expires_in: int):
-        return '{}{}/{}?expires_in={}'.format(self.base_url, prefix, oid, expires_in)
+    def _get_signed_url(self, prefix: str, oid: str, expires_in: int, extra: Optional[Dict[str, Any]] = None):
+        url = '{}{}/{}?expires_in={}'.format(self.base_url, prefix, oid, expires_in)
+        if extra:
+            url = f'{url}&{urlencode(extra, doseq=False)}'
+        return url
