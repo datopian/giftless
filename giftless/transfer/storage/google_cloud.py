@@ -7,6 +7,7 @@ from google.cloud.exceptions import Conflict  # type: ignore
 
 from giftless.transfer.basic_external import ExternalStorage
 from giftless.transfer.basic_streaming import StreamingStorage
+from giftless.transfer.exc import ObjectNotFound
 
 
 class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
@@ -14,10 +15,12 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
     transfers.
 
     """
-    def __init__(self, bucket_name: str, path_prefix: Optional[str] = None, **_):
+
+    def __init__(self, bucket_name: str, account_json_path: str, path_prefix: Optional[str] = None, **_):
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
-        self.storage_client = storage.Client()
+        self.storage_client = storage.Client.from_service_account_json(
+            account_json_path)
         self._init_container()
 
     def get(self, prefix: str, oid: str) -> BinaryIO:
@@ -37,9 +40,12 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
         return blob.exists()  # type: ignore
 
     def get_size(self, prefix: str, oid: str) -> int:
-        bucket = self.storage_client.bucket(self.bucket_name)
-        blob = bucket.get_blob(self._get_blob_path(prefix, oid))
-        return blob.size  # type: ignore
+        bucket = self.storage_client.get_bucket(self.bucket_name)
+        blob = bucket.blob(self._get_blob_path(prefix, oid))
+        if blob.exists():
+            return bucket.get_blob(self._get_blob_path(prefix, oid)).size  # type: ignore
+        else:
+            raise ObjectNotFound("Object does not exist")
 
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -82,13 +88,14 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
 
     def _get_signed_url(self, prefix: str, oid: str, expires_in: int, filename: Optional[str] = None) -> str:
         bucket = self.storage_client.bucket(self.bucket_name)
-        blob = bucket.blob(self._get_blob_path(prefix, oid))
-        token_expires = (datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in))
+        token_expires = (datetime.now(tz=timezone.utc) +
+                         timedelta(seconds=expires_in))
         extra_args = {}
         if filename:
             extra_args['content_disposition'] = f'attachment; filename="{filename}"'
 
-        url = blob.generate_signed_url(expiration=token_expires, version='v4')
+        url = bucket.generate_signed_url(
+            expiration=token_expires, version='v4')
         return url  # type: ignore
 
     def _init_container(self):
