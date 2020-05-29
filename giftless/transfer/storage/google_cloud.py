@@ -16,26 +16,29 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
 
     """
 
-    def __init__(self, bucket_name: str, account_json_path: str, path_prefix: Optional[str] = None, **_):
+    def __init__(self, bucket_name: str, api_key: Optional[str] = None,
+                 account_json_path: Optional[str] = None,
+                 path_prefix: Optional[str] = None, **_):
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
+        self.api_key = api_key
         self.storage_client = storage.Client.from_service_account_json(
             account_json_path)
         self._init_container()
 
     def get(self, prefix: str, oid: str) -> BinaryIO:
-        bucket = self.storage_client.bucket(self.bucket_name)
-        blob = bucket.blob(self._get_blob_path(prefix, oid))
+        bucket = self.storage_client.get_bucket(self.bucket_name)
+        blob = bucket.get_blob(self._get_blob_path(prefix, oid))
         return blob.download_as_string()  # type: ignore
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
-        bucket = self.storage_client.bucket(self.bucket_name)
+        bucket = self.storage_client.get_bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
         blob.upload_from_file(data_stream)
         return data_stream.tell()
 
     def exists(self, prefix: str, oid: str) -> bool:
-        bucket = self.storage_client.bucket(self.bucket_name)
+        bucket = self.storage_client.get_bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
         return blob.exists()  # type: ignore
 
@@ -87,14 +90,18 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
         return os.path.join(storage_prefix, prefix, oid)
 
     def _get_signed_url(self, prefix: str, oid: str, expires_in: int, filename: Optional[str] = None) -> str:
-        bucket = self.storage_client.bucket(self.bucket_name)
+        bucket = self.storage_client.get_bucket(self.bucket_name)
+        blob = bucket.blob(self._get_blob_path(prefix, oid))
         token_expires = (datetime.now(tz=timezone.utc) +
                          timedelta(seconds=expires_in))
+
         extra_args = {}
         if filename:
             extra_args['content_disposition'] = f'attachment; filename="{filename}"'
 
-        url = bucket.generate_signed_url(
+        url = blob.generate_signed_url(
+            response_disposition=extra_args,
+            access_token=self.api_key,
             expiration=token_expires, version='v4')
         return url  # type: ignore
 
