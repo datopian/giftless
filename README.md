@@ -156,7 +156,11 @@ git lfs push origin master
 
 ### Configuration
 
-It is also possible to configure Giftless' YAML file to use an external storage:
+It is also possible to configure Giftless' YAML file to use an external storage.
+
+#### Azure Support
+
+Modify your `giftless.yaml` file according to the following config:
 
 ```bash
     $ cat giftless.yaml
@@ -170,9 +174,46 @@ It is also possible to configure Giftless' YAML file to use an external storage:
             connection_string: GetYourAzureConnectionStringAndPutItHere==
             container_name: lfs-storage
             path_prefix: large-files
+```
 
-    $ export GIFTLESS_CONFIG_FILE=giftless.yaml
+#### Google Cloud Platform Support
+
+Make sure to obtain your `credentials.json` file. More information 
+[here](https://console.cloud.google.com/apis/credentials/serviceaccountkey).
+You can export it directly with 
+
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="PATH_TO/credentials.json"
+```
+
+Make sure to also specify the path into the YAML file:
+
+```bash
+TRANSFER_ADAPTERS:
+  basic:
+    factory: giftless.transfer.basic_streaming:factory
+    options:
+      storage_class: ..storage.google_cloud:GoogleCloudBlobStorage
+      storage_options:
+        bucket_name: datahub-bbb
+        api_key: myAPI-key
+        account_json_path: PATH_TO/credentials.json
+AUTH_PROVIDERS:
+  - giftless.auth.allow_anon:read_write
+```
+
+`api-key` and `account_json_path` are optional parameters.
+
+After configuring your `giftless.yaml` file, export it:
+
+```bash
+$ export GIFTLESS_CONFIG_FILE=giftless.yaml
+```
+
+You will need uWSGI running. Install it with your prefereed package manager.
+Here is an example of how to run it:
     
+```bash
     # Run uWSGI in HTTP mode on port 8080
     $ uwsgi -M -T --threads 2 -p 2 --manage-script-name \
         --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
