@@ -5,8 +5,10 @@ from typing import Dict, Optional
 
 import figcan
 import yaml
+from dotenv import load_dotenv
 
 ENV_PREFIX = 'GIFTLESS_'
+ENV_FILE = '.env'
 
 default_transfer_config = {
     "basic": figcan.Extensible({
@@ -43,6 +45,8 @@ default_config = {
     "MIDDLEWARE": []
 }
 
+load_dotenv()
+
 
 def configure(app, additional_config: Optional[Dict] = None):
     """Configure a Flask app using Figcan managed configuration object
@@ -55,8 +59,12 @@ def configure(app, additional_config: Optional[Dict] = None):
 def _compose_config(additional_config: Optional[Dict] = None) -> figcan.Configuration:
     """Compose configuration object from all available sources
     """
+    YAML_STR_FROM_ENV = os.getenv("YAML_CONTENT")
     config = figcan.Configuration(default_config)
-    if os.environ.get(f'{ENV_PREFIX}CONFIG_FILE'):
+    if YAML_STR_FROM_ENV:
+        config_from_file = yaml.safe_load(YAML_STR_FROM_ENV)
+        config.apply(config_from_file)
+    elif os.environ.get(f'{ENV_PREFIX}CONFIG_FILE'):
         with open(os.environ[f'{ENV_PREFIX}CONFIG_FILE']) as f:
             config_from_file = yaml.safe_load(f)
             config.apply(config_from_file)
