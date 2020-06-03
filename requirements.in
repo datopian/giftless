@@ -19,5 +19,5 @@ git+https://github.com/teracyhq/flask-classful.git@3bbab31#egg=flask-classful
 azure-storage-blob==12.2.*
 
 google-cloud-storage==1.28.*
-
+google-auth==1.16.*
 python-dotenv==0.13.*

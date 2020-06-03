@@ -1,9 +1,11 @@
+import json
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, BinaryIO, Dict, Optional
 
 from google.cloud import storage  # type: ignore
 from google.cloud.exceptions import Conflict  # type: ignore
+from google.oauth2 import service_account  # type: ignore
 
 from giftless.transfer.basic_external import ExternalStorage
 from giftless.transfer.basic_streaming import StreamingStorage
@@ -16,14 +18,21 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
 
     """
 
-    def __init__(self, bucket_name: str, api_key: Optional[str] = None,
+    def __init__(self, project_name: str, bucket_name: str,
+                 api_key: Optional[str] = None,
                  account_json_path: Optional[str] = None,
                  path_prefix: Optional[str] = None, **_):
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
         self.api_key = api_key
-        self.storage_client = storage.Client.from_service_account_json(
-            account_json_path)
+        if os.getenv("GCP_CREDENTIALS"):
+            ENV_GCP_CREDENTIALS = os.getenv("GCP_CREDENTIALS")
+            parsed_crendentials = json.loads(ENV_GCP_CREDENTIALS)  # type: ignore
+            credentials = service_account.Credentials.from_service_account_info(parsed_crendentials)
+            self.storage_client = storage.Client(project=project_name, credentials=credentials)
+        else:
+            self.storage_client = storage.Client.from_service_account_json(
+                account_json_path)
         self._init_container()
 
     def get(self, prefix: str, oid: str) -> BinaryIO:
