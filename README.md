@@ -277,9 +277,48 @@ MIDDLEWARE:
       x_prefix: 1
 ```
 
+In order for this to work, you must ensure your reverse proxy (e.g. nginx) 
+sets the right `X-Forwarded-*` headers when passing requests. 
+
+For example, if you have deployed giftless in an endpoint that is available to 
+clients at `https://example.com/lfs`, the following nginx configuration is 
+expected, in addition to the Giftless configuration set in the `MIDDLEWARE` 
+section:
+
+```
+    location /lfs/ {
+        proxy_pass http://giftless.internal.host:5000/;
+        proxy_set_header X-Forwarded-Prefix /lfs;
+    }
+```
+
+This example assumes Giftless is available to the reverse proxy at
+`giftless.internal.host` port 5000. In addition, `X-Forwarded-Host`, 
+`X-Forwarded-Port`, `X-Forwarded-Proto` are automatically set by nginx by
+default.  
+
 ##### Adding CORS Support
 
-TBD
+There are a number of CORS WSGI middleware implementations available on PyPI,
+and you can use any of them to add CORS headers control support to Giftless. 
+
+For example, you can enable CORS support using 
+[wsgi-cors-middleware](https://github.com/moritzmhmk/wsgi-cors-middleware):
+
+```bash
+(.venv) $ pip install wsgi_cors_middleware
+```
+
+And then add the following to your config file:
+
+```yaml
+MIDDLEWARE:
+  - class: wsgi_cors_middleware:CorsMiddleware
+    kwargs:
+      origin: https://www.example.com
+      headers: ['Content-type', 'Accept', 'Authorization']
+      methods: ['GET', 'POST', 'PUT']
+```
 
 
 ## Overview of the Giftless workflow
@@ -294,8 +333,6 @@ Development
 endpoint implementation with Flask
 * [Marshmallow](https://marshmallow.readthedocs.io/en/stable/) for
 input / output serialization and validation
-* [flask-jwt-simple](https://flask-jwt-simple.readthedocs.io/en/latest/) for
-handling JWT tokens
 * [figcan](https://github.com/shoppimon/figcan) for configuration handling
 
 You must have Python 3.7 and newer set up to run or develop `giftless`.
@@ -303,7 +340,7 @@ You must have Python 3.7 and newer set up to run or develop `giftless`.
 ### Code Style
 We use the following tools and standards to write `giftless` code:
 * `flake8` to check your Python code for PEP8 compliance
-* `import` statements are checked by `isort` and should be  organized
+* `import` statements are checked by `isort` and should be organized
 accordingly
 * Type checking is done using `mypy`
 
