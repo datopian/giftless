@@ -3,8 +3,8 @@ from urllib.parse import urlencode
 
 import pytest
 
+from giftless.storage.exc import ObjectNotFound
 from giftless.transfer import basic_external
-from giftless.transfer.exc import ObjectNotFound
 
 
 def test_factory_returns_object():

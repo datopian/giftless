@@ -12,38 +12,12 @@ implement the `ExternalStorage` interface defined here.
 """
 
 import os
-from abc import ABC
 from typing import Any, Dict, Optional
 
+from giftless.storage import ExternalStorage, exc
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
-from giftless.transfer.basic_streaming import VerifiableStorage, VerifyView
+from giftless.transfer.basic_streaming import VerifyView
 from giftless.util import get_callable
-
-from . import exc
-
-
-class ExternalStorage(VerifiableStorage, ABC):
-    """Interface for streaming storage adapters
-    """
-    def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
-                          extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        pass
-
-    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
-                            extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        pass
-
-    def exists(self, prefix: str, oid: str) -> bool:
-        pass
-
-    def get_size(self, prefix: str, oid: str) -> int:
-        pass
-
-    def verify_object(self, prefix: str, oid: str, size: int) -> bool:
-        try:
-            return self.get_size(prefix, oid) == size
-        except exc.ObjectNotFound:
-            return False
 
 
 class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):

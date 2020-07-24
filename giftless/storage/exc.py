@@ -1,4 +1,4 @@
-"""Transfer adapters and storage related errors
+"""Storage related errors
 """
 from typing import Optional
 

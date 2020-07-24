@@ -5,9 +5,9 @@ from typing import Any, BinaryIO, Dict, Optional
 from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
 from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient, generate_blob_sas  # type: ignore
 
-from giftless.transfer.basic_external import ExternalStorage
-from giftless.transfer.basic_streaming import StreamingStorage
-from giftless.transfer.exc import ObjectNotFound
+from giftless.storage import ExternalStorage, StreamingStorage
+
+from .exc import ObjectNotFound
 
 
 class AzureBlobsStorage(StreamingStorage, ExternalStorage):
