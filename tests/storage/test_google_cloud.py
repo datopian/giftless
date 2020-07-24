@@ -17,7 +17,7 @@ def mocked_gcp():
     mock_blob.download_as_string.return_value.decode.return_value = "file_content"
     attrs = {'put.return_value': 500,
              'exists.return_value': True, 'get_size.return_value': 500}
-    patcher = patch('giftless.transfer.storage.google_cloud.GoogleCloudBlobStorage',
+    patcher = patch('giftless.storage.google_cloud.GoogleCloudBlobStorage',
                     bucket_name="datahub-test", storage_client=storage_client_mock,
                     account_json_path="credentials.json", **attrs)
     return patcher
