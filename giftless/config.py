@@ -14,7 +14,7 @@ default_transfer_config = {
     "basic": figcan.Extensible({
         "factory": "giftless.transfer.basic_streaming:factory",
         "options": figcan.Extensible({
-            "storage_class": "LocalStorage",
+            "storage_class": "giftless.storage.local_storage:LocalStorage",
             "storage_options": figcan.Extensible({
                 "path": "lfs-storage"
             }),

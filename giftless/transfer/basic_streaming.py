@@ -2,14 +2,12 @@
 
 This transfer adapter offers 'basic' transfers by streaming uploads / downloads
 through the Git LFS HTTP server. It can use different storage backends (local,
-cloud, ...). This module implements the local storage backend, but defines an
+cloud, ...). This module defines an
 interface through which additional streaming backends can be implemented.
 """
 
 import os
-import shutil
-from abc import ABC
-from typing import Any, BinaryIO, Dict, Optional
+from typing import Any, Dict, Optional
 
 from flask import Response, request, url_for
 from flask_classful import route
@@ -18,91 +16,10 @@ from webargs.flaskparser import parser  # type: ignore
 from giftless.auth.identity import Permission
 from giftless.exc import InvalidPayload, NotFound
 from giftless.schema import ObjectSchema
-from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider, exc
+from giftless.storage import StreamingStorage, VerifiableStorage
+from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
 from giftless.util import get_callable
 from giftless.view import BaseView
-
-
-class VerifiableStorage(ABC):
-    """A storage backend that supports object verification API
-
-    All streaming backends should be 'verifiable'.
-    """
-    def verify_object(self, prefix: str, oid: str, size: int) -> bool:
-        """Check that object exists and has the right size
-
-        This method should not throw an error if the object does not exist, but return False
-        """
-        pass
-
-
-class StreamingStorage(VerifiableStorage, ABC):
-    """Interface for streaming storage adapters
-    """
-    def get(self, prefix: str, oid: str) -> BinaryIO:
-        pass
-
-    def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
-        pass
-
-    def exists(self, prefix: str, oid: str) -> bool:
-        pass
-
-    def get_size(self, prefix: str, oid: str) -> int:
-        pass
-
-    def verify_object(self, prefix: str, oid: str, size: int):
-        """Verify that an object exists
-        """
-        try:
-            return self.get_size(prefix, oid) == size
-        except exc.ObjectNotFound:
-            return False
-
-
-class LocalStorage(StreamingStorage):
-    """Local storage implementation
-
-    # TODO: do we need directory hashing?
-    #       seems to me that in a single org/repo prefix this is not needed as we do not expect
-    #       thousands of files per repo or thousands or repos per org
-    """
-    def __init__(self, path: str = None, **_):
-        if path is None:
-            path = 'lfs-storage'
-        self.path = path
-        self._create_path(self.path)
-
-    def get(self, prefix: str, oid: str) -> BinaryIO:
-        path = self._get_path(prefix, oid)
-        if os.path.isfile(path):
-            return open(path, 'br')
-        else:
-            raise NotFound("Requested object was not found")
-
-    def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
-        path = self._get_path(prefix, oid)
-        directory = os.path.dirname(path)
-        self._create_path(directory)
-        with open(path, 'bw') as dest:
-            shutil.copyfileobj(data_stream, dest)
-            return dest.tell()
-
-    def exists(self, prefix: str, oid: str) -> bool:
-        return os.path.isfile(self._get_path(prefix, oid))
-
-    def get_size(self, prefix: str, oid: str) -> int:
-        if self.exists(prefix, oid):
-            return os.path.getsize(self._get_path(prefix, oid))
-        return 0
-
-    def _get_path(self, prefix: str, oid: str) -> str:
-        return os.path.join(self.path, prefix, oid)
-
-    @staticmethod
-    def _create_path(path):
-        if not os.path.isdir(path):
-            os.makedirs(path)
 
 
 class VerifyView(BaseView):

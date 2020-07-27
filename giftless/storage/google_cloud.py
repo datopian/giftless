@@ -7,9 +7,9 @@ from google.cloud import storage  # type: ignore
 from google.cloud.exceptions import Conflict  # type: ignore
 from google.oauth2 import service_account  # type: ignore
 
-from giftless.transfer.basic_external import ExternalStorage
-from giftless.transfer.basic_streaming import StreamingStorage
-from giftless.transfer.exc import ObjectNotFound
+from giftless.storage import ExternalStorage, StreamingStorage
+
+from .exc import ObjectNotFound
 
 
 class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
