@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, BinaryIO, Dict, Optional
 
 from google.cloud import storage  # type: ignore
-from google.cloud.exceptions import Conflict  # type: ignore
 from google.oauth2 import service_account  # type: ignore
 
 from giftless.storage import ExternalStorage, StreamingStorage
@@ -117,7 +116,4 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
     def _init_container(self):
         """Create the storage container
         """
-        try:
-            self.storage_client.create_bucket(self.bucket_name)
-        except Conflict:
-            pass
+        self.storage_client.get_bucket(self.bucket_name)
