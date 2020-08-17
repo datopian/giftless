@@ -9,9 +9,9 @@ from giftless.storage import StreamingStorage
 class LocalStorage(StreamingStorage):
     """Local storage implementation
 
-    # TODO: do we need directory hashing?
-    #       seems to me that in a single org/repo prefix this is not needed as we do not expect
-    #       thousands of files per repo or thousands or repos per org
+    This storage backend  works by storing files in the local file system.
+    While it can be used in production, large scale deployment will most likely
+    want to use a more scalable solution such as one of the cloud storage backends.
     """
     def __init__(self, path: str = None, **_):
         if path is None:
