@@ -2,7 +2,7 @@ import io
 
 import pytest
 
-from giftless.exc import NotFound
+from giftless.storage.exc import ObjectNotFound
 from giftless.storage import StreamingStorage
 
 ARBITRARY_OID = '2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824'
@@ -30,7 +30,7 @@ class StreamingStorageAbstractTests:
     def test_get_raises_if_not_found(self, storage_backend: StreamingStorage):
         """Test that calling get for a non-existing object raises
         """
-        with pytest.raises(NotFound):
+        with pytest.raises(ObjectNotFound):
             storage_backend.get('org/repo', ARBITRARY_OID)
 
     def test_exists_exists(self, storage_backend: StreamingStorage):
@@ -53,6 +53,7 @@ class StreamingStorageAbstractTests:
         assert len(content) == storage_backend.get_size('org/repo', ARBITRARY_OID)
 
     def test_get_size_not_existing(self, storage_backend):
-        """Test getting the size of a non-existing object returns 0
+        """Test getting the size of a non-existing object raises an exception
         """
-        assert 0 == storage_backend.get_size('org/repo', ARBITRARY_OID)
+        with pytest.raises(ObjectNotFound):
+            storage_backend.get_size('org/repo', ARBITRARY_OID)

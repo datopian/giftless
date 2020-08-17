@@ -2,8 +2,7 @@ import os
 import shutil
 from typing import BinaryIO
 
-from giftless.exc import NotFound
-from giftless.storage import StreamingStorage
+from giftless.storage import StreamingStorage, exc
 
 
 class LocalStorage(StreamingStorage):
@@ -24,7 +23,7 @@ class LocalStorage(StreamingStorage):
         if os.path.isfile(path):
             return open(path, 'br')
         else:
-            raise NotFound("Requested object was not found")
+            raise exc.ObjectNotFound("Object was not found")
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
         path = self._get_path(prefix, oid)
@@ -40,7 +39,7 @@ class LocalStorage(StreamingStorage):
     def get_size(self, prefix: str, oid: str) -> int:
         if self.exists(prefix, oid):
             return os.path.getsize(self._get_path(prefix, oid))
-        return 0
+        raise exc.ObjectNotFound("Object was not found")
 
     def _get_path(self, prefix: str, oid: str) -> str:
         return os.path.join(self.path, prefix, oid)

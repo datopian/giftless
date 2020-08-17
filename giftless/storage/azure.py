@@ -2,7 +2,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, BinaryIO, Dict, Optional
 
-from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
+from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient, generate_blob_sas  # type: ignore
 
 from giftless.storage import ExternalStorage, StreamingStorage
@@ -19,12 +19,14 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
         self.container_name = container_name
         self.path_prefix = path_prefix
         self.blob_svc_client = BlobServiceClient.from_connection_string(connection_string)
-        self._init_container()
 
     def get(self, prefix: str, oid: str) -> BinaryIO:
         blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
                                                            blob=self._get_blob_path(prefix, oid))
-        return blob_client.download_blob().chunks()  # type: ignore
+        try:
+            return blob_client.download_blob().chunks()  # type: ignore
+        except ResourceNotFoundError:
+            raise ObjectNotFound("Object does not exist")
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
         blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
@@ -107,11 +109,3 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
         blob_client = BlobClient(self.blob_svc_client.url, container_name=self.container_name, blob_name=blob_name,
                                  credential=sas_token)
         return blob_client.url  # type: ignore
-
-    def _init_container(self):
-        """Create the storage container
-        """
-        try:
-            self.blob_svc_client.create_container(self.container_name)
-        except ResourceExistsError:
-            pass
