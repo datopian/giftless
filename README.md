@@ -186,7 +186,7 @@ You can export it directly with
 export GOOGLE_APPLICATION_CREDENTIALS="PATH_TO/credentials.json"
 ```
 
-Make sure to also specify the path into the YAML file:
+If you are using YAML, make sure to also specify the path into the YAML file:
 
 ```bash
 TRANSFER_ADAPTERS:
@@ -196,13 +196,13 @@ TRANSFER_ADAPTERS:
       storage_class: ..storage.google_cloud:GoogleCloudBlobStorage
       storage_options:
         bucket_name: datahub-bbb
-        api_key: myAPI-key
         account_json_path: PATH_TO/credentials.json
 AUTH_PROVIDERS:
   - giftless.auth.allow_anon:read_write
 ```
 
-`api-key` and `account_json_path` are optional parameters.
+`account_json_path` is an optional parameters in case you are using `.env` and
+ using the raw content of `GCP_CREDENTIALS`.
 
 After configuring your `giftless.yaml` file, export it:
 
@@ -224,7 +224,7 @@ See `giftless/config.py` for some default configuration options.
 #### Configuration over .env files
 
 [WIP] It is possible to use an `.env` file 
-isntead of a YAML file in case you need to deploy the project
+instead of a YAML file in case you need to deploy the project
 in a PaaS, such as Heroku. At this time, we only support a
 raw format where we dump the content of `giftless.yaml` 
 into an env var anmed `YAML_CONTENT`:
@@ -237,7 +237,6 @@ YAML_CONTENT="TRANSFER_ADAPTERS:
       storage_class: ..storage.google_cloud:GoogleCloudBlobStorage
       storage_options:
         bucket_name: datahub-bbb
-        api_key: API_KEY
 AUTH_PROVIDERS:
   - giftless.auth.allow_anon:read_write
 "
