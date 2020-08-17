@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Any, BinaryIO, Dict, Optional
+from typing import Any, BinaryIO, Dict, Iterable, Optional
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient, generate_blob_sas  # type: ignore
@@ -20,7 +20,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
         self.path_prefix = path_prefix
         self.blob_svc_client = BlobServiceClient.from_connection_string(connection_string)
 
-    def get(self, prefix: str, oid: str) -> BinaryIO:
+    def get(self, prefix: str, oid: str) -> Iterable[bytes]:
         blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
                                                            blob=self._get_blob_path(prefix, oid))
         try:

@@ -2,8 +2,8 @@ import io
 
 import pytest
 
-from giftless.storage.exc import ObjectNotFound
 from giftless.storage import StreamingStorage
+from giftless.storage.exc import ObjectNotFound
 
 ARBITRARY_OID = '2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824'
 
@@ -24,7 +24,7 @@ class StreamingStorageAbstractTests:
         assert len(content) == written
 
         fetched = storage_backend.get('org/repo', ARBITRARY_OID)
-        fetched_content = fetched.read()
+        fetched_content = b''.join(fetched)
         assert content == fetched_content
 
     def test_get_raises_if_not_found(self, storage_backend: StreamingStorage):
