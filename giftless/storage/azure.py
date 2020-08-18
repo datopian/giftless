@@ -73,7 +73,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage):
                 "download": {
                     "href": self._get_signed_url(prefix, oid, expires_in, filename),
                     "header": {},
-                    "expires_in": 900
+                    "expires_in": expires_in
                 }
             }
         }

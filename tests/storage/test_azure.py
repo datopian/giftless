@@ -9,7 +9,7 @@ from azure.storage.blob import BlobServiceClient  # type: ignore
 
 from giftless.storage.azure import AzureBlobsStorage
 
-from . import StreamingStorageAbstractTests
+from . import ExternalStorageAbstractTests, StreamingStorageAbstractTests
 
 MOCK_AZURE_ACCOUNT_NAME = 'my-account'
 MOCK_AZURE_CONTAINER_NAME = 'my-container'
@@ -62,5 +62,5 @@ def vcr_config():
 
 
 @pytest.mark.vcr()
-class TestAzureBlobStorageBackend(StreamingStorageAbstractTests):
+class TestAzureBlobStorageBackend(StreamingStorageAbstractTests, ExternalStorageAbstractTests):
     pass
