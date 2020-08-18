@@ -1,8 +1,6 @@
 """Tests for the local storage backend
 """
 import os
-import random
-from string import ascii_letters
 from typing import Generator
 
 import pytest
@@ -25,7 +23,7 @@ def storage_backend() -> Generator[AzureBlobsStorage, None, None]:
     """
     connection_str = os.environ.get('AZURE_CONNECTION_STRING', '')
     container_name = os.environ.get('AZURE_CONTAINER', '')
-    prefix = 'giftless-tests-{}'.format(''.join(random.choices(ascii_letters, k=8)))
+    prefix = 'giftless-tests'
 
     client = BlobServiceClient.from_connection_string(connection_str)
     try:
@@ -39,5 +37,26 @@ def storage_backend() -> Generator[AzureBlobsStorage, None, None]:
             pass
 
 
+@pytest.fixture(scope='module')
+def vcr_config():
+    use_azure = bool(os.environ.get('AZURE_CONNECTION_STRING') and os.environ.get('AZURE_CONTAINER'))
+    force_record = bool(os.environ.get('DISABLE_VCR'))
+    if use_azure:
+        if force_record:
+            mode = 'all'
+        else:
+            mode = 'once'
+    else:
+        mode = 'none'
+
+    return {
+        "filter_headers": [
+            ('authorization', 'fake-authz-header')
+        ],
+        "record_mode": mode
+    }
+
+
+@pytest.mark.vcr()
 class TestAzureBlobStorageBackend(StreamingStorageAbstractTests):
     pass

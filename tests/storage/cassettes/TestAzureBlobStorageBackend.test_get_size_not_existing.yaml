@@ -1,0 +1,182 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - f2822af6-e0c9-11ea-99fb-a0999b18a477
+      x-ms-date:
+      - Mon, 17 Aug 2020 20:40:54 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: HEAD
+    uri: https://foobar.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+  response:
+    body:
+      string: ''
+    headers:
+      Date:
+      - Mon, 17 Aug 2020 20:40:55 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      x-ms-client-request-id:
+      - f2822af6-e0c9-11ea-99fb-a0999b18a477
+      x-ms-error-code:
+      - BlobNotFound
+      x-ms-request-id:
+      - 231aadcc-301e-009c-4fd6-7422f3000000
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 404
+      message: The specified blob does not exist.
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - f31852c4-e0c9-11ea-99fb-a0999b18a477
+      x-ms-date:
+      - Mon, 17 Aug 2020 20:40:55 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: GET
+    uri: https://foobar.blob.core.windows.net/my-container?prefix=giftless-tests&restype=container&comp=list
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><EnumerationResults\
+        \ ServiceEndpoint=\"https://foobar.blob.core.windows.net/\" ContainerName=\"\
+        my-container\"><Prefix>giftless-tests</Prefix><Blobs /><NextMarker /></EnumerationResults>"
+    headers:
+      Content-Type:
+      - application/xml
+      Date:
+      - Mon, 17 Aug 2020 20:40:56 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      x-ms-client-request-id:
+      - f31852c4-e0c9-11ea-99fb-a0999b18a477
+      x-ms-request-id:
+      - 52a7fbea-301e-00ee-4cd6-7425bc000000
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - 56d49a86-e113-11ea-bedb-a0999b18a477
+      x-ms-date:
+      - Tue, 18 Aug 2020 05:26:16 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: HEAD
+    uri: https://foobar.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+  response:
+    body:
+      string: ''
+    headers:
+      Date:
+      - Tue, 18 Aug 2020 05:26:16 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      x-ms-client-request-id:
+      - 56d49a86-e113-11ea-bedb-a0999b18a477
+      x-ms-error-code:
+      - BlobNotFound
+      x-ms-request-id:
+      - 26a9a55d-501e-00b5-4420-751c87000000
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 404
+      message: The specified blob does not exist.
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - 578bc13e-e113-11ea-bedb-a0999b18a477
+      x-ms-date:
+      - Tue, 18 Aug 2020 05:26:17 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: GET
+    uri: https://foobar.blob.core.windows.net/my-container?prefix=giftless-tests&restype=container&comp=list
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><EnumerationResults\
+        \ ServiceEndpoint=\"https://foobar.blob.core.windows.net/\" ContainerName=\"\
+        my-container\"><Prefix>giftless-tests</Prefix><Blobs /><NextMarker /></EnumerationResults>"
+    headers:
+      Content-Type:
+      - application/xml
+      Date:
+      - Tue, 18 Aug 2020 05:26:18 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      x-ms-client-request-id:
+      - 578bc13e-e113-11ea-bedb-a0999b18a477
+      x-ms-request-id:
+      - ef2a0cf7-601e-0017-3d20-75269e000000
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,440 @@
+interactions:
+- request:
+    body: The contents of a file-like object
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '34'
+      Content-Type:
+      - application/octet-stream
+      If-None-Match:
+      - '*'
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-blob-type:
+      - BlockBlob
+      x-ms-client-request-id:
+      - f0d2335e-e0c9-11ea-99fb-a0999b18a477
+      x-ms-date:
+      - Mon, 17 Aug 2020 20:40:52 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: PUT
+    uri: https://foobar.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+  response:
+    body:
+      string: ''
+    headers:
+      Content-Length:
+      - '0'
+      Content-MD5:
+      - Wo/0hVc0TMrzPXqSansLsg==
+      Date:
+      - Mon, 17 Aug 2020 20:40:52 GMT
+      ETag:
+      - '"0x8D842EDD5A05FBE"'
+      Last-Modified:
+      - Mon, 17 Aug 2020 20:40:53 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      x-ms-client-request-id:
+      - f0d2335e-e0c9-11ea-99fb-a0999b18a477
+      x-ms-content-crc64:
+      - O5sk8z3/CZI=
+      x-ms-request-id:
+      - 9b9f0235-301e-000a-34d6-742b22000000
+      x-ms-request-server-encrypted:
+      - 'true'
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - f18473f2-e0c9-11ea-99fb-a0999b18a477
+      x-ms-date:
+      - Mon, 17 Aug 2020 20:40:53 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: HEAD
+    uri: https://foobar.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Content-Length:
+      - '34'
+      Content-MD5:
+      - Wo/0hVc0TMrzPXqSansLsg==
+      Content-Type:
+      - application/octet-stream
+      Date:
+      - Mon, 17 Aug 2020 20:40:53 GMT
+      ETag:
+      - '"0x8D842EDD5A05FBE"'
+      Last-Modified:
+      - Mon, 17 Aug 2020 20:40:53 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      Vary:
+      - Origin
+      x-ms-access-tier:
+      - Hot
+      x-ms-access-tier-inferred:
+      - 'true'
+      x-ms-blob-type:
+      - BlockBlob
+      x-ms-client-request-id:
+      - f18473f2-e0c9-11ea-99fb-a0999b18a477
+      x-ms-creation-time:
+      - Mon, 17 Aug 2020 20:40:53 GMT
+      x-ms-lease-state:
+      - available
+      x-ms-lease-status:
+      - unlocked
+      x-ms-request-id:
+      - 9b9f02dc-301e-000a-33d6-742b22000000
+      x-ms-server-encrypted:
+      - 'true'
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - f1b25b3c-e0c9-11ea-99fb-a0999b18a477
+      x-ms-date:
+      - Mon, 17 Aug 2020 20:40:53 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: GET
+    uri: https://foobar.blob.core.windows.net/my-container?prefix=giftless-tests&restype=container&comp=list
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><EnumerationResults\
+        \ ServiceEndpoint=\"https://foobar.blob.core.windows.net/\" ContainerName=\"\
+        my-container\"><Prefix>giftless-tests</Prefix><Blobs><Blob><Name>giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824</Name><Properties><Creation-Time>Mon,\
+        \ 17 Aug 2020 20:40:53 GMT</Creation-Time><Last-Modified>Mon, 17 Aug 2020\
+        \ 20:40:53 GMT</Last-Modified><Etag>0x8D842EDD5A05FBE</Etag><Content-Length>34</Content-Length><Content-Type>application/octet-stream</Content-Type><Content-Encoding\
+        \ /><Content-Language /><Content-CRC64 /><Content-MD5>Wo/0hVc0TMrzPXqSansLsg==</Content-MD5><Cache-Control\
+        \ /><Content-Disposition /><BlobType>BlockBlob</BlobType><AccessTier>Hot</AccessTier><AccessTierInferred>true</AccessTierInferred><LeaseStatus>unlocked</LeaseStatus><LeaseState>available</LeaseState><ServerEncrypted>true</ServerEncrypted></Properties></Blob></Blobs><NextMarker\
+        \ /></EnumerationResults>"
+    headers:
+      Content-Type:
+      - application/xml
+      Date:
+      - Mon, 17 Aug 2020 20:40:53 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      x-ms-client-request-id:
+      - f1b25b3c-e0c9-11ea-99fb-a0999b18a477
+      x-ms-request-id:
+      - f16f1b8a-701e-0034-17d6-74bc5d000000
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - f25328fa-e0c9-11ea-99fb-a0999b18a477
+      x-ms-date:
+      - Mon, 17 Aug 2020 20:40:54 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: DELETE
+    uri: https://foobar.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+  response:
+    body:
+      string: ''
+    headers:
+      Content-Length:
+      - '0'
+      Date:
+      - Mon, 17 Aug 2020 20:40:54 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      x-ms-client-request-id:
+      - f25328fa-e0c9-11ea-99fb-a0999b18a477
+      x-ms-delete-type-permanent:
+      - 'true'
+      x-ms-request-id:
+      - f16f1bdc-701e-0034-5fd6-74bc5d000000
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 202
+      message: Accepted
+- request:
+    body: The contents of a file-like object
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '34'
+      Content-Type:
+      - application/octet-stream
+      If-None-Match:
+      - '*'
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-blob-type:
+      - BlockBlob
+      x-ms-client-request-id:
+      - 5535eef0-e113-11ea-bedb-a0999b18a477
+      x-ms-date:
+      - Tue, 18 Aug 2020 05:26:13 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: PUT
+    uri: https://foobar.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+  response:
+    body:
+      string: ''
+    headers:
+      Content-Length:
+      - '0'
+      Content-MD5:
+      - Wo/0hVc0TMrzPXqSansLsg==
+      Date:
+      - Tue, 18 Aug 2020 05:26:14 GMT
+      ETag:
+      - '"0x8D843373A0926D7"'
+      Last-Modified:
+      - Tue, 18 Aug 2020 05:26:14 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      x-ms-client-request-id:
+      - 5535eef0-e113-11ea-bedb-a0999b18a477
+      x-ms-content-crc64:
+      - O5sk8z3/CZI=
+      x-ms-request-id:
+      - 1a722834-301e-00ee-6f20-7525bc000000
+      x-ms-request-server-encrypted:
+      - 'true'
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 201
+      message: Created
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - 55ddbdba-e113-11ea-bedb-a0999b18a477
+      x-ms-date:
+      - Tue, 18 Aug 2020 05:26:14 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: HEAD
+    uri: https://foobar.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+  response:
+    body:
+      string: ''
+    headers:
+      Accept-Ranges:
+      - bytes
+      Content-Length:
+      - '34'
+      Content-MD5:
+      - Wo/0hVc0TMrzPXqSansLsg==
+      Content-Type:
+      - application/octet-stream
+      Date:
+      - Tue, 18 Aug 2020 05:26:14 GMT
+      ETag:
+      - '"0x8D843373A0926D7"'
+      Last-Modified:
+      - Tue, 18 Aug 2020 05:26:14 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      Vary:
+      - Origin
+      x-ms-access-tier:
+      - Hot
+      x-ms-access-tier-inferred:
+      - 'true'
+      x-ms-blob-type:
+      - BlockBlob
+      x-ms-client-request-id:
+      - 55ddbdba-e113-11ea-bedb-a0999b18a477
+      x-ms-creation-time:
+      - Tue, 18 Aug 2020 05:26:14 GMT
+      x-ms-lease-state:
+      - available
+      x-ms-lease-status:
+      - unlocked
+      x-ms-request-id:
+      - 1a7228ba-301e-00ee-5e20-7525bc000000
+      x-ms-server-encrypted:
+      - 'true'
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - 56043aa8-e113-11ea-bedb-a0999b18a477
+      x-ms-date:
+      - Tue, 18 Aug 2020 05:26:15 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: GET
+    uri: https://foobar.blob.core.windows.net/my-container?prefix=giftless-tests&restype=container&comp=list
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><EnumerationResults\
+        \ ServiceEndpoint=\"https://foobar.blob.core.windows.net/\" ContainerName=\"\
+        my-container\"><Prefix>giftless-tests</Prefix><Blobs><Blob><Name>giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824</Name><Properties><Creation-Time>Tue,\
+        \ 18 Aug 2020 05:26:14 GMT</Creation-Time><Last-Modified>Tue, 18 Aug 2020\
+        \ 05:26:14 GMT</Last-Modified><Etag>0x8D843373A0926D7</Etag><Content-Length>34</Content-Length><Content-Type>application/octet-stream</Content-Type><Content-Encoding\
+        \ /><Content-Language /><Content-CRC64 /><Content-MD5>Wo/0hVc0TMrzPXqSansLsg==</Content-MD5><Cache-Control\
+        \ /><Content-Disposition /><BlobType>BlockBlob</BlobType><AccessTier>Hot</AccessTier><AccessTierInferred>true</AccessTierInferred><LeaseStatus>unlocked</LeaseStatus><LeaseState>available</LeaseState><ServerEncrypted>true</ServerEncrypted></Properties></Blob></Blobs><NextMarker\
+        \ /></EnumerationResults>"
+    headers:
+      Content-Type:
+      - application/xml
+      Date:
+      - Tue, 18 Aug 2020 05:26:15 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      x-ms-client-request-id:
+      - 56043aa8-e113-11ea-bedb-a0999b18a477
+      x-ms-request-id:
+      - 9b53a28b-301e-008c-6320-75e79b000000
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - 569b9cb8-e113-11ea-bedb-a0999b18a477
+      x-ms-date:
+      - Tue, 18 Aug 2020 05:26:16 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: DELETE
+    uri: https://foobar.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+  response:
+    body:
+      string: ''
+    headers:
+      Content-Length:
+      - '0'
+      Date:
+      - Tue, 18 Aug 2020 05:26:15 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      x-ms-client-request-id:
+      - 569b9cb8-e113-11ea-bedb-a0999b18a477
+      x-ms-delete-type-permanent:
+      - 'true'
+      x-ms-request-id:
+      - 9b53a332-301e-008c-7320-75e79b000000
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 202
+      message: Accepted
+version: 1
