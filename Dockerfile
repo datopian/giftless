@@ -21,6 +21,8 @@ RUN pip wheel -w /wheels -r /requirements.txt
 
 FROM python:3.7-slim
 
+ARG PORT=5000
+
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && apt-get install -y libpcre3 libxml2 tini \
     && apt-get clean \
@@ -50,9 +52,9 @@ WORKDIR /app
 
 ENV UWSGI_MODULE "giftless.wsgi_entrypoint"
 
-EXPOSE 5000:5000
+EXPOSE $PORT
 
 ENTRYPOINT ["tini", "uwsgi", "--"]
 
-CMD ["-s", "127.0.0.1:5000", "-M", "-T", "--threads", "2", "-p", "2", \
+CMD ["-s", "127.0.0.1:${PORT}", "-M", "-T", "--threads", "2", "-p", "2", \
      "--manage-script-name", "--callable", "app"]
