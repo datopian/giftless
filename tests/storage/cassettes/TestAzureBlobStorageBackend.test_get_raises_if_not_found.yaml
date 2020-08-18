@@ -13,37 +13,37 @@ interactions:
       authorization:
       - fake-authz-header
       x-ms-client-request-id:
-      - ec54ce18-e0c9-11ea-99fb-a0999b18a477
+      - 27ebabf6-e136-11ea-830d-a0999b18a477
       x-ms-date:
-      - Mon, 17 Aug 2020 20:40:44 GMT
+      - Tue, 18 Aug 2020 09:35:30 GMT
       x-ms-range:
       - bytes=0-33554431
       x-ms-version:
       - '2019-07-07'
     method: GET
-    uri: https://foobar.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+    uri: https://my-account.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
   response:
     body:
       string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><Error><Code>BlobNotFound</Code><Message>The\
-        \ specified blob does not exist.\nRequestId:2d8903f2-d01e-0012-42d6-74f445000000\n\
-        Time:2020-08-17T20:40:45.8772488Z</Message></Error>"
+        \ specified blob does not exist.\nRequestId:25c5d527-101e-006f-5f42-758566000000\n\
+        Time:2020-08-18T09:35:31.0516513Z</Message></Error>"
     headers:
       Content-Length:
       - '215'
       Content-Type:
       - application/xml
       Date:
-      - Mon, 17 Aug 2020 20:40:45 GMT
+      - Tue, 18 Aug 2020 09:35:30 GMT
       Server:
       - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
       Vary:
       - Origin
       x-ms-client-request-id:
-      - ec54ce18-e0c9-11ea-99fb-a0999b18a477
+      - 27ebabf6-e136-11ea-830d-a0999b18a477
       x-ms-error-code:
       - BlobNotFound
       x-ms-request-id:
-      - 2d8903f2-d01e-0012-42d6-74f445000000
+      - 25c5d527-101e-006f-5f42-758566000000
       x-ms-version:
       - '2019-07-07'
     status:
@@ -63,23 +63,23 @@ interactions:
       authorization:
       - fake-authz-header
       x-ms-client-request-id:
-      - ed2d0b34-e0c9-11ea-99fb-a0999b18a477
+      - 2875e4ce-e136-11ea-830d-a0999b18a477
       x-ms-date:
-      - Mon, 17 Aug 2020 20:40:46 GMT
+      - Tue, 18 Aug 2020 09:35:31 GMT
       x-ms-version:
       - '2019-07-07'
     method: GET
-    uri: https://foobar.blob.core.windows.net/my-container?prefix=giftless-tests&restype=container&comp=list
+    uri: https://my-account.blob.core.windows.net/my-container?prefix=giftless-tests&restype=container&comp=list
   response:
     body:
       string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><EnumerationResults\
-        \ ServiceEndpoint=\"https://foobar.blob.core.windows.net/\" ContainerName=\"\
+        \ ServiceEndpoint=\"https://my-account.blob.core.windows.net/\" ContainerName=\"\
         my-container\"><Prefix>giftless-tests</Prefix><Blobs /><NextMarker /></EnumerationResults>"
     headers:
       Content-Type:
       - application/xml
       Date:
-      - Mon, 17 Aug 2020 20:40:46 GMT
+      - Tue, 18 Aug 2020 09:35:31 GMT
       Server:
       - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
       Transfer-Encoding:
@@ -87,105 +87,9 @@ interactions:
       Vary:
       - Origin
       x-ms-client-request-id:
-      - ed2d0b34-e0c9-11ea-99fb-a0999b18a477
+      - 2875e4ce-e136-11ea-830d-a0999b18a477
       x-ms-request-id:
-      - de5b99c7-901e-00c8-30d6-746da4000000
-      x-ms-version:
-      - '2019-07-07'
-    status:
-      code: 200
-      message: OK
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/xml
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
-      authorization:
-      - fake-authz-header
-      x-ms-client-request-id:
-      - 508eae50-e113-11ea-bedb-a0999b18a477
-      x-ms-date:
-      - Tue, 18 Aug 2020 05:26:06 GMT
-      x-ms-range:
-      - bytes=0-33554431
-      x-ms-version:
-      - '2019-07-07'
-    method: GET
-    uri: https://foobar.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
-  response:
-    body:
-      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><Error><Code>BlobNotFound</Code><Message>The\
-        \ specified blob does not exist.\nRequestId:3013fe80-f01e-00ce-5020-755e1b000000\n\
-        Time:2020-08-18T05:26:07.0960296Z</Message></Error>"
-    headers:
-      Content-Length:
-      - '215'
-      Content-Type:
-      - application/xml
-      Date:
-      - Tue, 18 Aug 2020 05:26:06 GMT
-      Server:
-      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
-      Vary:
-      - Origin
-      x-ms-client-request-id:
-      - 508eae50-e113-11ea-bedb-a0999b18a477
-      x-ms-error-code:
-      - BlobNotFound
-      x-ms-request-id:
-      - 3013fe80-f01e-00ce-5020-755e1b000000
-      x-ms-version:
-      - '2019-07-07'
-    status:
-      code: 404
-      message: The specified blob does not exist.
-- request:
-    body: null
-    headers:
-      Accept:
-      - application/xml
-      Accept-Encoding:
-      - gzip, deflate
-      Connection:
-      - keep-alive
-      User-Agent:
-      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
-      authorization:
-      - fake-authz-header
-      x-ms-client-request-id:
-      - 51433384-e113-11ea-bedb-a0999b18a477
-      x-ms-date:
-      - Tue, 18 Aug 2020 05:26:07 GMT
-      x-ms-version:
-      - '2019-07-07'
-    method: GET
-    uri: https://foobar.blob.core.windows.net/my-container?prefix=giftless-tests&restype=container&comp=list
-  response:
-    body:
-      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><EnumerationResults\
-        \ ServiceEndpoint=\"https://foobar.blob.core.windows.net/\" ContainerName=\"\
-        my-container\"><Prefix>giftless-tests</Prefix><Blobs /><NextMarker /></EnumerationResults>"
-    headers:
-      Content-Type:
-      - application/xml
-      Date:
-      - Tue, 18 Aug 2020 05:26:08 GMT
-      Server:
-      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
-      Transfer-Encoding:
-      - chunked
-      Vary:
-      - Origin
-      x-ms-client-request-id:
-      - 51433384-e113-11ea-bedb-a0999b18a477
-      x-ms-request-id:
-      - 182530f1-801e-0030-6d20-75315a000000
+      - 2ebb0966-301e-0057-1f42-7521a6000000
       x-ms-version:
       - '2019-07-07'
     status:
