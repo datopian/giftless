@@ -2,7 +2,6 @@ import json
 import os
 from datetime import timedelta
 from typing import Any, BinaryIO, Dict, Optional
-from urllib.parse import quote
 
 from google.cloud import storage  # type: ignore
 from google.oauth2 import service_account  # type: ignore
@@ -30,7 +29,6 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
         else:
             self.credentials = service_account.Credentials.from_service_account_file(account_json_path)
             self.storage_client = storage.Client.from_service_account_json(account_json_path)
-        # self._init_container()
 
     def get(self, prefix: str, oid: str) -> BinaryIO:
         bucket = self.storage_client.bucket(self.bucket_name)
@@ -96,13 +94,7 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
                         filename: Optional[str] = None) -> str:
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
-        expires_in = timedelta(seconds=expires_in)
         disposition = f'attachment; filename={filename}' if filename else None
-        url = blob.generate_signed_url(expiration=expires_in, method=http_method, credentials=self.credentials,
-                                       response_disposition=disposition, version='v4')
+        url: str = blob.generate_signed_url(expiration=timedelta(seconds=expires_in), method=http_method, version='v4',
+                                            response_disposition=disposition, credentials=self.credentials)
         return url
-
-    def _init_container(self):
-        """Create the storage container
-        """
-        self.storage_client.get_bucket(self.bucket_name)
