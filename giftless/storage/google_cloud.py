@@ -2,6 +2,7 @@ import binascii
 import collections
 import hashlib
 import json
+import logging as log
 import os
 from datetime import datetime
 from typing import Any, BinaryIO, Dict, Optional
@@ -65,11 +66,10 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
 
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        object_name = self._get_blob_path(prefix, oid)
         return {
             "actions": {
                 "upload": {
-                    "href": self._get_signed_url(object_name, http_method='PUT'),
+                    "href": self._get_signed_url(prefix, oid, http_method='PUT'),
                     "header": {
                         "x-ms-blob-type": "BlockBlob",
                     },
@@ -102,82 +102,14 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
             storage_prefix = self.path_prefix
         return os.path.join(storage_prefix, prefix, oid)
 
-    def _get_signed_url(self, object_name: str,
+    def _get_signed_url(self, prefix: str, oid: str,
                         subresource=None, expiration=604800, http_method='GET',
                         query_parameters=None, headers=None) -> str:
-
-        canonical_uri = '/{}'.format(object_name)
-
-        datetime_now = datetime.utcnow()
-        request_timestamp = datetime_now.strftime('%Y%m%dT%H%M%SZ')
-        datestamp = datetime_now.strftime('%Y%m%d')
-
-        client_email = self.credentials.service_account_email
-        credential_scope = '{}/auto/storage/goog4_request'.format(datestamp)
-        credential = '{}/{}'.format(client_email, credential_scope)
-
-        if headers is None:
-            headers = dict()
-        host = '{}.storage.googleapis.com'.format(self.bucket_name)
-        headers['host'] = host
-
-        canonical_headers = ''
-        ordered_headers = collections.OrderedDict(sorted(headers.items()))
-        for k, v in ordered_headers.items():
-            lower_k = str(k).lower()
-            strip_v = str(v).lower()
-            canonical_headers += '{}:{}\n'.format(lower_k, strip_v)
-
-        signed_headers = ''
-        for k, _ in ordered_headers.items():
-            lower_k = str(k).lower()
-            signed_headers += '{};'.format(lower_k)
-        signed_headers = signed_headers[:-1]  # remove trailing ';'
-
-        if query_parameters is None:
-            query_parameters = dict()
-        query_parameters['X-Goog-Algorithm'] = 'GOOG4-RSA-SHA256'
-        query_parameters['X-Goog-Credential'] = credential
-        query_parameters['X-Goog-Date'] = request_timestamp
-        query_parameters['X-Goog-Expires'] = expiration
-        query_parameters['X-Goog-SignedHeaders'] = signed_headers
-        if subresource:
-            query_parameters[subresource] = ''
-
-        canonical_query_string = ''
-        ordered_query_parameters = collections.OrderedDict(
-            sorted(query_parameters.items()))
-        for k, v in ordered_query_parameters.items():
-            encoded_k = quote(str(k), safe='')
-            encoded_v = quote(str(v), safe='')
-            canonical_query_string += '{}={}&'.format(encoded_k, encoded_v)
-        canonical_query_string = canonical_query_string[:-1]  # remove trailing '&'
-
-        canonical_request = '\n'.join([http_method,
-                                       canonical_uri,
-                                       canonical_query_string,
-                                       canonical_headers,
-                                       signed_headers,
-                                       'UNSIGNED-PAYLOAD'])
-
-        canonical_request_hash = hashlib.sha256(
-            canonical_request.encode()).hexdigest()
-
-        string_to_sign = '\n'.join(['GOOG4-RSA-SHA256',
-                                    request_timestamp,
-                                    credential_scope,
-                                    canonical_request_hash])
-
-        # signer.sign() signs using RSA-SHA256 with PKCS1v15 padding
-        signature = binascii.hexlify(
-            self.credentials.signer.sign(string_to_sign)
-        ).decode()
-
-        scheme_and_host = '{}://{}'.format('https', host)
-        signed_url = '{}{}?{}&x-goog-signature={}'.format(
-            scheme_and_host, canonical_uri, canonical_query_string, signature)
-
-        return signed_url
+        bucket = self.storage_client.get_bucket(self.bucket_name)
+        blob = bucket.blob(self._get_blob_path(prefix, oid))
+        url = blob.generate_signed_url(expiration=expiration, method=http_method, credentials=self.credentials)
+        log.info(url)
+        return url
 
     def _init_container(self):
         """Create the storage container
