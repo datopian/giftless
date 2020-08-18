@@ -19,9 +19,7 @@ RUN pip wheel -w /wheels -r /requirements.txt
 
 ### --- Build Final Image ---
 
-FROM python:3.7-slim
-
-ARG PORT=5000
+FROM python:3.7-slim AS basic
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && apt-get install -y libpcre3 libxml2 tini \
@@ -52,9 +50,18 @@ WORKDIR /app
 
 ENV UWSGI_MODULE "giftless.wsgi_entrypoint"
 
+ARG PORT=5000
 EXPOSE $PORT
 
 ENTRYPOINT ["tini", "uwsgi", "--"]
 
 CMD ["-s", "127.0.0.1:${PORT}", "-M", "-T", "--threads", "2", "-p", "2", \
      "--manage-script-name", "--callable", "app"]
+
+FROM basic AS cors-support
+
+USER root
+
+RUN pip install wsgi_cors_middleware==0.0.2
+
+USER $USER_NAME
