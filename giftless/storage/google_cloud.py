@@ -2,6 +2,7 @@ import json
 import os
 from datetime import timedelta
 from typing import Any, BinaryIO, Dict, Optional
+from urllib.parse import quote
 
 from google.cloud import storage  # type: ignore
 from google.oauth2 import service_account  # type: ignore
@@ -14,7 +15,6 @@ from .exc import ObjectNotFound
 class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
     """Google Cloud Storage backend supporting direct-to-cloud
     transfers.
-
     """
 
     def __init__(self, project_name: str, bucket_name: str, api_key: Optional[str] = None,
