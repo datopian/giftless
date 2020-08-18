@@ -1,15 +1,10 @@
-import binascii
-import collections
-import hashlib
 import json
-import logging as log
 import os
-from datetime import datetime
+from datetime import timedelta
 from typing import Any, BinaryIO, Dict, Optional
 
 from google.cloud import storage  # type: ignore
 from google.oauth2 import service_account  # type: ignore
-from six.moves.urllib.parse import quote
 
 from giftless.storage import ExternalStorage, StreamingStorage
 
@@ -22,10 +17,8 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
 
     """
 
-    def __init__(self, project_name: str, bucket_name: str,
-                 api_key: Optional[str] = None,
-                 account_json_path: Optional[str] = None,
-                 path_prefix: Optional[str] = None, **_):
+    def __init__(self, project_name: str, bucket_name: str, api_key: Optional[str] = None,
+                 account_json_path: Optional[str] = None, path_prefix: Optional[str] = None, **_):
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
         self.api_key = api_key
@@ -36,28 +29,27 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
             self.storage_client = storage.Client(project=project_name, credentials=self.credentials)
         else:
             self.credentials = service_account.Credentials.from_service_account_file(account_json_path)
-            self.storage_client = storage.Client.from_service_account_json(
-                account_json_path)
-        self._init_container()
+            self.storage_client = storage.Client.from_service_account_json(account_json_path)
+        # self._init_container()
 
     def get(self, prefix: str, oid: str) -> BinaryIO:
-        bucket = self.storage_client.get_bucket(self.bucket_name)
+        bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.get_blob(self._get_blob_path(prefix, oid))
         return blob.download_as_string()  # type: ignore
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
-        bucket = self.storage_client.get_bucket(self.bucket_name)
+        bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
         blob.upload_from_file(data_stream)
         return data_stream.tell()
 
     def exists(self, prefix: str, oid: str) -> bool:
-        bucket = self.storage_client.get_bucket(self.bucket_name)
+        bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
         return blob.exists()  # type: ignore
 
     def get_size(self, prefix: str, oid: str) -> int:
-        bucket = self.storage_client.get_bucket(self.bucket_name)
+        bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
         if blob.exists():
             return bucket.get_blob(self._get_blob_path(prefix, oid)).size  # type: ignore
@@ -69,10 +61,8 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
         return {
             "actions": {
                 "upload": {
-                    "href": self._get_signed_url(prefix, oid, http_method='PUT'),
-                    "header": {
-                        "x-ms-blob-type": "BlockBlob",
-                    },
+                    "href": self._get_signed_url(prefix, oid, http_method='PUT', expires_in=expires_in),
+                    "header": {},
                     "expires_in": expires_in
                 }
             }
@@ -84,7 +74,7 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
         return {
             "actions": {
                 "download": {
-                    "href": self._get_signed_url(prefix, oid, expires_in, filename),
+                    "href": self._get_signed_url(prefix, oid, expires_in=expires_in, filename=filename),
                     "header": {},
                     "expires_in": 900
                 }
@@ -102,13 +92,14 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
             storage_prefix = self.path_prefix
         return os.path.join(storage_prefix, prefix, oid)
 
-    def _get_signed_url(self, prefix: str, oid: str,
-                        subresource=None, expiration=604800, http_method='GET',
-                        query_parameters=None, headers=None) -> str:
-        bucket = self.storage_client.get_bucket(self.bucket_name)
+    def _get_signed_url(self, prefix: str, oid: str, expires_in: int, http_method: str = 'GET',
+                        filename: Optional[str] = None) -> str:
+        bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
-        url = blob.generate_signed_url(expiration=expiration, method=http_method, credentials=self.credentials)
-        log.info(url)
+        expires_in = timedelta(seconds=expires_in)
+        disposition = f'attachment; filename={filename}' if filename else None
+        url = blob.generate_signed_url(expiration=expires_in, method=http_method, credentials=self.credentials,
+                                       response_disposition=disposition, version='v4')
         return url
 
     def _init_container(self):
