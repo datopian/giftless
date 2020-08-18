@@ -5,10 +5,10 @@ import json
 import os
 from datetime import datetime
 from typing import Any, BinaryIO, Dict, Optional
+from urllib.parse import quote
 
 from google.cloud import storage  # type: ignore
 from google.oauth2 import service_account  # type: ignore
-from urllib.parse import quote
 
 from giftless.storage import ExternalStorage, StreamingStorage
 
