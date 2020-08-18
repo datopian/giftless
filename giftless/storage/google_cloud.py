@@ -8,7 +8,7 @@ from typing import Any, BinaryIO, Dict, Optional
 
 from google.cloud import storage  # type: ignore
 from google.oauth2 import service_account  # type: ignore
-from six.moves.urllib.parse import quote
+from urllib.parse import quote
 
 from giftless.storage import ExternalStorage, StreamingStorage
 
@@ -18,7 +18,6 @@ from .exc import ObjectNotFound
 class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
     """Google Cloud Storage backend supporting direct-to-cloud
     transfers.
-
     """
 
     def __init__(self, project_name: str, bucket_name: str,
