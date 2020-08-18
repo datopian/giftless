@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, BinaryIO, Dict, Optional
+from typing import Any, BinaryIO, Dict, Iterable, Optional
 
 from . import exc
 
@@ -20,7 +20,7 @@ class VerifiableStorage(ABC):
 class StreamingStorage(VerifiableStorage, ABC):
     """Interface for streaming storage adapters
     """
-    def get(self, prefix: str, oid: str) -> BinaryIO:
+    def get(self, prefix: str, oid: str) -> Iterable[bytes]:
         pass
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:

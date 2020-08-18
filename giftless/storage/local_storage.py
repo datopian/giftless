@@ -2,16 +2,15 @@ import os
 import shutil
 from typing import BinaryIO
 
-from giftless.exc import NotFound
-from giftless.storage import StreamingStorage
+from giftless.storage import StreamingStorage, exc
 
 
 class LocalStorage(StreamingStorage):
     """Local storage implementation
 
-    # TODO: do we need directory hashing?
-    #       seems to me that in a single org/repo prefix this is not needed as we do not expect
-    #       thousands of files per repo or thousands or repos per org
+    This storage backend  works by storing files in the local file system.
+    While it can be used in production, large scale deployment will most likely
+    want to use a more scalable solution such as one of the cloud storage backends.
     """
     def __init__(self, path: str = None, **_):
         if path is None:
@@ -24,7 +23,7 @@ class LocalStorage(StreamingStorage):
         if os.path.isfile(path):
             return open(path, 'br')
         else:
-            raise NotFound("Requested object was not found")
+            raise exc.ObjectNotFound("Object was not found")
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
         path = self._get_path(prefix, oid)
@@ -40,7 +39,7 @@ class LocalStorage(StreamingStorage):
     def get_size(self, prefix: str, oid: str) -> int:
         if self.exists(prefix, oid):
             return os.path.getsize(self._get_path(prefix, oid))
-        return 0
+        raise exc.ObjectNotFound("Object was not found")
 
     def _get_path(self, prefix: str, oid: str) -> str:
         return os.path.join(self.path, prefix, oid)

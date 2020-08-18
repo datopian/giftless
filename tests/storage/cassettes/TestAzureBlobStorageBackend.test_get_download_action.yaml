@@ -1,0 +1,48 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - application/xml
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - azsdk-python-storage-blob/12.2.0 Python/3.7.3 (Darwin-19.6.0-x86_64-i386-64bit)
+      authorization:
+      - fake-authz-header
+      x-ms-client-request-id:
+      - 73d89e84-e14f-11ea-94b4-a0999b18a477
+      x-ms-date:
+      - Tue, 18 Aug 2020 12:36:35 GMT
+      x-ms-version:
+      - '2019-07-07'
+    method: GET
+    uri: https://my-account.blob.core.windows.net/my-container?prefix=giftless-tests&restype=container&comp=list
+  response:
+    body:
+      string: "\uFEFF<?xml version=\"1.0\" encoding=\"utf-8\"?><EnumerationResults\
+        \ ServiceEndpoint=\"https://my-account.blob.core.windows.net/\" ContainerName=\"\
+        my-container\"><Prefix>giftless-tests</Prefix><Blobs /><NextMarker /></EnumerationResults>"
+    headers:
+      Content-Type:
+      - application/xml
+      Date:
+      - Tue, 18 Aug 2020 12:36:35 GMT
+      Server:
+      - Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0
+      Transfer-Encoding:
+      - chunked
+      Vary:
+      - Origin
+      x-ms-client-request-id:
+      - 73d89e84-e14f-11ea-94b4-a0999b18a477
+      x-ms-request-id:
+      - 0e67090d-701e-00ef-3a5c-757a60000000
+      x-ms-version:
+      - '2019-07-07'
+    status:
+      code: 200
+      message: OK
+version: 1
