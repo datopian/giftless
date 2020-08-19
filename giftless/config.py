@@ -69,7 +69,7 @@ def _compose_config(additional_config: Optional[Dict] = None) -> figcan.Configur
         environ.pop(f'{ENV_PREFIX}CONFIG_FILE')
 
     if environ.get(f'{ENV_PREFIX}CONFIG_STR'):
-        config_from_file = yaml.safe_load(environ.get(f'{ENV_PREFIX}CONFIG_STR'))
+        config_from_file = yaml.safe_load(environ[f'{ENV_PREFIX}CONFIG_STR'])
         config.apply(config_from_file)
         environ.pop(f'{ENV_PREFIX}CONFIG_STR')
 
