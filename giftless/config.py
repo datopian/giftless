@@ -59,17 +59,23 @@ def configure(app, additional_config: Optional[Dict] = None):
 def _compose_config(additional_config: Optional[Dict] = None) -> figcan.Configuration:
     """Compose configuration object from all available sources
     """
-    YAML_STR_FROM_ENV = os.getenv("YAML_CONTENT")
     config = figcan.Configuration(default_config)
-    if YAML_STR_FROM_ENV:
-        config_from_file = yaml.safe_load(YAML_STR_FROM_ENV)
-        config.apply(config_from_file)
-    elif os.environ.get(f'{ENV_PREFIX}CONFIG_FILE'):
-        with open(os.environ[f'{ENV_PREFIX}CONFIG_FILE']) as f:
+    environ = dict(os.environ)  # Copy the environment as we're going to change it
+
+    if environ.get(f'{ENV_PREFIX}CONFIG_FILE'):
+        with open(environ[f'{ENV_PREFIX}CONFIG_FILE']) as f:
             config_from_file = yaml.safe_load(f)
-            config.apply(config_from_file)
-        os.environ.pop(f'{ENV_PREFIX}CONFIG_FILE')
+        config.apply(config_from_file)
+        environ.pop(f'{ENV_PREFIX}CONFIG_FILE')
+
+    if environ.get(f'{ENV_PREFIX}CONFIG_STR'):
+        config_from_file = yaml.safe_load(environ[f'{ENV_PREFIX}CONFIG_STR'])
+        config.apply(config_from_file)
+        environ.pop(f'{ENV_PREFIX}CONFIG_STR')
+
+    config.apply_flat(environ, prefix=ENV_PREFIX)  # type: ignore
+
     if additional_config:
         config.apply(additional_config)
-    config.apply_flat(os.environ, prefix=ENV_PREFIX)  # type: ignore
+
     return config

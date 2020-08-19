@@ -113,11 +113,9 @@ AUTH_PROVIDERS:
 $ export GIFTLESS_CONFIG_FILE=giftless.yaml
 ```
 
-
 5. Start the Giftless server (by docker or Python).
 
-
-6. Initialzie your git repo and connect it with the
+6. Initialize your git repo and connect it with the
 remote project:
 
 ```bash
@@ -178,31 +176,42 @@ Modify your `giftless.yaml` file according to the following config:
 
 #### Google Cloud Platform Support
 
-Make sure to obtain your `credentials.json` file. More information 
-[here](https://console.cloud.google.com/apis/credentials/serviceaccountkey).
-You can export it directly with 
+To use Google Cloud Storage as a backend, you'll first need:
+* A Google Cloud Storage container to store objects in
+* an account key JSON file (see [here](https://console.cloud.google.com/apis/credentials/serviceaccountkey)).
 
-```bash
-export GOOGLE_APPLICATION_CREDENTIALS="PATH_TO/credentials.json"
-```
+The key must be associated with either a user or a service account, and should have
+read / write permissions on objects in the container.
 
-Make sure to also specify the path into the YAML file:
+You can deploy the account key JSON file and provide the path to it as 
+the `account_key_file` storage option:
 
-```bash
+```yaml
 TRANSFER_ADAPTERS:
   basic:
     factory: giftless.transfer.basic_streaming:factory
     options:
-      storage_class: ..storage.google_cloud:GoogleCloudBlobStorage
+      storage_class: giftless.storage.google_cloud:GoogleCloudStorage
       storage_options:
-        bucket_name: datahub-bbb
-        api_key: myAPI-key
-        account_json_path: PATH_TO/credentials.json
-AUTH_PROVIDERS:
-  - giftless.auth.allow_anon:read_write
+        project_name: my-gcp-project
+        bucket_name: git-lfs
+        account_key_file: /path/to/credentials.json
 ```
 
-`api-key` and `account_json_path` are optional parameters.
+Alternatively, you can base64-encode the contents of the JSON file and provide
+it inline as `account_key_base64`: 
+
+```yaml
+TRANSFER_ADAPTERS:
+  basic:
+    factory: giftless.transfer.basic_streaming:factory
+    options:
+      storage_class: giftless.storage.google_cloud:GoogleCloudStorage
+      storage_options:
+        project_name: my-gcp-project
+        bucket_name: git-lfs
+        account_key_base64: S0m3B4se64RandomStuff.....ThatI5Redac7edHeReF0rRead4b1lity==
+```
 
 After configuring your `giftless.yaml` file, export it:
 
@@ -221,20 +230,21 @@ Here is an example of how to run it:
 
 See `giftless/config.py` for some default configuration options.
 
-#### Configuration over .env files
+#### Configuration using .env files
 
-[WIP] It is possible to use an `.env` file 
-isntead of a YAML file in case you need to deploy the project
-in a PaaS, such as Heroku. At this time, we only support a
-raw format where we dump the content of `giftless.yaml` 
-into an env var anmed `YAML_CONTENT`:
+[WIP] It is possible to use an `.env` file instead of a YAML file in case you 
+need to deploy the project in a platform which does not support deploying 
+configuration in files, such as Heroku.
+
+At this time, we only support a raw format where we dump the content of 
+`giftless.yaml` into an env var anmed `YAML_CONTENT`:
 
 ```bash
-YAML_CONTENT="TRANSFER_ADAPTERS:
+GIFTLESS_CONFIG_STR="TRANSFER_ADAPTERS:
   basic:
     factory: giftless.transfer.basic_streaming:factory
     options:
-      storage_class: ..storage.google_cloud:GoogleCloudBlobStorage
+      storage_class: ..storage.google_cloud:GoogleCloudStorage
       storage_options:
         bucket_name: datahub-bbb
         api_key: API_KEY
@@ -243,8 +253,12 @@ AUTH_PROVIDERS:
 "
 ```
 
-Note: **`.env` files have priority over YAML files. If you have both, this will be the primary source of configuration at this time.**
+**Note #1**: As YAML is a superset of JSON, you can also provide a more compact
+JSON string instead.
 
+**Note #2:**: If you provide both a YAML file (as `GIFTLESS_CONFIG_FILE`) and a
+literal YAML string (as `GIFTLESS_CONFIG_STR`), the two will be merged, with values
+from the YAML string taking precedence over values from the YAML file.
 
 #### Transfer Adapters
 
