@@ -6,3 +6,8 @@ pytest-mypy==0.5.*
 pytest-env==0.6.*
 pytest-cov==2.8.*
 pytest-vcr==1.*
+
+# Documentation Requirements
+sphinx==3.*
+sphinx-autodoc-typehints[type_comments]==1.*
+recommonmark==0.*
