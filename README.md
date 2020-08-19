@@ -230,16 +230,17 @@ Here is an example of how to run it:
 
 See `giftless/config.py` for some default configuration options.
 
-#### Configuration over .env files
+#### Configuration using .env files
 
-[WIP] It is possible to use an `.env` file 
-isntead of a YAML file in case you need to deploy the project
-in a PaaS, such as Heroku. At this time, we only support a
-raw format where we dump the content of `giftless.yaml` 
-into an env var anmed `YAML_CONTENT`:
+[WIP] It is possible to use an `.env` file instead of a YAML file in case you 
+need to deploy the project in a platform which does not support deploying 
+configuration in files, such as Heroku.
+
+At this time, we only support a raw format where we dump the content of 
+`giftless.yaml` into an env var anmed `YAML_CONTENT`:
 
 ```bash
-YAML_CONTENT="TRANSFER_ADAPTERS:
+GIFTLESS_CONFIG_STR="TRANSFER_ADAPTERS:
   basic:
     factory: giftless.transfer.basic_streaming:factory
     options:
@@ -252,8 +253,12 @@ AUTH_PROVIDERS:
 "
 ```
 
-Note: **`.env` files have priority over YAML files. If you have both, this will be the primary source of configuration at this time.**
+**Note #1**: As YAML is a superset of JSON, you can also provide a more compact
+JSON string instead.
 
+**Note #2:**: If you provide both a YAML file (as `GIFTLESS_CONFIG_FILE`) and a
+literal YAML string (as `GIFTLESS_CONFIG_STR`), the two will be merged, with values
+from the YAML string taking precedence over values from the YAML file.
 
 #### Transfer Adapters
 
