@@ -62,7 +62,11 @@ distclean:
 ## Create distribution files to upload to pypi
 dist: $(SENTINELS)/dist
 
-.PHONY: test docker release dist distclean requirements
+## Build project documentation HTML files
+docs-html:
+	@cd docs && $(MAKE) html
+
+.PHONY: test docker release dist distclean requirements docs-html
 
 requirements.txt: requirements.in
 	$(PIP_COMPILE) --no-index --output-file=requirements.txt requirements.in
