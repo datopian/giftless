@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 from datetime import timedelta
@@ -11,24 +12,17 @@ from giftless.storage import ExternalStorage, StreamingStorage
 from .exc import ObjectNotFound
 
 
-class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
+class GoogleCloudStorage(StreamingStorage, ExternalStorage):
     """Google Cloud Storage backend supporting direct-to-cloud
     transfers.
     """
 
-    def __init__(self, project_name: str, bucket_name: str, api_key: Optional[str] = None,
-                 account_json_path: Optional[str] = None, path_prefix: Optional[str] = None, **_):
+    def __init__(self, project_name: str, bucket_name: str, account_key_file: Optional[str] = None,
+                 account_key_base64: Optional[str] = None, path_prefix: Optional[str] = None, **_):
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
-        self.api_key = api_key
-        if os.getenv("GCP_CREDENTIALS"):
-            ENV_GCP_CREDENTIALS = os.getenv("GCP_CREDENTIALS")
-            parsed_crendentials = json.loads(ENV_GCP_CREDENTIALS)  # type: ignore
-            self.credentials = service_account.Credentials.from_service_account_info(parsed_crendentials)
-            self.storage_client = storage.Client(project=project_name, credentials=self.credentials)
-        else:
-            self.credentials = service_account.Credentials.from_service_account_file(account_json_path)
-            self.storage_client = storage.Client.from_service_account_json(account_json_path)
+        self.credentials = self._load_credentials(account_key_file, account_key_base64)
+        self.storage_client = storage.Client(project=project_name, credentials=self.credentials)
 
     def get(self, prefix: str, oid: str) -> BinaryIO:
         bucket = self.storage_client.bucket(self.bucket_name)
@@ -98,3 +92,18 @@ class GoogleCloudBlobStorage(StreamingStorage, ExternalStorage):
         url: str = blob.generate_signed_url(expiration=timedelta(seconds=expires_in), method=http_method, version='v4',
                                             response_disposition=disposition, credentials=self.credentials)
         return url
+
+    @staticmethod
+    def _load_credentials(account_key_file: Optional[str], account_key_base64: Optional[str]) \
+            -> service_account.Credentials:
+        """Load Google Cloud credentials from passed configuration
+        """
+        if account_key_file and account_key_base64:
+            raise ValueError('Provide either account_key_file or account_key_base64 but not both')
+        elif account_key_file:
+            return service_account.Credentials.from_service_account_file(account_key_file)
+        elif account_key_base64:
+            account_info = json.loads(base64.b64decode(account_key_base64))
+            return service_account.Credentials.from_service_account_info(account_info)
+        else:
+            raise ValueError('You must provide either account_key_file or account_key_base64')
