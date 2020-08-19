@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, Optional, Set, Union
 
 import jwt
-import pytz
+from dateutil.tz import UTC
 
 from giftless.auth import PreAuthorizedActionAuthenticator, Unauthorized
 from giftless.auth.identity import DefaultIdentity, Identity, Permission
@@ -129,7 +129,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
         # Custom lifetime
         if lifetime:
-            token_payload['exp'] = datetime.now(tz=pytz.utc) + timedelta(seconds=lifetime)
+            token_payload['exp'] = datetime.now(tz=UTC) + timedelta(seconds=lifetime)
 
         token = self._generate_token(**token_payload)
         return {'Authorization': f'Bearer {token.decode("utf8")}'}
@@ -150,9 +150,9 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             raise ValueError("This authenticator is not configured to generate tokens; Set private_key to fix")
 
         payload: Dict[str, Any] = {
-            "exp": datetime.now(tz=pytz.utc) + timedelta(seconds=self.default_lifetime),
-            "iat": datetime.now(tz=pytz.utc),
-            "nbf": datetime.now(tz=pytz.utc)
+            "exp": datetime.now(tz=UTC) + timedelta(seconds=self.default_lifetime),
+            "iat": datetime.now(tz=UTC),
+            "nbf": datetime.now(tz=UTC)
         }
 
         payload.update(**kwargs)

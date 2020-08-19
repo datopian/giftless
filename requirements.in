@@ -6,9 +6,8 @@ pyyaml==5.*
 PyJWT==1.7.*
 webargs==5.5.*
 typing-extensions==3.7.*
-
-# We want the latest timezone database so keep this with no pinned version
-pytz
+python-dotenv==0.13.*
+python-dateutil==2.*
 
 # For now we are using a development version of Flask-Classful which supports
 # passing init arguments to view classes when they are registered. Hopefully
@@ -16,8 +15,8 @@ pytz
 # flask-classful==0.15.*
 git+https://github.com/teracyhq/flask-classful.git@3bbab31#egg=flask-classful
 
+# Storage backend dependencies
+# TODO: Split these out so users don't have to install all of them
 azure-storage-blob==12.2.*
-
 google-cloud-storage==1.28.*
 google-auth==1.16.*
-python-dotenv==0.13.*
