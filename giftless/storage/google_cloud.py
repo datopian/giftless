@@ -1,4 +1,5 @@
 import base64
+import io
 import json
 import os
 from datetime import timedelta
@@ -27,7 +28,12 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
     def get(self, prefix: str, oid: str) -> BinaryIO:
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.get_blob(self._get_blob_path(prefix, oid))
-        return blob.download_as_string()  # type: ignore
+        if blob is None:
+            raise ObjectNotFound('Object does not exist')
+        stream = io.BytesIO()
+        blob.download_to_file(stream)
+        stream.seek(0)
+        return stream
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
         bucket = self.storage_client.bucket(self.bucket_name)
@@ -42,11 +48,10 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
 
     def get_size(self, prefix: str, oid: str) -> int:
         bucket = self.storage_client.bucket(self.bucket_name)
-        blob = bucket.blob(self._get_blob_path(prefix, oid))
-        if blob.exists():
-            return bucket.get_blob(self._get_blob_path(prefix, oid)).size  # type: ignore
-        else:
+        blob = bucket.get_blob(self._get_blob_path(prefix, oid))
+        if blob is None:
             raise ObjectNotFound("Object does not exist")
+        return blob.size  # type: ignore
 
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -68,7 +73,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
                 "download": {
                     "href": self._get_signed_url(prefix, oid, expires_in=expires_in, filename=filename),
                     "header": {},
-                    "expires_in": 900
+                    "expires_in": expires_in
                 }
             }
         }
