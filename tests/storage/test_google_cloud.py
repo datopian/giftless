@@ -10,8 +10,8 @@ from giftless.storage.google_cloud import GoogleCloudStorage
 
 from . import ExternalStorageAbstractTests, StreamingStorageAbstractTests
 
-MOCK_GCP_PROJECT_NAME = 'my-project'
-MOCK_GCP_BUCKET_NAME = 'my-bucket'
+MOCK_GCP_PROJECT_NAME = 'giftless-tests'
+MOCK_GCP_BUCKET_NAME = 'giftless-tests-20200818'
 
 # This is a valid but revoked key that we use in testing
 MOCK_GCP_KEY_B64 = ("ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAiZ2lmdGxlc3MtdGVz"
