@@ -1,4 +1,4 @@
-"""Tests for the local storage backend
+"""Tests for the Azure storage backend
 """
 import os
 from typing import Generator

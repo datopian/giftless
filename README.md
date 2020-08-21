@@ -12,6 +12,7 @@ methods and authentication methods.
 Giftless supports the *basic* Git LFS transfer mode with the following
 storage backends:
 * Local storage
+* [Google Cloud Storage](https://cloud.google.com/storage)
 * [Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/)
   with direct-to-cloud or streamed transfers
 
