@@ -178,11 +178,14 @@ Modify your `giftless.yaml` file according to the following config:
 #### Google Cloud Platform Support
 
 To use Google Cloud Storage as a backend, you'll first need:
-* A Google Cloud Storage container to store objects in
+* A Google Cloud Storage bucket to store objects in
 * an account key JSON file (see [here](https://console.cloud.google.com/apis/credentials/serviceaccountkey)).
 
 The key must be associated with either a user or a service account, and should have
-read / write permissions on objects in the container.
+read / write permissions on objects in the bucket.
+
+If you plan to access objects from a browser, your bucket needs to have 
+[CORS enabled](https://cloud.google.com/storage/docs/configuring-cors).
 
 You can deploy the account key JSON file and provide the path to it as 
 the `account_key_file` storage option:
@@ -220,7 +223,7 @@ After configuring your `giftless.yaml` file, export it:
 $ export GIFTLESS_CONFIG_FILE=giftless.yaml
 ```
 
-You will need uWSGI running. Install it with your prefereed package manager.
+You will need uWSGI running. Install it with your preferred package manager.
 Here is an example of how to run it:
     
 ```bash

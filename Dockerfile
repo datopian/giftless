@@ -21,8 +21,6 @@ RUN pip wheel -w /wheels -r /requirements.txt
 
 FROM python:3.7-slim
 
-ARG PORT=5000
-
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && apt-get install -y libpcre3 libxml2 tini \
     && apt-get clean \
@@ -46,12 +44,18 @@ RUN useradd -d /app $USER_NAME
 RUN mkdir $STORAGE_DIR
 RUN chown $USER_NAME $STORAGE_DIR
 
+# Pip-install some common WSGI middleware modules
+# These are not required in every Giftless installation but are common enough
+ARG EXTRA_PACKAGES="wsgi_cors_middleware"
+RUN pip install ${EXTRA_PACKAGES}
+
 USER $USER_NAME
 
 WORKDIR /app
 
 ENV UWSGI_MODULE "giftless.wsgi_entrypoint"
 
+ARG PORT=5000
 EXPOSE $PORT
 
 ENTRYPOINT ["tini", "uwsgi", "--"]
