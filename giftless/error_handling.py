@@ -22,6 +22,6 @@ class ApiErrorHandler:
         """Handle errors by returning a JSON response
         """
         code = ex.code if hasattr(ex, 'code') else 500
-        data = {"message": ex.description if hasattr(ex, 'description') else str(ex)}
+        data = {"message": str(ex)}
 
         return output_git_lfs_json(data=data, code=code)
