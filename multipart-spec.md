@@ -282,7 +282,7 @@ be returned, but with less `parts` to send.
 While `part` requests are typically quite similar between vendors, the specifics of multipart upload initialization and
 commit procedures are very specific to vendors. For this reason, in many cases, it will be up to the LFS server to 
 take care of initialization and commit code. This is fine, as long as actual uploaded data is sent directly to the 
-storage backend. 
+storage backend.
 
 For example, in the case of Amazon S3:
 * All requests need to have an "upload ID" token which is obtained in an initial request
@@ -295,7 +295,13 @@ one to fetch a list of uploaded chunks, and another to send this list to the S3 
 For this reason, in many cases storage backends will need to tell clients to send the `init` and `commit` requests
 to the LFS server itself, where storage backend handler code will take care of initialization and finalization. It is 
 even possible for backends to run some initialization code (such as getting an upload ID from AWS S3) during the initial
-`batch` request.    
+`batch` request.
 
+### Falling back to `basic` transfer for small files
+Using multipart upload APIs has some complexity and speed overhead, and for this reason it is recommended that servers
+implement a "fallback" to `basic` transfers if the uploaded object is small enough to handle in a single part. 
 
- 
+Clients *should* support such fallback natively, as it "rides" on existing transfer method negotiation capabilities. 
+
+The server must simply respond with `{"transfer": "basic", ...}`, even if `mutipart-basic` was request by the client 
+and *is supported* by the server in order to achieve this.
