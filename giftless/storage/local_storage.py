@@ -1,11 +1,12 @@
 import os
 import shutil
-from typing import BinaryIO
+from typing import BinaryIO, Optional, Dict, Any
 
-from giftless.storage import StreamingStorage, exc
+from giftless.storage import MultipartStorage, StreamingStorage, exc
+from giftless.view import ViewProvider
 
 
-class LocalStorage(StreamingStorage):
+class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
     """Local storage implementation
 
     This storage backend  works by storing files in the local file system.
@@ -40,6 +41,17 @@ class LocalStorage(StreamingStorage):
         if self.exists(prefix, oid):
             return os.path.getsize(self._get_path(prefix, oid))
         raise exc.ObjectNotFound("Object was not found")
+
+    def get_multipart_actions(self, prefix: str, oid: str, size: int, part_size: int, expires_in: int,
+                              extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        return super().get_multipart_actions(prefix, oid, size, part_size, expires_in, extra)
+
+    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
+                            extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        return super().get_download_action(prefix, oid, size, expires_in, extra)
+
+    def register_views(self, app):
+        super().register_views(app)
 
     def _get_path(self, prefix: str, oid: str) -> str:
         return os.path.join(self.path, prefix, oid)

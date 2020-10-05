@@ -63,3 +63,25 @@ class ExternalStorage(VerifiableStorage, ABC):
             return self.get_size(prefix, oid) == size
         except exc.ObjectNotFound:
             return False
+
+
+class MultipartStorage(VerifiableStorage, ABC):
+    def get_multipart_actions(self, prefix: str, oid: str, size: int, part_size: int, expires_in: int,
+                              extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        pass
+
+    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
+                            extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        pass
+
+    def exists(self, prefix: str, oid: str) -> bool:
+        pass
+
+    def get_size(self, prefix: str, oid: str) -> int:
+        pass
+
+    def verify_object(self, prefix: str, oid: str, size: int) -> bool:
+        try:
+            return self.get_size(prefix, oid) == size
+        except exc.ObjectNotFound:
+            return False

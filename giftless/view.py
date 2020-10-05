@@ -71,8 +71,19 @@ class BatchView(BaseView):
 
         return response
 
-    def _is_error(self, obj: Dict[str, Any], code: Optional[int] = None):
+    @staticmethod
+    def _is_error(obj: Dict[str, Any], code: Optional[int] = None):
         try:
             return obj['error']['code'] == code or code is None
         except KeyError:
             return False
+
+
+class ViewProvider:
+    """ViewProvider is a marker interface for storage and transfer adapters that can provide their own Flask views
+
+    This allows transfer and storage backends to register routes for accessing or verifying files, for example,
+    directly from the Giftless HTTP server.
+    """
+    def register_views(self, app):
+        pass
