@@ -128,7 +128,7 @@ def test_jwt_pre_authorize_action_custom_lifetime():
     ('obj:myorg/myrepo/*:meta:*',
      {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ_META}, True),
 ])
-def test_jwt_scopes_authorizate_actions(app, scopes, auth_check, expected):
+def test_jwt_scopes_authorize_actions(app, scopes, auth_check, expected):
     """Test that JWT token scopes can control authorization
     """
     authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256')
@@ -139,6 +139,20 @@ def test_jwt_scopes_authorizate_actions(app, scopes, auth_check, expected):
         identity = authz(flask.request)
 
     assert identity.is_authorized(**auth_check) is expected
+
+
+def test_jwt_scopes_authorize_actions_with_anon_user(app):
+    """Test that authorization works even if we don't have any user ID / email / name
+    """
+    scopes = ['obj:myorg/myrepo/*']
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256')
+    token = _get_test_token(scopes=scopes, sub=None, name=None, email=None)
+    with app.test_request_context('/myorg/myrepo/objects/batch', method='POST', headers={
+        "Authorization": f'Bearer {token}'
+    }):
+        identity = authz(flask.request)
+
+    assert identity.is_authorized(organization='myorg', repo='myrepo', permission=Permission.READ)
 
 
 @pytest.mark.parametrize('scope_str, expected', [
