@@ -64,7 +64,7 @@ the Storage Backend be a cloud storage service such as Amazon S3 or Google Cloud
 
 ### Request Objects
 The `init`, `commit`, `abort` and each one of the `parts` actions contain a "request spec". These are similar to `basic` 
-transfer adapter `actions` but in addition to `href` and `header` may also include `method` (optional) and `body` 
+transfer adapter `actions` but in addition to `href`, `header` and `expires_in` may also include `method` (optional) and `body` 
 (optional) attributes, to indicate the HTTP request method and body. This allows the protocol to be vendor agnostic, 
 especially as the format of `init` and `commit` requests tends to vary greatly between storage backends. 
 
@@ -115,7 +115,8 @@ The following is a response for the same request, given an imaginary storage bac
               "Authorization": "Bearer someauthorizationtokenwillbesethere"
             },
             "pos": 0,
-            "size": 2500000
+            "size": 2500000,
+            "expires_in": 86400
           },
           {
             "href": "https://foo.cloud.com/storage/upload/20492a4d0d84?part=1",
@@ -123,7 +124,8 @@ The following is a response for the same request, given an imaginary storage bac
               "Authorization": "Bearer someauthorizationtokenwillbesethere"
             },
             "pos": 2500000,
-            "size": 2500000
+            "size": 2500000,
+            "expires_in": 86400
           },
           {
             "href": "https://foo.cloud.com/storage/upload/20492a4d0d84?part=2",
@@ -131,14 +133,16 @@ The following is a response for the same request, given an imaginary storage bac
               "Authorization": "Bearer someauthorizationtokenwillbesethere"
             },
             "pos": 5000000,
-            "size": 2500000
+            "size": 2500000,
+            "expires_in": 86400
           },
           {
             "href": "https://foo.cloud.com/storage/upload/20492a4d0d84?part=3",
             "header": {
               "Authorization": "Bearer someauthorizationtokenwillbesethere"
             },
-            "pos": 7500000
+            "pos": 7500000,
+            "expires_in": 86400
           }
         ],
         "commit": {
@@ -148,14 +152,25 @@ The following is a response for the same request, given an imaginary storage bac
             "Authorization": "Basic 123abc123abc123abc123abc123=",
             "Content-type": "application/vnd.git-lfs+json"
           },
-          "body": "{\"oid\": \"20492a4d0d84\", \"size\": 10000000, \"parts\": 4, \"transferId\": \"foobarbazbaz\"}"
+          "body": "{\"oid\": \"20492a4d0d84\", \"size\": 10000000, \"parts\": 4, \"transferId\": \"foobarbazbaz\"}",
+          "expires_in": 86400
         },
         "verify": {
           "href": "https://lfs.mycompany.com/myorg/myrepo/multipart/verify",
           "authenticated": true,
           "header": {
             "Authorization": "Basic 123abc123abc123abc123abc123="
-          }
+          },
+          "expires_in": 86400
+        },
+        "abort": {
+          "href": "https://foo.cloud.com/storage/upload/20492a4d0d84",
+          "authenticated": true,
+          "header": {
+            "Authorization": "Basic 123abc123abc123abc123abc123="
+          },
+          "method": "DELETE",
+          "expires_in": 86400
         }
       }
     }
@@ -167,7 +182,7 @@ As you can see, the `init` action is omitted as will be the case with many backe
 initialization, if needed, will most likely be done by the LFS server at the time of the batch request). 
 
 ### Chunk sizing
-It is up to the LFS server to decide the size of each file chunk.  
+It is up to the LFS server to decide the size of each file chunk.
 
 ### Uploaded Part Digest
 Some storage backends will support, or even require, uploading clients to send a digest of the uploaded part as part
@@ -305,3 +320,8 @@ Clients *should* support such fallback natively, as it "rides" on existing trans
 
 The server must simply respond with `{"transfer": "basic", ...}`, even if `mutipart-basic` was request by the client 
 and *is supported* by the server in order to achieve this.
+
+### Request Lifetime Considerations
+As multipart uploads tend to require much more time than simple uploads, it is recommended to allow for longer `"expires_in"` 
+values than one would consider for `basic` uploads. It is possible that the process of uploading a single object in multiple
+parts may take several hours from `init` to `commit`.
