@@ -26,10 +26,12 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
 
     _PART_ID_BYTE_SIZE = 16
 
-    def __init__(self, connection_string: str, container_name: str, path_prefix: Optional[str] = None, **_):
+    def __init__(self, connection_string: str, container_name: str, path_prefix: Optional[str] = None,
+                 enable_content_digest: bool = True, **_):
         self.container_name = container_name
         self.path_prefix = path_prefix
         self.blob_svc_client = BlobServiceClient.from_connection_string(connection_string)
+        self.enable_content_digest = enable_content_digest
 
     def get(self, prefix: str, oid: str) -> Iterable[bytes]:
         blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
@@ -190,12 +192,17 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         """Create the part request object for a block
         """
         block_id = self._encode_block_id(block.id)
-        return {
+        part = {
             "href": f'{base_url}&comp=part&partid={block_id}',
             "pos": block.start,
             "size": block.size,
-            "expires_in": expires_in
+            "expires_in": expires_in,
         }
+
+        if self.enable_content_digest:
+            part['want_digest'] = 'contentMD5'
+
+        return part
 
     def _create_commit_body(self, blocks: List[Block]) -> str:
         """Create the body for a 'Put Blocks' request we use in commit
