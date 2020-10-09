@@ -1,8 +1,8 @@
 Git LFS multipart-basic transfer mode
 =====================================
 ```
-Version: 0.9
-Date: 2020-10-04
+Version: 0.9.1
+Date: 2020-10-09
 Author: Shahar Evron <shahar.evron@datopian.com>
 ```
 
@@ -87,7 +87,6 @@ The following is a ~10mb file upload request:
 { 
   "transfers": ["multipart-basic", "basic"],
   "operation": "upload",
-  "ref": "some-ref",
   "objects": [
     {
       "oid": "20492a4d0d84f8beb1767f6616229f85d44c2827b64bdbfb260ee12fa1109e0e",
