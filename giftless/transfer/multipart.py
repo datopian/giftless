@@ -9,7 +9,7 @@ from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
 from giftless.transfer.basic_streaming import VerifyView
 from giftless.util import get_callable
 
-DEFAULT_PART_SIZE = 4096000
+DEFAULT_PART_SIZE = 10240000  # 10mb
 
 
 class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
@@ -60,7 +60,8 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
         return response
 
     def register_views(self, app):
-        VerifyView.register(app, init_argument=self.storage)
+        # FIXME: this is broken. Need to find a smarter way for multiple transfer adapters to provide the same view
+        # VerifyView.register(app, init_argument=self.storage)
         if isinstance(self.storage, ViewProvider):
             self.storage.register_views(app)
 
@@ -77,5 +78,8 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
 def factory(storage_class, storage_options, action_lifetime: int, max_part_size: int = DEFAULT_PART_SIZE):
     """Factory for multipart transfer adapter with storage
     """
-    storage = get_callable(storage_class, __name__)
+    try:
+        storage = get_callable(storage_class, __name__)
+    except (AttributeError, ImportError):
+        raise ValueError(f"Unable to load storage module: {storage_class}")
     return MultipartTransferAdapter(storage(**storage_options), action_lifetime, max_part_size=max_part_size)

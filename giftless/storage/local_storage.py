@@ -1,6 +1,6 @@
 import os
 import shutil
-from typing import BinaryIO, Optional, Dict, Any
+from typing import Any, BinaryIO, Dict, Optional
 
 from giftless.storage import MultipartStorage, StreamingStorage, exc
 from giftless.view import ViewProvider
