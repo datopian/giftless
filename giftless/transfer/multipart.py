@@ -29,8 +29,8 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
             return response
 
         actions = self.storage.get_multipart_actions(prefix, oid, size, self.max_part_size, self.action_lifetime, extra)
-        if actions:
-            response['actions'] = actions
+        response.update(actions)
+        if response.get('actions'):
             response['authenticated'] = True
             headers = self._preauth_headers(organization, repo, actions={'verify'}, oid=oid,
                                             lifetime=self.VERIFY_LIFETIME)

@@ -69,7 +69,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         return {
             "actions": {
                 "upload": {
-                    "href": self._get_signed_url(prefix, oid, expires_in, filename),
+                    "href": self._get_signed_url(prefix, oid, expires_in, filename, create=True),
                     "header": {
                         "x-ms-blob-type": "BlockBlob",
                     },
@@ -84,7 +84,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         return {
             "actions": {
                 "download": {
-                    "href": self._get_signed_url(prefix, oid, expires_in, filename),
+                    "href": self._get_signed_url(prefix, oid, expires_in, filename, read=True),
                     "header": {},
                     "expires_in": expires_in
                 }
@@ -99,8 +99,10 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         uncommitted = self._get_uncommitted_blocks(prefix, oid, blocks)
 
         filename = extra.get('filename') if extra else None
-        base_url = self._get_signed_url(prefix, oid, expires_in, filename)
+        base_url = self._get_signed_url(prefix, oid, expires_in, filename, create=True, write=True, delete=True)
         parts = [self._create_part_request(base_url, b, expires_in) for b in blocks if b.id not in uncommitted]
+        _log.info("There are %d uncommitted blocks pre-uploaded; %d parts still need to be uploaded",
+                  len(uncommitted), len(parts))
         commit_body = self._create_commit_body(blocks)
 
         reply: Dict[str, Any] = {
@@ -110,9 +112,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
                     "href": f"{base_url}&{urlencode({'comp': 'blocklist'})}",
                     "body": commit_body,
                     "header": {
-                        "x-ms-blob-type": "BlockBlob",
-                        "Content-type": "text/xml; charset=utf8",
-                        "Content-length": len(commit_body.encode('utf8'))
+                        "Content-type": "text/xml; charset=utf8"
                     },
                     "expires_in": expires_in
                 },
@@ -140,9 +140,10 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             storage_prefix = self.path_prefix
         return os.path.join(storage_prefix, prefix, oid)
 
-    def _get_signed_url(self, prefix: str, oid: str, expires_in: int, filename: Optional[str] = None) -> str:
+    def _get_signed_url(self, prefix: str, oid: str, expires_in: int, filename: Optional[str] = None,
+                        **permissions: bool) -> str:
         blob_name = self._get_blob_path(prefix, oid)
-        permissions = BlobSasPermissions(read=True, create=True)
+        permissions = BlobSasPermissions(**permissions)
         token_expires = (datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in))
 
         extra_args = {}
@@ -176,7 +177,14 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             blob_client.delete_blob()
             return {}
 
-        existing_blocks = {b['id']: b['size'] for b in uncommitted_blocks}
+        try:
+            # NOTE: The Azure python library already does ID base64 decoding for us, so we only case to int here
+            existing_blocks = {int(b['id']): b['size'] for b in uncommitted_blocks}
+        except ValueError:
+            _log.warning(f"Some uncommitted blocks have unexpected ID format; restarting upload")
+            return {}
+
+        _log.debug("Found %d existing uncommitted blocks on server", len(existing_blocks))
 
         # Verify that existing blocks are the same as what we plan to upload
         for block in blocks:
@@ -193,7 +201,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         """
         block_id = self._encode_block_id(block.id)
         part = {
-            "href": f'{base_url}&comp=part&partid={block_id}',
+            "href": f'{base_url}&comp=block&blockid={block_id}',
             "pos": block.start,
             "size": block.size,
             "expires_in": expires_in,
@@ -214,10 +222,11 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             ''.join(['<Uncommitted>{}</Uncommitted>'.format(xml_escape(self._encode_block_id(b.id))) for b in blocks])
         )
 
-    def _encode_block_id(self, b_id: int) -> str:
+    @classmethod
+    def _encode_block_id(cls, b_id: int) -> str:
         """Encode a block ID in the manner expected by the Azure API
         """
-        return base64.b64encode(b_id.to_bytes(self._PART_ID_BYTE_SIZE, 'big')).decode('utf8')
+        return base64.b64encode(str(b_id).zfill(cls._PART_ID_BYTE_SIZE).encode('ascii')).decode('ascii')
 
 
 def _calculate_blocks(file_size: int, part_size: int) -> List[Block]:
