@@ -46,11 +46,18 @@ class LfsClient:
         path = os.path.join(*segments)
         url = f'{self._url}/{path}'
         if params:
-            url = f'{url}?{urlencode(**params)}'
+            url = f'{url}?{urlencode(params)}'
         return url
+
+    def _upload_basic(self, file: BinaryIO, upload_object: 'MultipartUploadObjectAttributes'):
+        """Do a basic upload
+        TODO: refactor this into a separate class
+        """
+        raise NotImplementedError("Basic uploads are not implemented yet")
 
     def _upload_multipart(self, file: BinaryIO, upload_object: 'MultipartUploadObjectAttributes'):
         """Do a multipart upload
+        TODO: refactor this into a separate class
         """
         actions = upload_object.get('actions')
         if not actions:
@@ -127,7 +134,7 @@ class LfsClient:
 
         reply = self._send_request(href, method=method, headers=header, body=data)
         if reply.status_code // 100 != 2:
-            raise RuntimeError(f"Unexpected reply from server for part: {reply.status_code} {reply.content}")
+            raise RuntimeError(f"Unexpected reply from server for part: {reply.status_code} {reply.text}")
 
     @staticmethod
     def _send_request(href: str, method: str, headers: Dict[str, str], body: Union[bytes, str, None] = None) \

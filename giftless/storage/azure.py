@@ -188,8 +188,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
 
         # Verify that existing blocks are the same as what we plan to upload
         for block in blocks:
-            bid = self._encode_block_id(block.id)
-            if bid in existing_blocks and existing_blocks[bid] != block.size:
+            if block.id in existing_blocks and existing_blocks[block.id] != block.size:
                 _log.warning(f"Uncommitted block size does not match our plan, restating upload")
                 blob_client.delete_blob()
                 return {}
