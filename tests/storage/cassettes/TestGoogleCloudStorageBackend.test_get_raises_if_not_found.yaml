@@ -1,6 +1,6 @@
 interactions:
 - request:
-    body: assertion=eyJ0eXAiOiAiSldUIiwgImFsZyI6ICJSUzI1NiIsICJraWQiOiAiNjIxMGE2YWRiYTAxM2FmYjZjMDhhNjliMTZlYzY0YTllZWViMDY1OCJ9.eyJpYXQiOiAxNTk3OTI3NDM4LCAiZXhwIjogMTU5NzkzMTAzOCwgImlzcyI6ICJzaGFoYXItdGVzdHNAZ2lmdGxlc3MtdGVzdHMuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCAiYXVkIjogImh0dHBzOi8vb2F1dGgyLmdvb2dsZWFwaXMuY29tL3Rva2VuIiwgInNjb3BlIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL2F1dGgvZGV2c3RvcmFnZS5mdWxsX2NvbnRyb2wgaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vYXV0aC9kZXZzdG9yYWdlLnJlYWRfb25seSBodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9hdXRoL2RldnN0b3JhZ2UucmVhZF93cml0ZSJ9.lEo3U0Krwnz4FUirQY7RlJr1EIk3VOEnO9lCwZ_Tb8XV4StnEBGqkbEl2ytl9piYdMm4H4J0OIXIe-iU7nHMeMaObF-aX7_63VXNqh3Igp_TTDB4hm-pjyW1PNcGHI5hKe-KaWXZqKzhjfp88lHXnhfyE7VyIsIGGHfZJUswOiaaOVMlMNiSnEGFyTR_1E9Gs6B6TNX57gee9QWKyx7iyBOC0kYMsbCVpe5heIshCfghV3HQpQ6OakrEE3cZgWOyZ4cb1JkNBGk70zl66kKWR3zLx_fXNbSPsjw4LTrDnQVAYfrLzDj2tdkQvSk-293OdpY2Wq_dPjKfk4StZLhyCg&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer
+    body: assertion=eyJ0eXAiOiAiSldUIiwgImFsZyI6ICJSUzI1NiIsICJraWQiOiAiMjg5ODJmN2JiOTg5YmE2NjkzY2Q1OTllMzMxZWI2OWJkZjE1OGIzMCJ9.eyJpYXQiOiAxNjAzMjIxOTgyLCAiZXhwIjogMTYwMzIyNTU4MiwgImlzcyI6ICJzaGFoYXItdGVzdHNAZ2lmdGxlc3MtdGVzdHMuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCAiYXVkIjogImh0dHBzOi8vb2F1dGgyLmdvb2dsZWFwaXMuY29tL3Rva2VuIiwgInNjb3BlIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL2F1dGgvZGV2c3RvcmFnZS5mdWxsX2NvbnRyb2wgaHR0cHM6Ly93d3cuZ29vZ2xlYXBpcy5jb20vYXV0aC9kZXZzdG9yYWdlLnJlYWRfb25seSBodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9hdXRoL2RldnN0b3JhZ2UucmVhZF93cml0ZSJ9.hjCCV04BNsRdVi2RnebHjVqKA43baysaJnTon7tW1UoXkcl551qFPKpCcPADKx_vUZrTVlh_qp4maUH5a84O3bXEow5wlcu9JTosY8G-HixAbP43j0Buw16Mw1JwbA5XUqlLf6FN4JX8PQcNuEYoKeOrGg3rmROhf4E8dLTF2ij5VBRrP--tBwVDq5piGa-PuAapiiAO5v1AicNzDQ93uFLYl2DqIqIUN-56F2W4FBSnqxsh3UfQr902cTyHG8DRS25P6THtbSj1MFer5Ds2ZAhp9KBrV2me9zweDEKXyMar98EBF9l6JmNGd9jfZFpEdmj18ySWJXFKKlUh2E0dkA&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer
     headers:
       Accept:
       - '*/*'
@@ -19,14 +19,14 @@ interactions:
   response:
     body:
       string: !!binary |
-        H4sIAAAAAAAC/x3PzZJDMAAA4HfJuTqLUWtvxWqpNEZZlYvxE61SNFSinX33NXv9bt8bpHlOhiEZ
-        u5q04AvMqaSt8/Whh7q0JVRolMvPOUYzfojdPft4lmMRJ3teB63D5fqkXiXRnmRvQFEHU7apit4P
-        bu6B7CzjjiPz2oZ73xCf8QRfDCscNRWcoB3IDVk8s2CJOZuqRvh0VY2UOnIE88ZOtGkgPYYPLfKz
-        2bHDOjR1zrbMuGRY2W5K1beUihnePBm72oZpUaBZYparvnB49AYpbpFgfZ8dDFaA8L6iZEiqpScr
-        mrYC/9dknHuyhHWSUkLB7x+R5I9JCgEAAA==
+        H4sIAAAAAAAC/x3PyXKCMAAA0H/J2TqytdCbEtlMU2QxIxcm0LBpLZsh4PTf6/T9wXsAmudsGNLx
+        58Ju4B3MVDbW+frQfuzUY9Hn3JMTX9GbUJMy7m6EeY2I2C7sBdkJdDHKYCdpLMRMzSg9WSPRYzhX
+        TYCaqZbOXgfNur0olpHzK+X+dC+FimfoGTmCwZeh0kZMsZNxlMivhROQ0vQ/w7hZxKZ0o9HKov2W
+        LvUU4lrrOydOdnKh3LhW7SvWI0zUTBwHUSGM0dm273EJTwfiV/r32+A73B0JWAEm2rpnQ1o/e4pm
+        GCvwf03HuWXP8I7RnvXg9w/P41RGCgEAAA==
     headers:
       Alt-Svc:
-      - h3-29=":443"; ma=2592000,h3-27=":443"; ma=2592000,h3-T050=":443"; ma=2592000,h3-Q050=":443";
+      - h3-Q050=":443"; ma=2592000,h3-29=":443"; ma=2592000,h3-T051=":443"; ma=2592000,h3-T050=":443";
         ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443";
         ma=2592000; v="46,43"
       Cache-Control:
@@ -36,7 +36,7 @@ interactions:
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 20 Aug 2020 12:43:58 GMT
+      - Tue, 20 Oct 2020 19:26:22 GMT
       Server:
       - scaffolding on HTTPServer2
       Transfer-Encoding:
@@ -64,33 +64,30 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - gcloud-python/1.28.1  gl-python/3.7.3 gax/1.17.0 gccl/1.28.1
+      - gcloud-python/1.28.1  gl-python/3.8.5 gax/1.22.3 gccl/1.28.1
       X-Goog-API-Client:
-      - gcloud-python/1.28.1  gl-python/3.7.3 gax/1.17.0 gccl/1.28.1
+      - gcloud-python/1.28.1  gl-python/3.8.5 gax/1.22.3 gccl/1.28.1
       authorization:
       - fake-authz-header
     method: GET
-    uri: https://storage.googleapis.com/storage/v1/b/giftless-tests-20200818/o/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824?projection=noAcl
+    uri: https://storage.googleapis.com/storage/v1/b/giftless-tests-20200818/o/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824?projection=noAcl&prettyPrint=false
   response:
     body:
-      string: "{\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"No such object:\
-        \ giftless-tests-20200818/giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\"\
-        ,\n    \"errors\": [\n      {\n        \"message\": \"No such object: giftless-tests-20200818/giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\"\
-        ,\n        \"domain\": \"global\",\n        \"reason\": \"notFound\"\n   \
-        \   }\n    ]\n  }\n}\n"
+      string: '{"error":{"code":404,"message":"No such object: giftless-tests-20200818/giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824","errors":[{"message":"No
+        such object: giftless-tests-20200818/giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824","domain":"global","reason":"notFound"}]}}'
     headers:
       Alt-Svc:
-      - h3-29=":443"; ma=2592000,h3-27=":443"; ma=2592000,h3-T050=":443"; ma=2592000,h3-Q050=":443";
-        ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443";
-        ma=2592000; v="46,43"
+      - h3-Q050=":443"; ma=2592000,h3-29=":443"; ma=2592000,h3-27=":443"; ma=2592000,h3-T051=":443";
+        ma=2592000,h3-T050=":443"; ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443";
+        ma=2592000,quic=":443"; ma=2592000; v="46,43"
       Cache-Control:
       - no-cache, no-store, max-age=0, must-revalidate
       Content-Length:
-      - '431'
+      - '355'
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 20 Aug 2020 12:43:58 GMT
+      - Tue, 20 Oct 2020 19:26:23 GMT
       Expires:
       - Mon, 01 Jan 1990 00:00:00 GMT
       Pragma:
@@ -101,7 +98,7 @@ interactions:
       - Origin
       - X-Origin
       X-GUploader-UploadID:
-      - AAANsUnZBArUkAMwbgytSrHoSiUn1n28MGH555AiXKQMlrztpEc9IthbiE33SbRlVi8trPenOzRFN1IR1EHm3wtbBDY
+      - ABg5-Uz-NOjE4gkKsizJ3z7pptgg3jxIMeJ3mjaSaBOQvraMmI3kyDjYKNOG4jyEdaALItMK59CkWXfwVVgS2HcDiK__TAAFpA
     status:
       code: 404
       message: Not Found
@@ -115,38 +112,38 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - gcloud-python/1.28.1  gl-python/3.7.3 gax/1.17.0 gccl/1.28.1
+      - gcloud-python/1.28.1  gl-python/3.8.5 gax/1.22.3 gccl/1.28.1
       X-Goog-API-Client:
-      - gcloud-python/1.28.1  gl-python/3.7.3 gax/1.17.0 gccl/1.28.1
+      - gcloud-python/1.28.1  gl-python/3.8.5 gax/1.22.3 gccl/1.28.1
       authorization:
       - fake-authz-header
     method: GET
-    uri: https://storage.googleapis.com/storage/v1/b/giftless-tests-20200818/o?projection=noAcl&prefix=giftless-tests%2F
+    uri: https://storage.googleapis.com/storage/v1/b/giftless-tests-20200818/o?projection=noAcl&prefix=giftless-tests%2F&prettyPrint=false
   response:
     body:
-      string: "{\n  \"kind\": \"storage#objects\"\n}\n"
+      string: '{"kind":"storage#objects"}'
     headers:
       Alt-Svc:
-      - h3-29=":443"; ma=2592000,h3-27=":443"; ma=2592000,h3-T050=":443"; ma=2592000,h3-Q050=":443";
-        ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443"; ma=2592000,quic=":443";
-        ma=2592000; v="46,43"
+      - h3-Q050=":443"; ma=2592000,h3-29=":443"; ma=2592000,h3-27=":443"; ma=2592000,h3-T051=":443";
+        ma=2592000,h3-T050=":443"; ma=2592000,h3-Q046=":443"; ma=2592000,h3-Q043=":443";
+        ma=2592000,quic=":443"; ma=2592000; v="46,43"
       Cache-Control:
       - private, max-age=0, must-revalidate, no-transform
       Content-Length:
-      - '32'
+      - '26'
       Content-Type:
       - application/json; charset=UTF-8
       Date:
-      - Thu, 20 Aug 2020 12:43:58 GMT
+      - Tue, 20 Oct 2020 19:26:23 GMT
       Expires:
-      - Thu, 20 Aug 2020 12:43:58 GMT
+      - Tue, 20 Oct 2020 19:26:23 GMT
       Server:
       - UploadServer
       Vary:
       - Origin
       - X-Origin
       X-GUploader-UploadID:
-      - AAANsUlCG8w1sS6C71keFclOLrLRqePTyrHh56a4wk5UD_v0VaVVdXQjXIrrdyC48q_dje_aFk9eLIr8pY8GoGCwzKk
+      - ABg5-UyGB29jtjmP9msbRm8lt-vwjfogEBSmmvuCCHmu-8LrYLSGsSc9QWQHiusCq3uw93zrNGUW1cCWYvLFd6P6mtE
     status:
       code: 200
       message: OK
