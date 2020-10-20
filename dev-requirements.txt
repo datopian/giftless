@@ -11,6 +11,7 @@ entrypoints==0.3          # via flake8
 filelock==3.0.12          # via pytest-mypy
 flake8==3.7.9             # via pytest-flake8
 idna==2.9                 # via yarl
+importlib-metadata==2.0.0  # via pluggy, pytest
 isort==4.3.21             # via pytest-isort
 mccabe==0.6.1             # via flake8
 more-itertools==8.2.0     # via pytest
@@ -34,11 +35,12 @@ pytest==5.3.5             # via -r dev-requirements.in, pytest-cov, pytest-env, 
 pyyaml==5.3.1             # via vcrpy
 six==1.14.0               # via packaging, pip-tools, vcrpy
 typed-ast==1.4.1          # via mypy
-typing-extensions==3.7.4.2  # via mypy
+typing-extensions==3.7.4.2  # via mypy, yarl
 vcrpy==4.1.0              # via pytest-vcr
 wcwidth==0.1.8            # via pytest
 wrapt==1.12.1             # via vcrpy
 yarl==1.5.1               # via vcrpy
+zipp==3.3.1               # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip

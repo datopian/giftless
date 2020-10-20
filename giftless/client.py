@@ -8,10 +8,12 @@ import hashlib
 import logging
 import os
 import sys
-from typing import Any, BinaryIO, Dict, List, Optional, Tuple, TypedDict, Union
+from typing import Any, BinaryIO, Dict, Optional, Tuple, Union
 from urllib.parse import urlencode
 
 import requests
+
+from .transfer.types import MultipartUploadObjectAttributes, ObjectAttributes
 
 FILE_READ_BUFFER_SIZE = 4 * 1024 * 1000  # 4mb, why not
 
@@ -153,34 +155,6 @@ class LfsClient:
             return 'Content-MD5', digest
         else:
             raise RuntimeError(f"Don't know how to handle want_digest value: {want_digest}")
-
-
-class ObjectAttributes(TypedDict):
-    """Type for object attributes sent in batch request
-    """
-    oid: str
-    size: int
-
-
-class BasicUploadActions(TypedDict, total=False):
-    upload: Dict[str, Any]
-    verify: Dict[str, Any]
-
-
-class UploadObjectAttributes(ObjectAttributes, total=False):
-    actions: BasicUploadActions
-
-
-class MultipartUploadActions(TypedDict, total=False):
-    init: Dict[str, Any]
-    commit: Dict[str, Any]
-    parts: List[Dict[str, Any]]
-    abort: Dict[str, Any]
-    verify: Dict[str, Any]
-
-
-class MultipartUploadObjectAttributes(ObjectAttributes, total=False):
-    actions: MultipartUploadActions
 
 
 def _main():
