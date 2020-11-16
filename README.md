@@ -103,7 +103,7 @@ TRANSFER_ADAPTERS:
   basic:
     factory: giftless.transfer.basic_streaming:factory
     options:
-      storage_class: LocalStorage
+      storage_class: giftless.storage.local_storage:LocalStorage
 AUTH_PROVIDERS:
   - giftless.auth.allow_anon:read_write
 ```
@@ -339,7 +339,7 @@ MIDDLEWARE:
 ```
 
 
-## Overview of the Giftless workflow
+## Overview of the Git LFS workflow
 
 ![mermaid-diagram-git-lfs-20200528](https://user-images.githubusercontent.com/32682903/83167859-43d99580-a0d6-11ea-8304-cb67f025adbf.png)
 
