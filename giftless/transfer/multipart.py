@@ -10,6 +10,7 @@ from giftless.transfer.basic_streaming import VerifyView
 from giftless.util import get_callable
 
 DEFAULT_PART_SIZE = 10240000  # 10mb
+DEFAULT_ACTION_LIFETIME = 6 * 3600  # 6 hours
 
 
 class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
@@ -75,7 +76,8 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
             raise exc.InvalidObject('Object size does not match')
 
 
-def factory(storage_class, storage_options, action_lifetime: int, max_part_size: int = DEFAULT_PART_SIZE):
+def factory(storage_class, storage_options, action_lifetime: int = DEFAULT_ACTION_LIFETIME,
+            max_part_size: int = DEFAULT_PART_SIZE):
     """Factory for multipart transfer adapter with storage
     """
     try:
