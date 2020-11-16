@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from giftless.auth import Authentication, authentication
 from giftless.util import get_callable
+from giftless.view import ViewProvider
 
 _registered_adapters: Dict[str, 'TransferAdapter'] = {}
 
@@ -54,17 +55,6 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         return self._auth_module.preauth_handler.get_authz_header(identity, org, repo, actions, oid, lifetime=lifetime)
 
 
-class ViewProvider:
-    """ViewProvider transfer adapters can register additional views with the Flask app
-
-    A ViewProvider is an optional added interface to TransferAdapter implementations.
-    It allows the adapter to also register additional routes -> views with the
-    py-git-lfs-server Flask app.
-    """
-    def register_views(self, app):
-        pass
-
-
 def init_flask_app(app):
     """Initialize a flask app instance with transfer adapters.
 
@@ -97,7 +87,7 @@ def match_transfer_adapter(transfers: List[str]) -> Tuple[str, TransferAdapter]:
 def _init_adapter(config: Dict) -> TransferAdapter:
     """Call adapter factory to create a transfer adapter instance
     """
-    factory = get_callable(config['factory'])  # type: Callable[..., TransferAdapter]
+    factory: Callable[..., TransferAdapter] = get_callable(config['factory'])
     adapter: TransferAdapter = factory(**config.get('options', {}))
     if isinstance(adapter, PreAuthorizingTransferAdapter):
         adapter.set_auth_module(authentication)

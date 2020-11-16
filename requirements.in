@@ -8,6 +8,7 @@ webargs==5.5.*
 typing-extensions==3.7.*
 python-dotenv==0.13.*
 python-dateutil==2.*
+cryptography>=3.2.*  # not direct dependency, but pin to >=3.2 due to vulnerabilities
 
 # For now we are using a development version of Flask-Classful which supports
 # passing init arguments to view classes when they are registered. Hopefully
@@ -19,4 +20,3 @@ git+https://github.com/teracyhq/flask-classful.git@3bbab31#egg=flask-classful
 # TODO: Split these out so users don't have to install all of them
 azure-storage-blob==12.2.*
 google-cloud-storage==1.28.*
-google-auth==1.16.*
