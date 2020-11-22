@@ -1,8 +1,8 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 setup(
     name='giftless',
-    packages=['giftless'],
+    packages=find_packages(exclude='./tests'),
     version=open('VERSION').read(),
     description='A Git LFS Server implementation in Python with support for pluggable backends',
     author='Shahar Evron',
@@ -15,7 +15,9 @@ setup(
         'marshmallow-enum',
         'pyyaml',
         'PyJWT',
-        'webargs'
+        'webargs',
+        'python-dotenv',
+        'typing-extensions'
     ],
     package_data={}
 )
