@@ -7,17 +7,20 @@ setup(
     description='A Git LFS Server implementation in Python with support for pluggable backends',
     author='Shahar Evron',
     author_email='shahar.evron@datopian.com',
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     install_requires=[
         'figcan',
         'flask',
-        'flask-classful',
         'flask-marshmallow',
         'marshmallow-enum',
         'pyyaml',
         'PyJWT',
         'webargs',
         'python-dotenv',
-        'typing-extensions'
+        'typing-extensions',
+        # Pull unreleased version of Flask-classful directly from GitHub
+        'flask-classful @ https://codeload.github.com/teracyhq/flask-classful/tar.gz/3bbab31705b4aa2903e7e62aa8c5ee70a1e6d789#egg=flask-classful-0.15.0',
     ],
     package_data={}
 )
