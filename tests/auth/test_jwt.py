@@ -42,6 +42,16 @@ def test_jwt_can_authorize_request_asymmetric_key(app):
     assert identity.id == 'some-user-id'
 
 
+def test_jwt_can_authorize_request_token_in_qs(app):
+    """Test basic JWT authorizer functionality
+    """
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256')
+    token = _get_test_token()
+    with app.test_request_context(f'/myorg/myrepo/objects/batch?jwt={token}', method='POST'):
+        identity = authz(flask.request)
+    assert identity.id == 'some-user-id'
+
+
 def test_jwt_with_wrong_kid_doesnt_authorize_request(app):
     """JWT authorizer only considers a JWT token if it has the right key ID in the header
     """

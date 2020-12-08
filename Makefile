@@ -29,9 +29,11 @@ default: help
 ## Regenerate requirements files
 requirements: dev-requirements.txt dev-requirements.in
 
+## Set up the development environment
+dev-setup: $(SENTINELS)/dev-setup
+
 ## Run all tests
-test: dev-requirements.txt
-	$(PIP) install -r dev-requirements.txt -e .
+test: $(SENTINELS)/dev-setup
 	$(PYTEST) $(PYTEST_EXTRA_ARGS) $(PACKAGE_DIRS) $(TESTS_DIR)
 
 ## Build a local Docker image
@@ -68,6 +70,9 @@ requirements.txt: requirements.in
 dev-requirements.txt: dev-requirements.in
 	$(PIP_COMPILE) --no-index --output-file=dev-requirements.txt dev-requirements.in
 
+$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl: $(SOURCE_FILES) setup.py | $(SENTINELS)/dist-setup
+	$(PYTHON) setup.py sdist bdist_wheel
+
 $(SENTINELS):
 	mkdir $@
 
@@ -78,8 +83,11 @@ $(SENTINELS)/dist-setup: | $(SENTINELS)
 $(SENTINELS)/dist: $(SENTINELS)/dist-setup $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl | $(SENTINELS)
 	@touch $@
 
-$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl: $(SOURCE_FILES) setup.py | $(SENTINELS)/dist-setup
-	$(PYTHON) setup.py sdist bdist_wheel
+$(SENTINELS)/dev-setup: requirements.txt dev-requirements.txt | $(SENTINELS)
+	$(PIP) install -r requirements.txt
+	$(PIP) install -e .
+	$(PIP) install -r dev-requirements.txt
+	@touch $@
 
 # Help related variables and targets
 

@@ -1,7 +1,7 @@
 pip-tools==5.1.*
 pytest==5.3.*
 pytest-flake8==1.0.*
-pytest-isort==0.3.*
+pytest-isort==1.*
 pytest-mypy==0.5.*
 pytest-env==0.6.*
 pytest-cov==2.8.*

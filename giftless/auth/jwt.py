@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, Set, Union
 
 import jwt
 from dateutil.tz import UTC
+from flask import Request
 
 from giftless.auth import PreAuthorizedActionAuthenticator, Unauthorized
 from giftless.auth.identity import DefaultIdentity, Identity, Permission
@@ -105,15 +106,25 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         self.issuer = issuer
         self.audience = audience
         self.key_id = key_id
+        self._verification_key: Union[str, bytes, None] = None  # lazy loaded
 
-    def __call__(self, request: Any) -> Optional[Identity]:
+    def __call__(self, request: Request) -> Optional[Identity]:
         token_payload = self._authenticate(request)
         if token_payload is None:
             return None
         return self._get_identity(token_payload)
 
-    def get_authz_header(self, identity: Identity, org: str, repo: str, actions: Optional[Set[str]] = None,
-                         oid: Optional[str] = None, lifetime: Optional[int] = None) -> Dict[str, str]:
+    def get_authz_header(self, *args, **kwargs) -> Dict[str, str]:
+        token = self._generate_token_for_action(*args, **kwargs)
+        return {'Authorization': f'Bearer {token}'}
+
+    def get_authz_query_params(self, *args, **kwargs) -> Dict[str, str]:
+        return {'jwt': self._generate_token_for_action(*args, **kwargs)}
+
+    def _generate_token_for_action(self, identity: Identity, org: str, repo: str, actions: Optional[Set[str]] = None,
+                                   oid: Optional[str] = None, lifetime: Optional[int] = None) -> str:
+        """Generate a JWT token authorizing the specific requested action
+        """
         token_payload: Dict[str, Any] = {"sub": identity.id}
         if self.issuer:
             token_payload['iss'] = self.issuer
@@ -131,11 +142,11 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         if lifetime:
             token_payload['exp'] = datetime.now(tz=UTC) + timedelta(seconds=lifetime)
 
-        token = self._generate_token(**token_payload)
-        return {'Authorization': f'Bearer {token.decode("utf8")}'}
+        return self._generate_token(**token_payload).decode('ascii')
 
-    def _generate_action_scopes(self, org: str, repo: str, actions: Optional[Set[str]] = None,
-                                oid: Optional[str] = None) -> str:
+    @staticmethod
+    def _generate_action_scopes(org: str, repo: str, actions: Optional[Set[str]] = None, oid: Optional[str] = None) \
+            -> str:
         """Generate token scopes based on target object and actions
         """
         if oid is None:
@@ -169,10 +180,12 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
         return jwt.encode(payload, self.private_key, algorithm=self.algorithm, headers=headers)  # type: ignore
 
-    def _authenticate(self, request):
+    def _authenticate(self, request: Request):
         """Authenticate a request
         """
-        token = self._get_token(request)
+        token = self._get_token_from_headers(request)
+        if token is None:
+            token = self._get_token_from_qs(request)
         if token is None:
             return None
 
@@ -190,10 +203,11 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         except jwt.PyJWTError as e:
             raise Unauthorized('Expired or otherwise invalid JWT token ({})'.format(str(e)))
 
-    def _get_token(self, request) -> Optional[str]:
-        """Extract JWT token from request
+    @staticmethod
+    def _get_token_from_headers(request: Request) -> Optional[str]:
+        """Extract JWT token from HTTP Authorization header
         """
-        header: str = request.headers.get('Authorization')
+        header = request.headers.get('Authorization')
         if not header:
             return None
 
@@ -206,6 +220,12 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             return None
 
         return payload
+
+    @staticmethod
+    def _get_token_from_qs(request: Request) -> Optional[str]:
+        """Get JWT token from the query string
+        """
+        return request.args.get('jwt')
 
     def _get_identity(self, jwt_payload: Dict[str, Any]) -> Identity:
         identity = DefaultIdentity(id=jwt_payload.get('sub'),
@@ -264,13 +284,19 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
         return permissions
 
-    def _get_verification_key(self) -> Union[None, str, bytes]:
+    def _get_verification_key(self) -> Union[str, bytes]:
         """Get the key used for token verification, based on algorithm
         """
-        if self.algorithm[0:2] == 'HS':
-            return self.private_key
-        else:
-            return self.public_key
+        if self._verification_key is None:
+            if self.algorithm[0:2] == 'HS':
+                self._verification_key = self.private_key
+            else:
+                self._verification_key = self.public_key
+
+        if self._verification_key is None:
+            raise ValueError("No private or public key have been set, can't verify requests")
+
+        return self._verification_key
 
 
 class Scope(object):

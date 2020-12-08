@@ -143,10 +143,11 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
             }
 
         else:
+            download_url = ObjectsView.get_storage_url('get', organization, repo, oid)
             response['actions'] = {
                 "download": {
-                    "href": ObjectsView.get_storage_url('get', organization, repo, oid),
-                    "header": self._preauth_headers(organization, repo, actions={'read'}, oid=oid),
+                    "href": self._preauth_url(download_url, organization, repo, actions={'read'}, oid=oid),
+                    "header": {},
                     "expires_in": self.action_lifetime
                 }
             }
