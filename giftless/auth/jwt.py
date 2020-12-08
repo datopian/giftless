@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional, Set, Union
 
 import jwt
 from dateutil.tz import UTC
+from flask import Request
 
 from giftless.auth import PreAuthorizedActionAuthenticator, Unauthorized
 from giftless.auth.identity import DefaultIdentity, Identity, Permission
