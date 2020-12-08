@@ -9,7 +9,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [ 3.7, 3.8 ]
@@ -22,4 +22,9 @@ jobs:
       - name: Set up the test environment
         run: make dev-setup
       - name: Run tests
-        run: make test PYTEST_EXTRA_ARGS="--cov=giftless"
+        uses: paambaati/codeclimate-action@v2.7.4
+        env:
+          CC_TEST_REPORTER_ID: cca5a6743728de037cb47d4a845e35c682b4469c0f9c52851f4f3824dd471f87
+        run: |
+          make test PYTEST_EXTRA_ARGS="--cov=giftless"
+          coverage xml
