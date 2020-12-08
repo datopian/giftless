@@ -4,43 +4,40 @@
 #
 #    pip-compile --no-index --output-file=dev-requirements.txt dev-requirements.in
 #
-attrs==19.3.0             # via pytest
-click==7.0                # via pip-tools
-coverage==5.0.4           # via pytest-cov
-entrypoints==0.3          # via flake8
+attrs==20.3.0             # via pytest
+click==7.1.2              # via pip-tools
+coverage==5.3             # via pytest-cov
 filelock==3.0.12          # via pytest-mypy
-flake8==3.7.9             # via pytest-flake8
-idna==2.9                 # via yarl
-importlib-metadata==2.0.0  # via pluggy, pytest
-isort==4.3.21             # via pytest-isort
+flake8==3.8.4             # via pytest-flake8
+idna==2.10                # via yarl
+isort==5.6.4              # via pytest-isort
 mccabe==0.6.1             # via flake8
-more-itertools==8.2.0     # via pytest
-multidict==4.7.6          # via yarl
+more-itertools==8.6.0     # via pytest
+multidict==5.1.0          # via yarl
 mypy-extensions==0.4.3    # via mypy
-mypy==0.761               # via pytest-mypy
-packaging==20.1           # via pytest
+mypy==0.790               # via pytest-mypy
+packaging==20.7           # via pytest
 pip-tools==5.1.2          # via -r dev-requirements.in
 pluggy==0.13.1            # via pytest
-py==1.8.1                 # via pytest
-pycodestyle==2.5.0        # via flake8
-pyflakes==2.1.1           # via flake8
-pyparsing==2.4.6          # via packaging
+py==1.9.0                 # via pytest
+pycodestyle==2.6.0        # via flake8
+pyflakes==2.2.0           # via flake8
+pyparsing==2.4.7          # via packaging
 pytest-cov==2.8.1         # via -r dev-requirements.in
 pytest-env==0.6.2         # via -r dev-requirements.in
-pytest-flake8==1.0.4      # via -r dev-requirements.in
+pytest-flake8==1.0.6      # via -r dev-requirements.in
 pytest-isort==0.3.1       # via -r dev-requirements.in
 pytest-mypy==0.5.0        # via -r dev-requirements.in
 pytest-vcr==1.0.2         # via -r dev-requirements.in
 pytest==5.3.5             # via -r dev-requirements.in, pytest-cov, pytest-env, pytest-flake8, pytest-isort, pytest-mypy, pytest-vcr
 pyyaml==5.3.1             # via vcrpy
-six==1.14.0               # via packaging, pip-tools, vcrpy
+six==1.15.0               # via pip-tools, vcrpy
 typed-ast==1.4.1          # via mypy
-typing-extensions==3.7.4.2  # via mypy, yarl
-vcrpy==4.1.0              # via pytest-vcr
-wcwidth==0.1.8            # via pytest
+typing-extensions==3.7.4.3  # via mypy
+vcrpy==4.1.1              # via pytest-vcr
+wcwidth==0.2.5            # via pytest
 wrapt==1.12.1             # via vcrpy
-yarl==1.5.1               # via vcrpy
-zipp==3.3.1               # via importlib-metadata
+yarl==1.6.3               # via vcrpy
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
