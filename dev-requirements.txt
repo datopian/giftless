@@ -26,10 +26,10 @@ pyparsing==2.4.7          # via packaging
 pytest-cov==2.8.1         # via -r dev-requirements.in
 pytest-env==0.6.2         # via -r dev-requirements.in
 pytest-flake8==1.0.6      # via -r dev-requirements.in
-pytest-isort==0.3.1       # via -r dev-requirements.in
+pytest-isort==1.2.0       # via -r dev-requirements.in
 pytest-mypy==0.5.0        # via -r dev-requirements.in
 pytest-vcr==1.0.2         # via -r dev-requirements.in
-pytest==5.3.5             # via -r dev-requirements.in, pytest-cov, pytest-env, pytest-flake8, pytest-isort, pytest-mypy, pytest-vcr
+pytest==5.3.5             # via -r dev-requirements.in, pytest-cov, pytest-env, pytest-flake8, pytest-mypy, pytest-vcr
 pyyaml==5.3.1             # via vcrpy
 six==1.15.0               # via pip-tools, vcrpy
 typed-ast==1.4.1          # via mypy

@@ -8,7 +8,7 @@ on:
       - master
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,4 +22,4 @@ jobs:
       - name: Set up the test environment
         run: make dev-setup
       - name: Run tests
-        run: make test
+        run: make test PYTEST_EXTRA_ARGS="--cov=giftless"
