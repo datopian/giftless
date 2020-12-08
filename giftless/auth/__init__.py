@@ -1,10 +1,12 @@
 """Abstract authentication and authorization layer
 """
+import abc
 import logging
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 
-from flask import current_app, g, request
+from flask import Request, current_app, g
+from flask import request as flask_request
 from typing_extensions import Protocol
 from werkzeug.exceptions import Unauthorized as BaseUnauthorized
 
@@ -23,22 +25,28 @@ class Authenticator(Protocol):
     """Authenticators are callables (an object or function) that can authenticate
     a request and provide an identity object
     """
-    def __call__(self, request: Any) -> Optional[Identity]:
+    def __call__(self, request: Request) -> Optional[Identity]:
         raise NotImplementedError('This is a protocol definition and should not be called directly')
 
 
-class PreAuthorizedActionAuthenticator(Authenticator):
+class PreAuthorizedActionAuthenticator(abc.ABC):
     """Pre-authorized action authenticators are special authenticators
     that can also pre-authorize a follow-up action to the Git LFS server
 
     They serve to both pre-authorize Git LFS actions and check these actions
     are authorized as they come in.
     """
+    def get_authz_query_params(self, identity: Identity, org: str, repo: str, actions: Optional[Set[str]] = None,
+                               oid: Optional[str] = None, lifetime: Optional[int] = None) -> Dict[str, str]:
+        """Authorize an action by adding credientaisl to the query string
+        """
+        return {}
+
     def get_authz_header(self, identity: Identity, org: str, repo: str, actions: Optional[Set[str]] = None,
                          oid: Optional[str] = None, lifetime: Optional[int] = None) -> Dict[str, str]:
-        """Authorize an action
+        """Authorize an action by adding credentials to the request headers
         """
-        raise NotImplementedError('Implement this method in inheriting classes')
+        return {}
 
 
 class Authentication:
@@ -133,9 +141,9 @@ class Authentication:
         self.init_authenticators()
         for authn in self._authenticators:
             try:
-                identity = authn(request)
-                if identity is not None:
-                    return identity
+                current_identity = authn(flask_request)
+                if current_identity is not None:
+                    return current_identity
             except Unauthorized:
                 # An authenticator is telling us the provided identity is invalid
                 # We should stop looking and return "no identity"

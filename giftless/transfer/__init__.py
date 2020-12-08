@@ -6,6 +6,7 @@ for more information about what transfer APIs do in Git LFS.
 from abc import ABC
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from urllib.parse import urlencode
 
 from giftless.auth import Authentication, authentication
 from giftless.util import get_callable
@@ -42,6 +43,21 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
 
     def set_auth_module(self, auth_module: Authentication):
         self._auth_module = auth_module
+
+    def _preauth_url(self, original_url: str, org: str, repo: str, actions: Optional[Set[str]] = None,
+                     oid: Optional[str] = None, lifetime: Optional[int] = None) -> str:
+        if not (self._auth_module and self._auth_module.preauth_handler):
+            return original_url
+
+        identity = self._auth_module.get_identity()
+        if identity is None:
+            return original_url
+
+        params = self._auth_module.preauth_handler.get_authz_query_params(identity, org, repo, actions, oid,
+                                                                          lifetime=lifetime)
+        qs = urlencode(params)
+        sep = '&' if '?' in original_url else '?'
+        return f'{original_url}{sep}{qs}'
 
     def _preauth_headers(self, org: str, repo: str, actions: Optional[Set[str]] = None,
                          oid: Optional[str] = None, lifetime: Optional[int] = None) -> Dict[str, str]:
