@@ -97,9 +97,11 @@ class Authentication:
         but is required.
         """
         self._unauthorized_handler = f
+
         @wraps(f)
         def decorated_func(*args, **kwargs):
             return f(*args, **kwargs)
+
         return decorated_func
 
     def auth_failure(self):

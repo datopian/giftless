@@ -181,7 +181,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             # NOTE: The Azure python library already does ID base64 decoding for us, so we only case to int here
             existing_blocks = {int(b['id']): b['size'] for b in uncommitted_blocks}
         except ValueError:
-            _log.warning(f"Some uncommitted blocks have unexpected ID format; restarting upload")
+            _log.warning("Some uncommitted blocks have unexpected ID format; restarting upload")
             return {}
 
         _log.debug("Found %d existing uncommitted blocks on server", len(existing_blocks))
@@ -189,7 +189,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         # Verify that existing blocks are the same as what we plan to upload
         for block in blocks:
             if block.id in existing_blocks and existing_blocks[block.id] != block.size:
-                _log.warning(f"Uncommitted block size does not match our plan, restating upload")
+                _log.warning("Uncommitted block size does not match our plan, restating upload")
                 blob_client.delete_blob()
                 return {}
 
