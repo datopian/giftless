@@ -62,7 +62,7 @@ class DefaultIdentity(Identity):
                     return permission in self._allowed[organization][repo][None]
             elif None in self._allowed[organization]:
                 return permission in self._allowed[organization][None][None]
-        elif None in self._allowed:
-            return permission in self._allowed[None][None][None]
+        elif None in self._allowed and None in self._allowed[None]:
+            return permission in self._allowed[None][None][oid]
 
         return False

@@ -29,13 +29,19 @@ class BaseView(FlaskView):
             kwargs['base_class'] = BaseView
         return super().register(*args, **kwargs)
 
+    @classmethod
+    def _check_authorization(cls, organization, repo, permission, oid=None):
+        """Check the current user is authorized to perform an action and raise an exception otherwise
+        """
+        if not cls._is_authorized(organization, repo, permission, oid):
+            raise exc.Forbidden("Your are not authorized to perform this action")
+
     @staticmethod
-    def _check_authorization(organization, repo, permission, oid=None):
+    def _is_authorized(organization, repo, permission, oid=None):
         """Check the current user is authorized to perform an action
         """
         identity = authn.get_identity()
-        if not (identity and identity.is_authorized(organization, repo, permission, oid)):
-            raise exc.Forbidden("Your are not authorized to perform this action")
+        return identity and identity.is_authorized(organization, repo, permission, oid)
 
 
 class BatchView(BaseView):
@@ -54,7 +60,12 @@ class BatchView(BaseView):
             raise exc.InvalidPayload(e)
 
         permission = Permission.WRITE if payload['operation'] == schema.Operation.upload else Permission.READ
-        self._check_authorization(organization, repo, permission)
+        try:
+            self._check_authorization(organization, repo, permission)
+        except exc.Forbidden:
+            # User doesn't have global permission to the entire namespace, but may be authorized for all objects
+            if not all(self._is_authorized(organization, repo, permission, o['oid']) for o in payload['objects']):
+                raise
 
         response = {"transfer": transfer_type}
         action = adapter.get_action(payload['operation'].value, organization, repo)

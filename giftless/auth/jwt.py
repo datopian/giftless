@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional, Set, Union
 
@@ -63,6 +64,9 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             // read a specific object
             "obj:datopian/somerepo/6adada03e86b154be00e25f288fcadc27aef06c47f12f88e3e1985c502803d1b:read",
 
+            // read the same object, but do not limit to a specific prefix
+            "obj:6adada03e86b154be00e25f288fcadc27aef06c47f12f88e3e1985c502803d1b:read",
+
             // full access to all objects in a repo
             "obj:datopian/my-repo/*",
 
@@ -107,6 +111,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         self.audience = audience
         self.key_id = key_id
         self._verification_key: Union[str, bytes, None] = None  # lazy loaded
+        self._log = logging.getLogger(__name__)
 
     def __call__(self, request: Request) -> Optional[Identity]:
         token_payload = self._authenticate(request)
@@ -233,6 +238,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
                                    name=jwt_payload.get('name', jwt_payload.get('sub')))
 
         scopes = to_iterable(jwt_payload.get('scopes', ()))
+        self._log.debug("Allowing scopes: %s", scopes)
         for scope in scopes:
             identity.allow(**self._parse_scope(scope))
 
@@ -256,7 +262,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             elif len(id_parts) == 2:
                 organization, repo = id_parts
             elif len(id_parts) == 1:
-                organization = id_parts[0]
+                oid = id_parts[0]
 
         permissions = self._parse_scope_permissions(scope)
 
@@ -265,7 +271,8 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
                 "permissions": permissions,
                 "oid": oid}
 
-    def _parse_scope_permissions(self, scope: 'Scope') -> Set[Permission]:
+    @staticmethod
+    def _parse_scope_permissions(scope: 'Scope') -> Set[Permission]:
         """Extract granted permissions from scope object
         """
         permissions_map = {'read': {Permission.READ, Permission.READ_META},
