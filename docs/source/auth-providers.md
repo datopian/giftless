@@ -93,6 +93,7 @@ issuer and key ID if configured, and of course have valid course expiry / not be
 
 ### JWT Authentication Flow
 A typical flow for JWT is:
+
 0. There is an external *trusted* system that can generate and sign JWT tokens and 
    Giftless is configured to verify and accept tokens signed by this system
 1. User is logged in to this external system
