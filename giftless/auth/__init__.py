@@ -146,9 +146,11 @@ class Authentication:
                 current_identity = authn(flask_request)
                 if current_identity is not None:
                     return current_identity
-            except Unauthorized:
+            except Unauthorized as e:
                 # An authenticator is telling us the provided identity is invalid
                 # We should stop looking and return "no identity"
+                log = logging.getLogger(__name__)
+                log.debug(e.description)
                 return None
 
         return self._default_identity
