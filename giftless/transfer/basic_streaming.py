@@ -8,6 +8,7 @@ interface through which additional streaming backends can be implemented.
 
 import os
 from typing import Any, Dict, Optional
+from urllib.parse import urlencode
 
 from flask import Response, request, url_for
 from flask_classful import route
@@ -20,7 +21,6 @@ from giftless.storage import StreamingStorage, VerifiableStorage
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
 from giftless.util import get_callable
 from giftless.view import BaseView
-from urllib.parse import urlencode
 
 
 class VerifyView(BaseView):
