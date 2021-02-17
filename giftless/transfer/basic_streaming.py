@@ -150,12 +150,13 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
             download_url = ObjectsView.get_storage_url('get', organization, repo, oid)
             preauth_url = self._preauth_url(download_url, organization, repo, actions={'read'}, oid=oid)
 
-            params = {'filename': extra.get('filename') if extra else None}
-            preauth_url_with_params = add_query_params(preauth_url, params)
+            if extra and 'filename' in extra:
+                params = {'filename': extra['filename']}
+                preauth_url = add_query_params(preauth_url, params)
 
             response['actions'] = {
                 "download": {
-                    "href": preauth_url_with_params,
+                    "href": preauth_url,
                     "header": {},
                     "expires_in": self.action_lifetime
                 }
