@@ -82,7 +82,7 @@ class ObjectsView(BaseView):
         path = os.path.join(organization, repo)
 
         filename = request.args.get('filename')
-        headers = {'Content-Disposition': f'attachment; filename={filename}'} if filename else None
+        headers = {'Content-Disposition': f'attachment; filename="{filename}"'} if filename else None
 
         if self.storage.exists(path, oid):
             file = self.storage.get(path, oid)
