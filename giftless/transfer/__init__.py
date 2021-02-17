@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from urllib.parse import urlencode
 
 from giftless.auth import Authentication, authentication
-from giftless.util import get_callable
+from giftless.util import get_callable, add_query_params
 from giftless.view import ViewProvider
 
 _registered_adapters: Dict[str, 'TransferAdapter'] = {}
@@ -55,9 +55,8 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
 
         params = self._auth_module.preauth_handler.get_authz_query_params(identity, org, repo, actions, oid,
                                                                           lifetime=lifetime)
-        qs = urlencode(params)
-        sep = '&' if '?' in original_url else '?'
-        return f'{original_url}{sep}{qs}'
+
+        return add_query_params(original_url, params)
 
     def _preauth_headers(self, org: str, repo: str, actions: Optional[Set[str]] = None,
                          oid: Optional[str] = None, lifetime: Optional[int] = None) -> Dict[str, str]:

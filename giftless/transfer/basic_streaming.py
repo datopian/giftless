@@ -8,7 +8,6 @@ interface through which additional streaming backends can be implemented.
 
 import os
 from typing import Any, Dict, Optional
-from urllib.parse import urlencode
 
 from flask import Response, request, url_for
 from flask_classful import route
@@ -19,7 +18,7 @@ from giftless.exc import InvalidPayload, NotFound
 from giftless.schema import ObjectSchema
 from giftless.storage import StreamingStorage, VerifiableStorage
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
-from giftless.util import get_callable
+from giftless.util import get_callable, add_query_params
 from giftless.view import BaseView
 
 
@@ -152,9 +151,7 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
             preauth_url = self._preauth_url(download_url, organization, repo, actions={'read'}, oid=oid)
 
             params = {'filename': extra.get('filename') if extra else None}
-            qs = urlencode(params)
-            sep = '&' if '?' in preauth_url else '?'
-            preauth_url_with_params = f'{preauth_url}{sep}{qs}'
+            preauth_url_with_params = add_query_params(preauth_url, params)
 
             response['actions'] = {
                 "download": {
