@@ -6,10 +6,9 @@ for more information about what transfer APIs do in Git LFS.
 from abc import ABC
 from functools import partial
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-from urllib.parse import urlencode
 
 from giftless.auth import Authentication, authentication
-from giftless.util import get_callable, add_query_params
+from giftless.util import add_query_params, get_callable
 from giftless.view import ViewProvider
 
 _registered_adapters: Dict[str, 'TransferAdapter'] = {}

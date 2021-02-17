@@ -18,7 +18,7 @@ from giftless.exc import InvalidPayload, NotFound
 from giftless.schema import ObjectSchema
 from giftless.storage import StreamingStorage, VerifiableStorage
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
-from giftless.util import get_callable, add_query_params
+from giftless.util import add_query_params, get_callable
 from giftless.view import BaseView
 
 

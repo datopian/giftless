@@ -55,7 +55,7 @@ def to_iterable(val: Any) -> Iterable:
     return (val,)
 
 
-def add_query_params(url: str, params: Dict):
+def add_query_params(url: str, params: Dict) -> str:
     """Safely add query params to a url that may or may not already contain
     query params.
 
