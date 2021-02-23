@@ -68,3 +68,17 @@ def add_query_params(url: str, params: Dict[str, Any]) -> str:
     urlencoded_params = urlencode(params)
     separator = '&' if '?' in url else '?'
     return f'{url}{separator}{urlencoded_params}'
+
+
+def safe_filename(original_filename: str) -> str:
+    """Returns a filename safe to use in HTTP headers, formed from the
+    given original filename.
+
+    >>> safe_filename("example(1).txt")
+    'example1.txt'
+
+    >>> safe_filename("_ex@mple 2%.old.xlsx")
+    '_exmple2.old.xlsx'
+    """
+    valid_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.'
+    return ''.join(c for c in original_filename if c in valid_chars)

@@ -18,7 +18,7 @@ from giftless.exc import InvalidPayload, NotFound
 from giftless.schema import ObjectSchema
 from giftless.storage import StreamingStorage, VerifiableStorage
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
-from giftless.util import add_query_params, get_callable
+from giftless.util import add_query_params, get_callable, safe_filename
 from giftless.view import BaseView
 
 
@@ -82,6 +82,7 @@ class ObjectsView(BaseView):
         path = os.path.join(organization, repo)
 
         filename = request.args.get('filename')
+        filename = safe_filename(filename)
         headers = {'Content-Disposition': f'attachment; filename="{filename}"'} if filename else None
 
         if self.storage.exists(path, oid):
