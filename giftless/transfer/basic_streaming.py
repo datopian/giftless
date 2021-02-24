@@ -18,7 +18,7 @@ from giftless.exc import InvalidPayload, NotFound
 from giftless.schema import ObjectSchema
 from giftless.storage import StreamingStorage, VerifiableStorage
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
-from giftless.util import get_callable
+from giftless.util import add_query_params, get_callable, safe_filename
 from giftless.view import BaseView
 
 
@@ -80,9 +80,14 @@ class ObjectsView(BaseView):
         """
         self._check_authorization(organization, repo, Permission.READ, oid=oid)
         path = os.path.join(organization, repo)
+
+        filename = request.args.get('filename')
+        filename = safe_filename(filename)
+        headers = {'Content-Disposition': f'attachment; filename="{filename}"'} if filename else None
+
         if self.storage.exists(path, oid):
             file = self.storage.get(path, oid)
-            return Response(file, direct_passthrough=True, status=200)
+            return Response(file, direct_passthrough=True, status=200, headers=headers)
         else:
             raise NotFound("The object was not found")
 
@@ -144,9 +149,15 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
 
         else:
             download_url = ObjectsView.get_storage_url('get', organization, repo, oid)
+            preauth_url = self._preauth_url(download_url, organization, repo, actions={'read'}, oid=oid)
+
+            if extra and 'filename' in extra:
+                params = {'filename': extra['filename']}
+                preauth_url = add_query_params(preauth_url, params)
+
             response['actions'] = {
                 "download": {
-                    "href": self._preauth_url(download_url, organization, repo, actions={'read'}, oid=oid),
+                    "href": preauth_url,
                     "header": {},
                     "expires_in": self.action_lifetime
                 }
