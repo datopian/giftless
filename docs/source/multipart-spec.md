@@ -1,5 +1,5 @@
-Git LFS multipart-basic transfer mode
-=====================================
+Specifications: Git LFS multipart-basic transfer mode
+=====================================================
 ```
 Version: 0.9.1
 Date: 2020-10-09

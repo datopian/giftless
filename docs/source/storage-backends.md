@@ -1,0 +1,120 @@
+Storage Backends
+================
+
+Storage Backend classes are responsible for managing and interacting with the
+system that handles actual file storage, be it a local file system or a remote, 
+3rd party cloud based storage. 
+
+Storage Adapters can implement one or more of several interfaces, which defines
+the capabilities provided by the backend, and which 
+[transfer adapters](transfer-adapters.md) the backend can be used with. 
+
+### Types of Storage Backends
+
+* **`StreamingStorage`** - provides APIs for streaming object upload / download
+through the Giftless HTTP server. Works with the `basic_streaming` transfer 
+adapter. 
+* **`ExternalStorage`** - provides APIs for referring clients to upload / download
+objects using an external HTTP server. Works with the `basic_external` transfer
+adapter. Typically, these backends interact with Cloud Storage providers. 
+* **`VerifiableStorage`** - provides API for verifying that an object was uploaded
+properly. Most concrete storage adapters implement this interface. 
+
+### Configuring the Storage Backend
+
+Storage backend configuration is provided as part of the configuration
+of each Transfer Adapter.
+
+```yaml
+TRANSFER_ADAPTERS:
+  basic:
+    # add an example here
+``` 
+
+Built-In Storage Backends
+-------------------------
+
+### Microsoft Azure Blob Storage
+
+#### `giftless.storage.azure:AzureBlobStorage`
+
+Modify your `giftless.yaml` file according to the following config:
+
+```bash
+    $ cat giftless.yaml
+
+    TRANSFER_ADAPTERS:
+      basic:
+        factory: giftless.transfer.basic_external:factory
+        options:
+          storage_class: ..storage.azure:AzureBlobsStorage
+          storage_options:
+            connection_string: GetYourAzureConnectionStringAndPutItHere==
+            container_name: lfs-storage
+            path_prefix: large-files
+```
+
+### Google Cloud Storage
+
+#### `giftless.storage.google_cloud:GoogleCloudStorage` 
+
+To use Google Cloud Storage as a backend, you'll first need:
+* A Google Cloud Storage bucket to store objects in
+* an account key JSON file (see [here](https://console.cloud.google.com/apis/credentials/serviceaccountkey)).
+
+The key must be associated with either a user or a service account, and should have
+read / write permissions on objects in the bucket.
+
+If you plan to access objects from a browser, your bucket needs to have 
+[CORS enabled](https://cloud.google.com/storage/docs/configuring-cors).
+
+You can deploy the account key JSON file and provide the path to it as 
+the `account_key_file` storage option:
+
+```yaml
+TRANSFER_ADAPTERS:
+  basic:
+    factory: giftless.transfer.basic_streaming:factory
+    options:
+      storage_class: giftless.storage.google_cloud:GoogleCloudStorage
+      storage_options:
+        project_name: my-gcp-project
+        bucket_name: git-lfs
+        account_key_file: /path/to/credentials.json
+```
+
+Alternatively, you can base64-encode the contents of the JSON file and provide
+it inline as `account_key_base64`: 
+
+```yaml
+TRANSFER_ADAPTERS:
+  basic:
+    factory: giftless.transfer.basic_streaming:factory
+    options:
+      storage_class: giftless.storage.google_cloud:GoogleCloudStorage
+      storage_options:
+        project_name: my-gcp-project
+        bucket_name: git-lfs
+        account_key_base64: S0m3B4se64RandomStuff.....ThatI5Redac7edHeReF0rRead4b1lity==
+```
+
+After configuring your `giftless.yaml` file, export it:
+
+```bash
+$ export GIFTLESS_CONFIG_FILE=giftless.yaml
+```
+
+You will need uWSGI running. Install it with your preferred package manager.
+Here is an example of how to run it:
+    
+```bash
+    # Run uWSGI in HTTP mode on port 8080
+    $ uwsgi -M -T --threads 2 -p 2 --manage-script-name \
+        --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
+```
+
+### Local Filesystem Storage
+
+#### `giftless.storage.local:LocalStorage`
+
+TBD
