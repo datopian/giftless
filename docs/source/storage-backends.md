@@ -34,14 +34,87 @@ TRANSFER_ADAPTERS:
 Built-In Storage Backends
 -------------------------
 
-### `giftless.storage.azure:AzureBlobStorage` - Microsoft Azure Blob Storage
+### Microsoft Azure Blob Storage
 
-TBD
+#### `giftless.storage.azure:AzureBlobStorage`
 
-### `giftless.storage.google_cloud:GoogleCloudStorage` - Google Cloud Storage
+Modify your `giftless.yaml` file according to the following config:
 
-TBD
+```bash
+    $ cat giftless.yaml
 
-### `giftless.storage.local:LocalStorage` - Local Filesystem Storage
+    TRANSFER_ADAPTERS:
+      basic:
+        factory: giftless.transfer.basic_external:factory
+        options:
+          storage_class: ..storage.azure:AzureBlobsStorage
+          storage_options:
+            connection_string: GetYourAzureConnectionStringAndPutItHere==
+            container_name: lfs-storage
+            path_prefix: large-files
+```
+
+### Google Cloud Storage
+
+#### `giftless.storage.google_cloud:GoogleCloudStorage` 
+
+To use Google Cloud Storage as a backend, you'll first need:
+* A Google Cloud Storage bucket to store objects in
+* an account key JSON file (see [here](https://console.cloud.google.com/apis/credentials/serviceaccountkey)).
+
+The key must be associated with either a user or a service account, and should have
+read / write permissions on objects in the bucket.
+
+If you plan to access objects from a browser, your bucket needs to have 
+[CORS enabled](https://cloud.google.com/storage/docs/configuring-cors).
+
+You can deploy the account key JSON file and provide the path to it as 
+the `account_key_file` storage option:
+
+```yaml
+TRANSFER_ADAPTERS:
+  basic:
+    factory: giftless.transfer.basic_streaming:factory
+    options:
+      storage_class: giftless.storage.google_cloud:GoogleCloudStorage
+      storage_options:
+        project_name: my-gcp-project
+        bucket_name: git-lfs
+        account_key_file: /path/to/credentials.json
+```
+
+Alternatively, you can base64-encode the contents of the JSON file and provide
+it inline as `account_key_base64`: 
+
+```yaml
+TRANSFER_ADAPTERS:
+  basic:
+    factory: giftless.transfer.basic_streaming:factory
+    options:
+      storage_class: giftless.storage.google_cloud:GoogleCloudStorage
+      storage_options:
+        project_name: my-gcp-project
+        bucket_name: git-lfs
+        account_key_base64: S0m3B4se64RandomStuff.....ThatI5Redac7edHeReF0rRead4b1lity==
+```
+
+After configuring your `giftless.yaml` file, export it:
+
+```bash
+$ export GIFTLESS_CONFIG_FILE=giftless.yaml
+```
+
+You will need uWSGI running. Install it with your preferred package manager.
+Here is an example of how to run it:
+    
+```bash
+    # Run uWSGI in HTTP mode on port 8080
+    $ uwsgi -M -T --threads 2 -p 2 --manage-script-name \
+        --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
+```
+
+### Local Filesystem Storage
+
+#### `giftless.storage.local:LocalStorage`
 
 TBD

@@ -135,7 +135,7 @@ Where:
 ### Examples
 Some examples of decoded tokens (note that added comments are not valid JSON):
 
-```json5
+```js
 {
   "exp": 1586253890,           // Token expiry time
   "sub": "a-users-id",         // Optional user ID

@@ -1,8 +1,8 @@
 Transfer Adapters
 =================
-Git LFS servers and clients can implement and negotiate different [transfer adapters]
-(https://github.com/git-lfs/git-lfs/blob/master/docs/api/basic-transfers.md). Typically,
-Git LFS will only define a `basic` transfer mode and support that. `basic` is simple 
+Git LFS servers and clients can implement and negotiate different 
+[transfer adapters](https://github.com/git-lfs/git-lfs/blob/master/docs/api/basic-transfers.md). 
+Typically, Git LFS will only define a `basic` transfer mode and support that. `basic` is simple 
 and efficient for direct-to-storage uploads for backends that support uploading using 
 a single `PUT` request.  
 

@@ -3,8 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to giftless's documentation!
-====================================
+Giftless
+========
+Giftless a Python implementation of a `Git LFS <https://git-lfs.github.com/>`_ Server.
+It is designed with flexibility in mind, to allow pluggable storage backends, transfer
+methods and authentication methods.
 
 .. toctree::
    :maxdepth: 2
@@ -16,9 +19,6 @@ Welcome to giftless's documentation!
    components
    development
    api
-
-Giftless is a modular, highly customizable Git LFS server implementation in Python.
-
 
 Indices and tables
 ==================
