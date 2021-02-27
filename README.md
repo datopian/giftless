@@ -32,10 +32,10 @@ configured.
 
 Documentation
 -------------
-* [Installation Guide](https://giftless.readthedocs.io/en/latest/)
-* [Quick Start Guide](https://giftless.readthedocs.io/en/latest/) 
+* [Installation Guide](https://giftless.readthedocs.io/en/latest/installation.html)
+* [Quick Start Guide](https://giftless.readthedocs.io/en/latest/quickstart.html) 
 * [Full Documentation](https://giftless.readthedocs.io/en/latest/)
-* [Developer Guide](https://giftless.readthedocs.io/en/latest/)
+* [Developer Guide](https://giftless.readthedocs.io/en/latest/development.html)
 
 License
 -------
