@@ -11,10 +11,19 @@ methods and authentication methods.
 
 Giftless supports the *basic* Git LFS transfer mode with the following
 storage backends:
+
 * Local storage
 * [Google Cloud Storage](https://cloud.google.com/storage)
 * [Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/)
   with direct-to-cloud or streamed transfers
+
+In addition, Giftless implements a custom transfer mode called `multipart-basic`,
+which is designed to take advantage of many vendors' multipart upload
+capabilities. It requires a specialized Git LFS client to use, and is currently 
+not supported by standard Git LFS. 
+
+See the [giftless-client](https://github.com/datopian/giftless-client) project
+for a compatible Python Git LFS client. 
 
 Additional transfer modes and storage backends could easily be added and
 configured.
@@ -23,10 +32,10 @@ configured.
 
 Documentation
 -------------
-* [Installation Guide](https://giftless.datopian.com/)
-* [Quick Start Guide](https://giftless.datopian.com/) 
-* [Full Documentation](https://giftless.datopian.com/)
-* [Developer Guide](https://giftless.datopian.com/)
+* [Installation Guide](https://giftless.readthedocs.io/en/latest/)
+* [Quick Start Guide](https://giftless.readthedocs.io/en/latest/) 
+* [Full Documentation](https://giftless.readthedocs.io/en/latest/)
+* [Developer Guide](https://giftless.readthedocs.io/en/latest/)
 
 License
 -------
