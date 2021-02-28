@@ -130,7 +130,7 @@ Here is an example of how to run it:
 ## Conclusion
 This was nice. 
 
-See the full list of options for the Google Cloud Storage backend [here](storage-backends.md)
+See the full list of options for the Google Cloud Storage backend [here](storage-backends.md#google-cloud-storage)
 
 ## Additional Notes
 
