@@ -30,10 +30,15 @@ It is recommended to install Giftless into a virtual environment:
     (venv) $ pip install uwsgi
     (venv) $ pip install giftless
 
+**IMPORTANT**: as of the time of writing, a bug in one of Giftless' dependencies
+requires that you explicitly install dependencies after installing using `pip`:
+
+    (venv) $ pip install -Ur https://raw.githubusercontent.com/datopian/giftless/master/requirements.txt
+
 Once installed, you can run Giftless locally with uWSGI:
 
     # Run uWSGI (see uWSGI's manual for help on all arguments)
-    (.venv) $ uwsgi -M -T --threads 2 -p 2 --manage-script-name \
+    (venv) $ uwsgi -M -T --threads 2 -p 2 --manage-script-name \
         --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
 
 This will listen on port `8080`.
