@@ -83,56 +83,86 @@ shared or stored in a non-secure manner.
 
 ## Configure Giftless to use GCS
 
+To use Google Cloud Storage as a storage backend and have upload and download requests be sent directly to GCS without
+passing through Giftless, we need to configure Giftless to use the `basic_external` transfer adapter with  
+`GoogleCloudStorage` as storage backend.
+
+Assuming you have followed the [getting started](quickstart.md) guide to set up Giftless, edit your configuration 
+YAML file (previously named `giftless.conf.yaml`) and add the `TRANSFER_ADAPTERS` section:
+
 ```yaml
+# Giftless configuration
+AUTH_PROVIDERS:
+  - giftless.auth.allow_anon:read_write
+
 TRANSFER_ADAPTERS:
   basic:
-    factory: giftless.transfer.basic_streaming:factory
+    factory: giftless.transfer.basic_external:factory
     options:
       storage_class: giftless.storage.google_cloud:GoogleCloudStorage
       storage_options:
-        project_name: my-gcp-project
-        bucket_name: git-lfs
-        account_key_file: /path/to/credentials.json
+        project_name: giftless-tests
+        bucket_name: giftless-storage
+        account_key_file: giftless-gcp-key.json
 ```
+Then, set the path to the configuration file, and start the local development server:
 
-Alternatively, you can base64-encode the contents of the JSON file and provide
-it inline as `account_key_base64`: 
-
-```yaml
-TRANSFER_ADAPTERS:
-  basic:
-    factory: giftless.transfer.basic_streaming:factory
-    options:
-      storage_class: giftless.storage.google_cloud:GoogleCloudStorage
-      storage_options:
-        project_name: my-gcp-project
-        bucket_name: git-lfs
-        account_key_base64: S0m3B4se64RandomStuff.....ThatI5Redac7edHeReF0rRead4b1lity==
-```
-
-After configuring your `giftless.yaml` file, export it:
-
-```bash
-$ export GIFTLESS_CONFIG_FILE=giftless.yaml
-```
-
-You will need uWSGI running. Install it with your preferred package manager.
-Here is an example of how to run it:
-    
-```bash
-    # Run uWSGI in HTTP mode on port 8080
-    $ uwsgi -M -T --threads 2 -p 2 --manage-script-name \
-        --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
+```shell
+export GIFTLESS_CONFIG_FILE=giftless.conf.yaml
+flask run
 ```
 
 ## Upload and download files using local `git`
 
+Follow the [quick start guide section titled "Interacting with local `git`"](quickstart.md#interacting-with-local-git)
+to see that you can push LFS tracked files to your Git repository. However, you will notice a few differences: 
+
+* The `git push` command may be slightly slower this time, as our 1mb file is upload to Google Cloud via the Internet 
+  and not over the loopback network.
+* The Giftless logs will show only two lines, and not three - something like:
+    
+      INFO 127.0.0.1 - - "POST /my-organization/test-repo/objects/batch HTTP/1.1" 200 -
+      INFO 127.0.0.1 - - "POST /my-organization/test-repo/objects/storage/verify HTTP/1.1" 200 -
+  
+  This is because the `PUT` request to do the actual upload was sent directly to Google Cloud by `git-lfs`, and not to
+  your local Giftless instance. 
+* You will not see any files stored locally this time
+
+Behind the scenes, what happens with this setup is that when the Git LFS client asks Giftless to upload an object, 
+Giftless will respond by providing the client with a URL to upload the file(s) to. This URL will be a pre-signed GCP 
+URL, allowing temporary, limited access to write the specific file to our GCP bucket. The Git LFS client will then 
+proceed to upload the file using that URL, and then call Giftless again to verify that the file has been uploaded 
+properly. 
+
+### Check that your object is in GCS
+You can check that the object has been uploaded to your GCS bucket by running: 
+
+```shell
+gsutil ls gs://giftless-storage/my-organization/test-repo/
+```
+You should see something like:
+```shell
+gs://giftless-storage/my-organization/test-repo/30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58
+```
+
+### Download Objects from Git LFS
+To see how downloads work with Git LFS and Giftless, let's create yet another local clone of our repository. This 
+simulates another user pulling from the same repository on a different machine:
+
+```shell
+cd ..
+git clone fake-remote-repo other-repo
+cd other-repo
+```
+
+You should now see that the `1mb-blob.bin` file exists in the other local repository, and is 1mb in size. The Gitless
+logs should show one more line, detailing the request made by `git-lfs` to request access to the file in storage. The
+file itself has been pulled from GCS. 
+
 ## Conclusion
-This was nice. 
+In this guide, we have seen how to configure Giftless to use GCP as a storage backend. We have seen that Giftless, and
+other Git LFS servers, do not need (and in fact typically should not) serve as a file storage service, but in fact 
+serve as a "gateway" to our storage backend. 
 
-See the full list of options for the Google Cloud Storage backend [here](storage-backends.md#google-cloud-storage)
-
-## Additional Notes
-
-* If you plan to access objects from a browser, your bucket needs to be 
-  [CORS enabled](https://cloud.google.com/storage/docs/configuring-cors).
+The Google Cloud Storage backend has some additional options. See the full list of options for the Google Cloud 
+Storage backend [here](storage-backends.md#google-cloud-storage)

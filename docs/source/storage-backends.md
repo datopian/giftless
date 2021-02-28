@@ -113,6 +113,11 @@ Here is an example of how to run it:
         --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
 ```
 
+#### Notes
+
+* If you plan to access objects directly from a browser (e.g. using a JavaScript based Git LFS client library), 
+  your GCS bucket needs to be [CORS enabled](https://cloud.google.com/storage/docs/configuring-cors).
+
 ### Local Filesystem Storage
 
 #### `giftless.storage.local:LocalStorage`

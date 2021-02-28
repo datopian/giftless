@@ -12,7 +12,7 @@ Install Giftless to a local virtual environment. You will need Python 3.7 or new
 # Create and active a virtual environment
 mkdir giftless && cd giftless
 python -m venv .venv
-source .venv/bin/active  
+source .venv/bin/activate
 
 # Install Giftless 
 pip install giftless
@@ -72,12 +72,16 @@ it to follow this guide.
 
 Run:
 ```shell
-git lfs
+git lfs version
 ```
 
 If you see an error indicating that `'lfs' is not a git command`, follow the 
 [Git LFS installation instructions here](https://git-lfs.github.com/). On Linux, you may be able
 to simply install the `git-lfs` package provided by your distro. 
+
+**IMPORTANT**: If you have `git-lfs` older than version 2.10, you will need to upgrade it to follow this tutorial, 
+otherwise you may encounter some unexpected errors. Follow the instructions linked above to upgrade to the latest
+version.
 
 ### Create a local "remote" repository
 For the purpose of this tutorial, we will create a fake "remote" git repository on your local disk. This is analogous 
@@ -109,8 +113,9 @@ dd if=/dev/zero of=1mb-blob.bin bs=1024 count=1024
 git add README.md 1mb-blob.bin
 ```
 
-Tell `git-lfs` to track `.bin` files:
+Enable Git LFS and tell it to track `.bin` files:
 ```shell
+git lfs install
 git lfs track "*.bin"
 ```
 
@@ -118,14 +123,7 @@ This will actually create a file named `.gitattributes` in the root of your
 repository, with the following content:
 
 ```shell
-cat .gitattributes 
 *.bin filter=lfs diff=lfs merge=lfs -text
-```
-
-You need to have git tracking this file as well, and commit everything we have staged so far:
-```shell
-git add .gitattributes
-git commit -m "Adding some files to track"
 ```
 
 Tell Git LFS where to find the Giftless server. We will do that by using the `git config` command to write to the 
@@ -137,10 +135,23 @@ git config -f .lfsconfig lfs.url http://127.0.0.1:5000/my-organization/test-repo
 **NOTE**: `my-organization/test-repo` is an organization / repository prefix under which your files will be stored. 
 Giftless requires all files to be stored under such prefix.  
 
+Tell git to track the configuration files we have just created. This will allow other users to have the same Git LFS 
+configuration as us when cloning the repository:
+```shell
+git add .gitattributes .lfsconfig
+```
+
+Commit all the files we have staged:
+```shell
+git commit -m "Adding some files to track"
+```
+
 Finally, let's push our tracked files to Git LFS:
 ```shell
-git push origin master
+git push -u origin master
 ```
+
+### See your objects stored by Giftless locally
 
 Switch over to the shell in which Giftless is running, and you will see log messages indicating that a file has just 
 been pushed to storage and verified. This should be similar to:
