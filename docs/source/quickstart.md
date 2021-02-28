@@ -60,7 +60,7 @@ export GIFTLESS_CONFIG_FILE=giftless.conf.yaml
 flask run
 ```
 
-## Interacting with local `git`
+## Interacting with git
 We will now proceed to show how Giftless can interact with a local `git` repository, as a demonstration of how Git LFS 
 works.
 

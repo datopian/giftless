@@ -114,7 +114,7 @@ flask run
 
 ## Upload and download files using local `git`
 
-Follow the [quick start guide section titled "Interacting with local `git`"](quickstart.md#interacting-with-local-git)
+Follow the [quick start guide section titled "Interacting with git"](quickstart.md#interacting-with-git)
 to see that you can push LFS tracked files to your Git repository. However, you will notice a few differences: 
 
 * The `git push` command may be slightly slower this time, as our 1mb file is upload to Google Cloud via the Internet 
