@@ -4,7 +4,26 @@ Git LFS servers and clients can implement and negotiate different
 [transfer adapters](https://github.com/git-lfs/git-lfs/blob/master/docs/api/basic-transfers.md). 
 Typically, Git LFS will only define a `basic` transfer mode and support that. `basic` is simple 
 and efficient for direct-to-storage uploads for backends that support uploading using 
-a single `PUT` request.  
+a single `PUT` request.
+
+### External Storage `basic` transfer adapter
+The `basic_external` transfer adapter is designed to facilitate LFS `basic` mode transfers (the default transfer
+mode of Git LFS) for setups in which the storage backends supports communicating directly with the Git LFS client. That
+is, files will be uploaded or downloaded directly from a storage service that supports HTTP `PUT` / `GET` based access,
+without passing through Giftless. With this adapter, Giftless will not handle any file transfers - it will only be 
+responsible for providing the client with access to storage. 
+
+This transfer adapter works with storage adapters implementing the `ExternalStorage` storage interface - typically these
+are Cloud storage service based backends. 
+
+### Streaming `basic` transfer adapter
+The `basic_streaming` transfer adapter facilitates LFS `basic` mode transfers in which Giftless also handles object
+upload, download and verification requests directly. This is less scalable and typically less performant than 
+the `basic_external` adapter, as all data and potentially long-running HTTP requests must be passed through Giftless
+and its Python runtime. However, in some situations this may be preferable to direct-to-storage HTTP requests. 
+
+`basic_streaming` supports local storage, and also streaming requests from some Cloud storage service backends such as 
+Azure and Google Cloud - although these tend to also support the `basic_external` transfer adapter. 
 
 ## Multipart Transfer Mode
 To support more complex, and especially multi-part uploads (uploads done using more
