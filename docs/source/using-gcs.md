@@ -128,21 +128,11 @@ Here is an example of how to run it:
 ## Upload and download files using local `git`
 
 ## Conclusion
+This was nice. 
+
+See the full list of options for the Google Cloud Storage backend [here](storage-backends.md)
 
 ## Additional Notes
 
 * If you plan to access objects from a browser, your bucket needs to be 
   [CORS enabled](https://cloud.google.com/storage/docs/configuring-cors).
-
-
-#### `giftless.storage.google_cloud:GoogleCloudStorage` 
-
-To use Google Cloud Storage as a backend, you'll first need:
-* A Google Cloud Storage bucket to store objects in
-* an account key JSON file (see [here](https://console.cloud.google.com/apis/credentials/serviceaccountkey)).
-
-The key must be associated with either a user or a service account, and should have
-read / write permissions on objects in the bucket.
-
-You can deploy the account key JSON file and provide the path to it as 
-the `account_key_file` storage option:
