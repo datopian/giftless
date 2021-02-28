@@ -114,7 +114,7 @@ flask run
 
 ## Upload and download files using local `git`
 
-Follow the [quick start guide section titled "Interacting with git"](quickstart.md#interacting-with-git)
+Follow the [quick start guide section titled "Interacting with git"](quickstart.html#interacting-with-git)
 to see that you can push LFS tracked files to your Git repository. However, you will notice a few differences: 
 
 * The `git push` command may be slightly slower this time, as our 1mb file is upload to Google Cloud via the Internet 
@@ -159,10 +159,10 @@ You should now see that the `1mb-blob.bin` file exists in the other local reposi
 logs should show one more line, detailing the request made by `git-lfs` to request access to the file in storage. The
 file itself has been pulled from GCS. 
 
-## Conclusion
+## Summary
 In this guide, we have seen how to configure Giftless to use GCP as a storage backend. We have seen that Giftless, and
 other Git LFS servers, do not need (and in fact typically should not) serve as a file storage service, but in fact 
 serve as a "gateway" to our storage backend. 
 
 The Google Cloud Storage backend has some additional options. See the full list of options for the Google Cloud 
-Storage backend [here](storage-backends.md#google-cloud-storage)
+Storage backend [here](storage-backends.html#google-cloud-storage)
