@@ -1,5 +1,6 @@
-Installing and Running
-======================
+Installation
+============
+
 You can install and run Giftless in different ways, depending on your needs:
 
 ## Running from a Docker image

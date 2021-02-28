@@ -1,5 +1,5 @@
-Getting Up and Running
-======================
+Quick Start
+===========
 
 This guide will introduce you to the basics of Giftless by getting it up and running locally, and seeing how it can 
 interact with a local git repository. 
@@ -155,8 +155,10 @@ To further verify that the file has been stored by Giftless, we can list the fil
 directory:
 
 ```shell
-$ ls -lR ../lfs-storage/
-...snip...
+ls -lR ../lfs-storage/
+```
+You should see:
+```shell
 ../lfs-storage/my-organization/test-repo:
 total 1024
 -rw-rw-r-- 1 shahar shahar 1048576 Feb 28 12:08 30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58
