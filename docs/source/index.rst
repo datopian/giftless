@@ -13,8 +13,7 @@ methods and authentication methods.
    :maxdepth: 2
    :caption: Contents:
 
-   quickstart
-   installation
+   guides
    configuration
    components
    development

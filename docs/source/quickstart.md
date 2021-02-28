@@ -1,12 +1,10 @@
-Quickstart Guide
-================
+Getting Up and Running
+======================
 
-This section will introduce you to the basics of Giftless by getting it up and running locally, and then by configuring
-storage backends, transfer adapters and auth adapters. 
+This guide will introduce you to the basics of Giftless by getting it up and running locally, and seeing how it can 
+interact with a local git repository. 
 
-## Getting Up and Running
-
-### Installing and Running Locally
+## Installing and Running Locally
 
 Install Giftless to a local virtual environment. You will need Python 3.7 or newer:
 
@@ -35,16 +33,16 @@ flask run
 You should see something like: 
 
 ```shell
-2021-02-28 11:12:51,441 werkzeug        INFO  * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
 ```
 
-This means Giftless is up and running with some default configuration on <http://127.0.0.1:5000>, with
+This means Giftless is up and running with some default configuration on *localhost* port *5000*, with
 the default configuration options. 
 
 Hit Ctrl+C to stop Giftless.
 
-### Basic Configuration 
-To create a simple configuration file, create a file named `giftless.conf.yaml` in the current directory, with the
+## Basic Configuration 
+To configure Giftless, create a file named `giftless.conf.yaml` in the current directory with the
 following content:
 
 ```yaml
@@ -62,13 +60,13 @@ export GIFTLESS_CONFIG_FILE=giftless.conf.yaml
 flask run
 ```
 
-### Interacting with local `git`
+## Interacting with local `git`
 We will now proceed to show how Giftless can interact with a local `git` repository, as a demonstration of how Git LFS 
 works.
 
 Keep Giftless running and open a new terminal window or tab. 
 
-#### Install the `lfs` Git extension
+### Install the `lfs` Git extension
 While having a local installation of `git-lfs` is not required to run Giftless, you will need 
 it to follow this guide. 
 
@@ -81,7 +79,7 @@ If you see an error indicating that `'lfs' is not a git command`, follow the
 [Git LFS installation instructions here](https://git-lfs.github.com/). On Linux, you may be able
 to simply install the `git-lfs` package provided by your distro. 
 
-#### Create a local "remote" repository
+### Create a local "remote" repository
 For the purpose of this tutorial, we will create a fake "remote" git repository on your local disk. This is analogous 
 to a real-world remote repository such as GitHub or any other Git remote, but is simpler to set up.
 
@@ -94,7 +92,7 @@ cd ..
 Of course, you may choose to use any other remote repository instead - just remember to replace the repository URL 
 in the upcoming `git clone` command. 
 
-#### Create a local repository and push some file
+### Create a local repository and push some file
 Clone the remote repository we have just created to a local repository:
 
 ```shell
@@ -148,9 +146,9 @@ Switch over to the shell in which Giftless is running, and you will see log mess
 been pushed to storage and verified. This should be similar to:
 
 ```
-2021-02-28 12:08:09,102 werkzeug        INFO 127.0.0.1 - - [28/Feb/2021 12:08:09] "POST /my-organization/test-repo/objects/batch HTTP/1.1" 200 -
-2021-02-28 12:08:09,108 werkzeug        INFO 127.0.0.1 - - [28/Feb/2021 12:08:09] "PUT /my-organization/test-repo/objects/storage/30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58 HTTP/1.1" 200 -
-2021-02-28 12:08:09,110 werkzeug        INFO 127.0.0.1 - - [28/Feb/2021 12:08:09] "POST /my-organization/test-repo/objects/storage/verify HTTP/1.1" 200 -
+INFO 127.0.0.1 - - "POST /my-organization/test-repo/objects/batch HTTP/1.1" 200 -
+INFO 127.0.0.1 - - "PUT /my-organization/test-repo/objects/storage/30e14955ebf1352266dc2ff8067e68104607e750abb9d3b36582b8af909fcb58 HTTP/1.1" 200 -
+INFO 127.0.0.1 - - "POST /my-organization/test-repo/objects/storage/verify HTTP/1.1" 200 -
 ```
 
 To further verify that the file has been stored by Giftless, we can list the files in our local Giftless storage 
@@ -167,7 +165,7 @@ total 1024
 You will notice a 1mb file stored in `../lfs-storage/my-organization/test-repo` - this is identical to our `1mb-blob.bin`
 file, but it is stored with its SHA256 digest as its name. 
 
-### Summary
+## Summary
 
 You have now seen Giftless used as both a Git LFS server, and as a storage backend. This should give you a basic sense
 of how to run Giftless, and how Git LFS servers interact with Git. 
