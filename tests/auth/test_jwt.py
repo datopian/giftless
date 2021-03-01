@@ -1,3 +1,4 @@
+import base64
 import os
 from datetime import datetime, timedelta
 
@@ -50,6 +51,34 @@ def test_jwt_can_authorize_request_token_in_qs(app):
     with app.test_request_context(f'/myorg/myrepo/objects/batch?jwt={token}', method='POST'):
         identity = authz(flask.request)
     assert identity.id == 'some-user-id'
+
+
+def test_jwt_can_authorize_request_token_as_basic_password(app):
+    """Test that we can pass a JWT token as 'Basic' authorization password
+    """
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256')
+    token = _get_test_token()
+    auth_value = base64.b64encode(b':'.join([b'_jwt', token.encode('ascii')])).decode('ascii')
+
+    with app.test_request_context('/myorg/myrepo/objects/batch', method='POST', headers={
+        "Authorization": f'Basic {auth_value}'
+    }):
+        identity = authz(flask.request)
+    assert identity.id == 'some-user-id'
+
+
+def test_jwt_can_authorize_request_token_basic_password_disabled(app):
+    """Test that we can pass a JWT token as 'Basic' authorization password
+    """
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256', basic_auth_user=None)
+    token = _get_test_token()
+    auth_value = base64.b64encode(b':'.join([b'_jwt', token.encode('ascii')])).decode('ascii')
+
+    with app.test_request_context('/myorg/myrepo/objects/batch', method='POST', headers={
+        "Authorization": f'Basic {auth_value}'
+    }):
+        identity = authz(flask.request)
+    assert None is identity
 
 
 def test_jwt_with_wrong_kid_doesnt_authorize_request(app):

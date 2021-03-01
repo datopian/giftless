@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional, Set, Union
 import jwt
 from dateutil.tz import UTC
 from flask import Request
+from werkzeug.http import parse_authorization_header
 
 from giftless.auth import PreAuthorizedActionAuthenticator, Unauthorized
 from giftless.auth.identity import DefaultIdentity, Identity, Permission
@@ -98,10 +99,12 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
     DEFAULT_ALGORITHM = 'HS256'
     DEFAULT_LIFETIME = 60
     DEFAULT_LEEWAY = 10
+    DEFAULT_BASIC_AUTH_USER = '_jwt'
 
     def __init__(self, private_key: Optional[Union[str, bytes]] = None, default_lifetime: int = DEFAULT_LIFETIME,
                  algorithm: str = DEFAULT_ALGORITHM, public_key: Optional[str] = None, issuer: Optional[str] = None,
-                 audience: Optional[str] = None, leeway: int = DEFAULT_LEEWAY, key_id: Optional[str] = None):
+                 audience: Optional[str] = None, leeway: int = DEFAULT_LEEWAY, key_id: Optional[str] = None,
+                 basic_auth_user: Optional[str] = DEFAULT_BASIC_AUTH_USER):
         self.algorithm = algorithm
         self.default_lifetime = default_lifetime
         self.leeway = leeway
@@ -110,6 +113,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         self.issuer = issuer
         self.audience = audience
         self.key_id = key_id
+        self.basic_auth_user = basic_auth_user
         self._verification_key: Union[str, bytes, None] = None  # lazy loaded
         self._log = logging.getLogger(__name__)
 
@@ -208,9 +212,12 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         except jwt.PyJWTError as e:
             raise Unauthorized('Expired or otherwise invalid JWT token ({})'.format(str(e)))
 
-    @staticmethod
-    def _get_token_from_headers(request: Request) -> Optional[str]:
+    def _get_token_from_headers(self, request: Request) -> Optional[str]:
         """Extract JWT token from HTTP Authorization header
+
+        This will first try to obtain a Bearer token. If none is found but we have a 'Basic' Authorization header,
+        and basic auth JWT payload has not been disabled, and the provided username matches the configured JWT token
+        username, we will try to use the provided password as if it was a JWT token.
         """
         header = request.headers.get('Authorization')
         if not header:
@@ -221,10 +228,16 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         except ValueError:
             return None
 
-        if authz_type.lower() != 'bearer':
-            return None
+        if authz_type.lower() == 'bearer':
+            self._log.debug("Found token in Authorization: Bearer header")
+            return payload
+        elif authz_type.lower() == 'basic' and self.basic_auth_user:
+            parsed_header = parse_authorization_header(header)
+            if parsed_header and parsed_header.username == self.basic_auth_user:
+                self._log.debug("Found token in Authorization: Basic header")
+                return parsed_header.password
 
-        return payload
+        return None
 
     @staticmethod
     def _get_token_from_qs(request: Request) -> Optional[str]:
@@ -245,7 +258,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         return identity
 
     def _parse_scope(self, scope_str: str) -> Dict[str, Any]:
-        """Parse a scope string and conveet it into arguments for Identity.allow()
+        """Parse a scope string and convert it into arguments for Identity.allow()
         """
         scope = Scope.from_string(scope_str)
         if scope.entity_type != 'obj':

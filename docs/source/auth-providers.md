@@ -68,6 +68,13 @@ in the Authorization header as a Bearer type token, or as the value of the `?jwt
 parameter. Tokens must be signed by the right key, and also match in terms of audience, 
 issuer and key ID if configured, and of course have valid course expiry / not before times.
 
+### Piggybacking on `Basic` HTTP auth
+The JWT authenticator will also accept JWT tokens as the password for the `_jwt` user in `Basic` HTTP
+`Authorization` header payload. This is designed to allow easier integration with clients that only support
+Basic HTTP authentication. 
+
+You can disable this functionality or change the expected username using the `basic_auth_user` configuration option.
+
 ### Configuration Options
 The following options are available for the `jwt` auth module:
 
@@ -82,6 +89,8 @@ The following options are available for the `jwt` auth module:
 * `leeway` (`int`): Key expiry time leeway in seconds (default is 60); This allows for a small clock time skew
   between the key provider and Giftless server
 * `key_id` (`str`): Optional key ID string. If provided, only keys with this ID will be accepted. 
+* `basic_auth_user` (`str`): Optional HTTP Basic authentication username to look for when piggybacking on Basic
+  authentication. Default is `_jwt`. Can be set to `None` to disable inspecting `Basic` auth headers. 
 
 #### Options only used when module used for generating JWT tokens
 The following options are currently only in use when the module is used for generating tokens for 
