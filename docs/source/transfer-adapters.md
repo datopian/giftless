@@ -6,6 +6,8 @@ Typically, Git LFS will only define a `basic` transfer mode and support that. `b
 and efficient for direct-to-storage uploads for backends that support uploading using 
 a single `PUT` request.
 
+## `basic` Transfer Mode
+
 ### External Storage `basic` transfer adapter
 The `basic_external` transfer adapter is designed to facilitate LFS `basic` mode transfers (the default transfer
 mode of Git LFS) for setups in which the storage backends supports communicating directly with the Git LFS client. That
@@ -29,8 +31,7 @@ Azure and Google Cloud - although these tend to also support the `basic_external
 To support more complex, and especially multi-part uploads (uploads done using more
 than one HTTP request, each with a different part of a large file) directly to backends
 that support that, Giftless adds support for a non-standard `multipart-basic` transfer 
-mode. Note that this can only work with specific backends that support this type of 
-functionality. 
+mode.
 
 **NOTE**: `basic-multipart` is a non-standard transfer mode, and will not be supported
 by most Git LFS clients; For a Python implementation of a Git LFS client library that 

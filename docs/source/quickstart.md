@@ -1,27 +1,28 @@
-Quick Start
-===========
+Getting Started
+===============
 
 This guide will introduce you to the basics of Giftless by getting it up and running locally, and seeing how it can 
 interact with a local git repository. 
 
-## Installing and Running Locally
+## Prerequisites
+This tutorial assumes you have Python 3.7 or newer available as `python`. On some systems, you might need to 
+replace `python` with `python3`. 
 
-Install Giftless to a local virtual environment. You will need Python 3.7 or newer:
+## Installing and Running Locally
+Create a new directory for our tutorial, and set up a fresh virtual environment:
 
 ```shell
-# Create and active a virtual environment
 mkdir giftless && cd giftless
 python -m venv .venv
 source .venv/bin/activate
-
-# Install Giftless 
-pip install giftless
-# The following line is required due to a bug in one of our dependencies:
-pip install -Ur https://raw.githubusercontent.com/datopian/giftless/master/requirements.txt
 ```
 
-**NOTE**: This is a non-production installation of Giftless, using Flask's built-in development server.
-Check out the [installation guide](installation.md) for other installation options.
+Then, proceed to [install giftless from pypi](<installation:Running from Pypi package>) as described in the 
+installation guide. 
+
+```note:: For this tutorial, we will be using Flask's built-in development server. This is *not suitable* for production 
+   use.
+```
 
 Once done, verify that Giftless can run:
 ```shell
@@ -79,9 +80,10 @@ If you see an error indicating that `'lfs' is not a git command`, follow the
 [Git LFS installation instructions here](https://git-lfs.github.com/). On Linux, you may be able
 to simply install the `git-lfs` package provided by your distro. 
 
-**IMPORTANT**: If you have `git-lfs` older than version 2.10, you will need to upgrade it to follow this tutorial, 
-otherwise you may encounter some unexpected errors. Follow the instructions linked above to upgrade to the latest
-version.
+```important:: If you have git-lfs older than version 2.10, you will need to upgrade it to follow this tutorial, 
+   otherwise you may encounter some unexpected errors. Follow the instructions linked above to upgrade to the latest
+   version. 
+```
 
 ### Create a local "remote" repository
 For the purpose of this tutorial, we will create a fake "remote" git repository on your local disk. This is analogous 
@@ -132,7 +134,7 @@ Tell Git LFS where to find the Giftless server. We will do that by using the `gi
 git config -f .lfsconfig lfs.url http://127.0.0.1:5000/my-organization/test-repo
 ```
 
-**NOTE**: `my-organization/test-repo` is an organization / repository prefix under which your files will be stored. 
+`my-organization/test-repo` is an organization / repository prefix under which your files will be stored. 
 Giftless requires all files to be stored under such prefix.  
 
 Tell git to track the configuration files we have just created. This will allow other users to have the same Git LFS 

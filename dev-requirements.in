@@ -1,4 +1,4 @@
-pip-tools==5.1.*
+pip-tools==5.5.*
 pytest==5.3.*
 pytest-flake8==1.0.*
 pytest-isort==1.*
@@ -11,3 +11,4 @@ pytest-vcr==1.*
 sphinx==3.*
 sphinx-autodoc-typehints[type_comments]==1.*
 recommonmark==0.*
+furo==2021.2.28b28
