@@ -1,9 +1,10 @@
 Specifications: Git LFS multipart-basic transfer mode
 =====================================================
+
 ```
 Version: 0.9.1
-Date: 2020-10-09
-Author: Shahar Evron <shahar.evron@datopian.com>
+Date:    2020-10-09
+Author:  Shahar Evron <shahar.evron@gmail.com>
 ```
 
 This document describes the `multipart-basic` transfer mode for Git LFS. This is a protocol extension to Git LFS, 
@@ -79,9 +80,9 @@ In addition, each `parts` request will include the `pos` attribute to indicate t
 which the part should begin, and `size` attribute to indicate the part size in bytes. If `pos` is omitted, default to 
 `0` (beginning of the file). If `size` is omitted, default to read until the end of file.
 
-#### Examples
+#### Request / Response Examples
 
-##### Sample Upload Batch Request
+##### Upload Batch Request
 The following is a ~10mb file upload request:
 ```json
 { 
@@ -96,7 +97,7 @@ The following is a ~10mb file upload request:
 }
 ```
 
-##### Sample Upload Response:
+##### Upload Batch Response
 The following is a response for the same request, given an imaginary storage backend:
 
 ```json
@@ -204,7 +205,7 @@ Clients, when receiving a `parts` object with a `want_digest` value, must includ
 a digest of the part, using the `Content-MD5` HTTP header (if `contentMD5` is specified as a value), or `Digest` HTTP
 header for any other algorithm / `want_digest` value. 
 
-#### Examples
+#### Digest Control Examples
 
 ##### Examples of a batch response with `want_digest` in the reply
 With "contentMD5":

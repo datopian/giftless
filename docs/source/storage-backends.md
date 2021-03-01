@@ -9,25 +9,34 @@ Storage Adapters can implement one or more of several interfaces, which defines
 the capabilities provided by the backend, and which 
 [transfer adapters](transfer-adapters.md) the backend can be used with. 
 
-### Types of Storage Backends
+## Types of Storage Backends
+
+Each storage backend adapter can implement one or more of the following interfaces:
 
 * **`StreamingStorage`** - provides APIs for streaming object upload / download
 through the Giftless HTTP server. Works with the `basic_streaming` transfer 
 adapter. 
 * **`ExternalStorage`** - provides APIs for referring clients to upload / download
 objects using an external HTTP server. Works with the `basic_external` transfer
-adapter. Typically, these backends interact with Cloud Storage providers. 
+adapter. Typically, these backends interact with Cloud Storage providers.
+* **`MultipartStorage`** - provides APIs supporting the special `multipart-basic`
+transfer mode. Typically, these backends interact with Cloud Storage providers.
 * **`VerifiableStorage`** - provides API for verifying that an object was uploaded
-properly. Most concrete storage adapters implement this interface. 
+properly. Most concrete storage adapters implement this interface.
 
-### Configuring the Storage Backend
+## Configuring the Storage Backend
 
 Storage backend configuration is provided as part of the configuration
-of each Transfer Adapter.
+of each Transfer Adapter. For example:
 
 ```yaml
 TRANSFER_ADAPTERS:
-  basic:
+  basic:  # <- the name of the transfer mode, you can have more than one
+    factory: giftless.transfer.basic_external:factory
+    options:
+      storage_class: giftless.storage.google_cloud:GoogleCloudStorage
+      storage_options:
+      
     # add an example here
 ``` 
 

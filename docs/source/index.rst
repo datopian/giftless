@@ -13,15 +13,14 @@ methods and authentication methods.
    :maxdepth: 2
    :caption: Contents:
 
+   installation
    guides
    configuration
    components
    development
    api
 
-Indices and tables
-==================
-
+Indices and Tables
+------------------
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`

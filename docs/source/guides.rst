@@ -5,8 +5,7 @@ This section includes several how-to guides designed to get you started with Gif
 
 .. toctree::
    :maxdepth: 1
-   :caption: Contents:
 
-   installation
    quickstart
    using-gcs
+   jwt-auth-guide

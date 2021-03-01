@@ -20,10 +20,11 @@ Follow the [installation guide](https://cloud.google.com/sdk/docs/install), and 
 * If you already had `gcloud` installed before this tutorial, make sure you have configured `gcloud` to 
 use the correct account and project before following this guide. 
 
-**IMPORTANT**: Using Google Cloud may incur some charges. It is recommended to remove any resources created during
-this tutorial. 
+```important:: Using Google Cloud may incur some charges. It is recommended to remove any resources created during
+   this tutorial.
+``` 
 
-## Set up a GCS Bucket and a Service Account
+## Set up a GCS Bucket and Service Account
 GCS stores files (or "objects") in containers named *buckets*. Giftless will need read/write access to such a bucket via
 a *service account* - a software-only account with specific permissions. 
 
@@ -114,7 +115,7 @@ flask run
 
 ## Upload and download files using local `git`
 
-Follow the [quick start guide section titled "Interacting with git"](quickstart.html#interacting-with-git)
+Follow the [quick start guide section titled "Interacting with git"](<quickstart:Interacting with Git>)
 to see that you can push LFS tracked files to your Git repository. However, you will notice a few differences: 
 
 * The `git push` command may be slightly slower this time, as our 1mb file is upload to Google Cloud via the Internet 

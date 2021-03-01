@@ -13,9 +13,10 @@ validating the identity of the entity (person or machine) sending a request to G
 identity has been established, whether the requesting party is permitted to perform 
 the requested operation 
 
-**NOTE**: In this guide and elsewhere we may refer to `auth` as a way of referring to 
-both authentication and authorization in general, or where distinction between the two
-concepts is not important. 
+``` note:: In this guide and elsewhere we may refer to *auth* as a way of referring to 
+   both authentication and authorization in general, or where distinction between the two
+   concepts is not important.
+```
 
 ## Provided Auth Modules
 Giftless provides the following authentication and authorization modules by default:
