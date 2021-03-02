@@ -32,10 +32,10 @@ configured.
 
 Documentation
 -------------
-* [Installation Guide](https://giftless.readthedocs.io/en/latest/installation.html)
-* [Quick Start Guide](https://giftless.readthedocs.io/en/latest/quickstart.html) 
-* [Full Documentation](https://giftless.readthedocs.io/en/latest/)
-* [Developer Guide](https://giftless.readthedocs.io/en/latest/development.html)
+* [Installation Guide](https://giftless.datopian.com/en/latest/installation.html)
+* [Getting Started](https://giftless.datopian.com/en/latest/quickstart.html) 
+* [Full Documentation](https://giftless.datopian.com/en/latest/)
+* [Developer Guide](https://giftless.datopian.com/en/latest/development.html)
 
 License
 -------
