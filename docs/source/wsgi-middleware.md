@@ -5,8 +5,9 @@ Another way Giftless allows customizing its behavior is using standard
 This includes both publicly available middleware libraries, or your own custom
 WSGI middleware code. 
 
-To enable a WSGI middleware, add it to the `MIDDLEWARE` config section
-like so:
+## Enabling Custom WSGI Middleware
+
+To enable a WSGI middleware, add it to the `MIDDLEWARE` config section like so:
 
 ```yaml
 MIDDLEWARE:
@@ -24,9 +25,11 @@ and class name, or a callable that returns a WSGI object
 The middleware module must be installed in the same Python environment as Giftless
 for it to be loaded. 
 
-See below for some useful examples of adding functionality using WSGI middleware. 
+## Useful Middleware Examples
 
-## HOWTO: Fixing Generated URLs when Running Behind a Proxy
+Here are some examples of solving specific needs using WSGI middleware: 
+
+### HOWTO: Fixing Generated URLs when Running Behind a Proxy
 If you have Giftless running behind a reverse proxy, and available
 publicly at a custom hostname / port / path / scheme that is not known to
 Giftless, you might have an issue where generated URLs are not accessible. 
@@ -63,7 +66,8 @@ This example assumes Giftless is available to the reverse proxy at
 `X-Forwarded-Port`, `X-Forwarded-Proto` are automatically set by nginx by
 default.  
 
-## HOWTO: CORS Support
+### HOWTO: CORS Support
+
 If you need to access Giftless from a browser, you may need to ensure 
 Giftless sends proper [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) 
 headers, otherwise browsers may reject responses from Giftless. 
