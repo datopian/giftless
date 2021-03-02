@@ -17,6 +17,7 @@ methods and authentication methods.
    guides
    configuration
    components
+   wsgi-middleware
    development
    api
 
