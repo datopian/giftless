@@ -37,10 +37,9 @@ def storage_backend() -> Generator[AwsS3Storage, None, None]:
         try:
             yield storage
         finally:
-            bucket = storage.storage_client.bucket(bucket_name)
+            bucket = storage.s3.Bucket(aws_s3_bucket_name)
             try:
-                blobs = bucket.list_blobs(prefix=prefix + '/')
-                bucket.delete_blobs(blobs)
+                bucket.objects.all().delete()
             except Exception as e:
                 raise pytest.PytestWarning("Could not clean up after test: {}".format(e))
     else:
