@@ -24,13 +24,15 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
         self.aws_secret_access_key = aws_secret_access_key
         self.aws_s3_bucket_name = aws_s3_bucket_name
         self.path_prefix = path_prefix
-
+        self.storage: boto3.session.Session.resource = boto3.resource('s3')
 
     def get(self, prefix: str, oid: str) -> Iterable[bytes]:
         return
     
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
-        return
+        bucket = self.storage.Bucket(self.aws_s3_bucket_name)
+        bucket.put_object(Key=self._get_blob_path(prefix, oid), Body=data_stream)
+        return data_stream.tell()
 
     def exists(self, prefix: str, oid: str) -> bool:
         return False
@@ -50,3 +52,13 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
                               extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         return
 
+    def _get_blob_path(self, prefix: str, oid: str) -> str:
+        """Get the path to a blob in storage
+        """
+        if not self.path_prefix:
+            storage_prefix = ''
+        elif self.path_prefix[0] == '/':
+            storage_prefix = self.path_prefix[1:]
+        else:
+            storage_prefix = self.path_prefix
+        return os.path.join(storage_prefix, prefix, oid)
