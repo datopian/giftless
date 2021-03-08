@@ -4,6 +4,7 @@ from collections import namedtuple
 from typing import Any, BinaryIO, Dict, Iterable, List, Optional
 
 import boto3
+import botocore
 
 from giftless.storage import ExternalStorage, MultipartStorage, StreamingStorage
 
@@ -24,18 +25,26 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
         self.aws_secret_access_key = aws_secret_access_key
         self.aws_s3_bucket_name = aws_s3_bucket_name
         self.path_prefix = path_prefix
-        self.storage: boto3.session.Session.resource = boto3.resource('s3')
+        self.s3: boto3.session.Session.resource = boto3.resource('s3')
 
     def get(self, prefix: str, oid: str) -> Iterable[bytes]:
         return
     
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
-        bucket = self.storage.Bucket(self.aws_s3_bucket_name)
+        bucket = self.s3.Bucket(self.aws_s3_bucket_name)
         bucket.put_object(Key=self._get_blob_path(prefix, oid), Body=data_stream)
         return data_stream.tell()
 
     def exists(self, prefix: str, oid: str) -> bool:
-        return False
+        s3_object = self.s3.Object(self.aws_s3_bucket_name, self._get_blob_path(prefix, oid))
+        try:
+            s3_object.load()
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                return False
+            else:
+                raise RuntimeError(e)
+        return True
 
     def get_size(self, prefix: str, oid: str) -> int:
         return 100
