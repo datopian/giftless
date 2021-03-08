@@ -32,8 +32,8 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
     
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
         bucket = self.s3.Bucket(self.aws_s3_bucket_name)
-        bucket.put_object(Key=self._get_blob_path(prefix, oid), Body=data_stream)
-        return data_stream.tell()
+        res = bucket.put_object(Key=self._get_blob_path(prefix, oid), Body=data_stream)
+        return res.content_length
 
     def exists(self, prefix: str, oid: str) -> bool:
         s3_object = self._s3_object(prefix, oid)
