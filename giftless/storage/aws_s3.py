@@ -8,7 +8,7 @@ import botocore
 
 from giftless.storage import ExternalStorage, MultipartStorage, StreamingStorage
 
-from .exc import ObjectNotFound
+from giftless.storage.exc import ObjectNotFound
 
 Block = namedtuple('Block', ['id', 'start', 'size'])
 
@@ -36,7 +36,7 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
         return data_stream.tell()
 
     def exists(self, prefix: str, oid: str) -> bool:
-        s3_object = self.s3.Object(self.aws_s3_bucket_name, self._get_blob_path(prefix, oid))
+        s3_object = self._s3_object(prefix, oid)
         try:
             s3_object.load()
         except botocore.exceptions.ClientError as e:
@@ -47,7 +47,10 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
         return True
 
     def get_size(self, prefix: str, oid: str) -> int:
-        return 100
+        if self.exists(prefix, oid):
+            return self._s3_object(prefix, oid).content_length
+        else:
+            raise ObjectNotFound()
 
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -71,3 +74,6 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
         else:
             storage_prefix = self.path_prefix
         return os.path.join(storage_prefix, prefix, oid)
+
+    def _s3_object(self, prefix, oid):
+        return self.s3.Object(self.aws_s3_bucket_name, self._get_blob_path(prefix, oid))
