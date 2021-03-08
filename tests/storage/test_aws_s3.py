@@ -54,7 +54,7 @@ def vcr_config():
                       os.environ.get('AWS_SECRET_ACCESS_KEY') and
                       os.environ.get('AWS_S3_BUCKET_NAME'))
     if live_tests:
-        mode = 'once'
+        mode = 'all'
     else:
         mode = 'none'
     return {
