@@ -1,3 +1,4 @@
+import io
 import logging
 import os
 from collections import namedtuple
@@ -16,8 +17,7 @@ _log = logging.getLogger(__name__)
 
 
 class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
-    """Azure Blob Storage backend supporting streaming and direct-to-cloud
-    transfers.
+    """AWS S3 Blob Storage backend.
     """
     def __init__(self, aws_access_key_id: str, aws_secret_access_key: str,
                  aws_s3_bucket_name: str, path_prefix: str):
@@ -28,7 +28,9 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
         self.s3: boto3.session.Session.resource = boto3.resource('s3')
 
     def get(self, prefix: str, oid: str) -> Iterable[bytes]:
-        return
+        if not self.exists(prefix, oid):
+            raise ObjectNotFound()
+        return self._s3_object(prefix,oid).get()['Body']
     
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
         bucket = self.s3.Bucket(self.aws_s3_bucket_name)
