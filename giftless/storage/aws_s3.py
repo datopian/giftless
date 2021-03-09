@@ -35,9 +35,11 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
         return self._s3_object(prefix, oid).get()['Body']
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
+        # TODO: support `upload_fileobj` multipart upload and multihreaded impl
+        content_size = data_stream.tell()
         bucket = self.s3.Bucket(self.aws_s3_bucket_name)
-        res = bucket.put_object(Key=self._get_blob_path(prefix, oid), Body=data_stream)
-        return res.content_length
+        bucket.upload_fileobj(data_stream, self._get_blob_path(prefix, oid))
+        return content_size
 
     def exists(self, prefix: str, oid: str) -> bool:
         s3_object = self._s3_object(prefix, oid)
@@ -63,7 +65,6 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
         response = self.s3_client.generate_presigned_post(self.aws_s3_bucket_name,
                                                           self._get_blob_path(prefix, oid),
                                                           ExpiresIn=expires_in,
-                                                          **extra
                                                           )
         params = urllib.parse.urlencode(response['fields'])
         href = f"{response['url']}?{params}"
