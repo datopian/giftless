@@ -1,6 +1,5 @@
 import logging
 import os
-import urllib
 from collections import namedtuple
 from typing import Any, BinaryIO, Dict, Iterable, List, Optional
 
@@ -35,11 +34,13 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
         return self._s3_object(prefix, oid).get()['Body']
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
-        # TODO: support `upload_fileobj` multipart upload and multihreaded impl
-        content_size = data_stream.tell()
+        completed = []
+
+        def upload_callback(size):
+            completed.append(size)
         bucket = self.s3.Bucket(self.aws_s3_bucket_name)
-        bucket.upload_fileobj(data_stream, self._get_blob_path(prefix, oid))
-        return content_size
+        bucket.upload_fileobj(data_stream, self._get_blob_path(prefix, oid), Callback=upload_callback)
+        return sum(completed)
 
     def exists(self, prefix: str, oid: str) -> bool:
         s3_object = self._s3_object(prefix, oid)
@@ -60,18 +61,18 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
 
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        # TODO: The current approach with urlencoding fields doesn't work
-        # AWS returns "The specified method is not allowed against this resource." error
-        response = self.s3_client.generate_presigned_post(self.aws_s3_bucket_name,
-                                                          self._get_blob_path(prefix, oid),
-                                                          ExpiresIn=expires_in,
-                                                          )
-        params = urllib.parse.urlencode(response['fields'])
-        href = f"{response['url']}?{params}"
+        params_ = {
+            'Bucket': self.aws_s3_bucket_name,
+            'Key': self._get_blob_path(prefix, oid)
+        }
+        response = self.s3_client.generate_presigned_url('put_object',
+                                                         Params=params_,
+                                                         ExpiresIn=expires_in
+                                                         )
         return {
             "actions": {
                 "upload": {
-                    "href": href,
+                    "href": response,
                     "header": {},
                     "expires_in": expires_in
                 }
