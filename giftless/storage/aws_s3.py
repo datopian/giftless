@@ -1,12 +1,12 @@
 import logging
 import os
 from collections import namedtuple
-from typing import Any, BinaryIO, Dict, Iterable, List, Optional
+from typing import Any, BinaryIO, Dict, Iterable, Optional
 
 import boto3
 import botocore
 
-from giftless.storage import ExternalStorage, MultipartStorage, StreamingStorage
+from giftless.storage import ExternalStorage, StreamingStorage
 
 from giftless.storage.exc import ObjectNotFound
 
@@ -15,7 +15,7 @@ Block = namedtuple('Block', ['id', 'start', 'size'])
 _log = logging.getLogger(__name__)
 
 
-class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
+class AwsS3Storage(StreamingStorage, ExternalStorage):
     """AWS S3 Blob Storage backend.
     """
 
@@ -101,10 +101,6 @@ class AwsS3Storage(StreamingStorage, ExternalStorage, MultipartStorage):
                 }
             }
         }
-
-    def get_multipart_actions(self, prefix: str, oid: str, size: int, part_size: int, expires_in: int,
-                              extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        return
 
     def _get_blob_path(self, prefix: str, oid: str) -> str:
         """Get the path to a blob in storage
