@@ -9,52 +9,46 @@ from giftless.storage.aws_s3 import AwsS3Storage
 
 from . import ExternalStorageAbstractTests, StreamingStorageAbstractTests
 
-MOCK_AWS_ACCESS_KEY_ID = '123123123'
-MOCK_AWS_SECRET_ACCESS_KEY = 'abcabcabc'
-MOCK_AWS_S3_BUCKET_NAME = 'fake_bucket'
+TEST_AWS_S3_BUCKET_NAME = 'test-giftless'
 
 
 @pytest.fixture()
 def storage_backend() -> Generator[AwsS3Storage, None, None]:
-    """Provide a Google Cloud Storage backend for all GCS tests
+    """Provide a S3 Storage backend for all AWS S3 tests
 
-    For this to work against production Google Cloud, you need to set
-    ``GCP_ACCOUNT_KEY_FILE``, ``GCP_PROJECT_NAME`` and ``GCP_BUCKET_NAME``
-    environment variables when running the tests.
+    For this to work against production S3, you need to set boto3 auth:
+    1. AWS_ACCESS_KEY_ID
+    2. AWS_SECRET_ACCESS_KEY
+
+    For more details please see:
+    https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables
 
     If these variables are not set, and pytest-vcr is not in use, the
     tests *will* fail.
     """
-    aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID')
-    aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    aws_s3_bucket_name = os.environ.get('AWS_S3_BUCKET_NAME')
     prefix = 'giftless-tests'
 
-    if aws_s3_bucket_name and aws_access_key_id and aws_secret_access_key:
-        # We use a live S3 bucket to test
-        storage = AwsS3Storage(aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key,
-                               aws_s3_bucket_name=aws_s3_bucket_name, path_prefix=prefix)
+    # We use a live S3 bucket to test
+    storage = AwsS3Storage(aws_s3_bucket_name=TEST_AWS_S3_BUCKET_NAME, path_prefix=prefix)
+    try:
+        yield storage
+    finally:
+        bucket = storage.s3.Bucket(TEST_AWS_S3_BUCKET_NAME)
         try:
-            yield storage
-        finally:
-            bucket = storage.s3.Bucket(aws_s3_bucket_name)
-            try:
-                bucket.objects.all().delete()
-            except Exception as e:
-                raise pytest.PytestWarning("Could not clean up after test: {}".format(e))
-    else:
-        yield AwsS3Storage(aws_access_key_id=MOCK_AWS_ACCESS_KEY_ID, aws_secret_access_key=MOCK_AWS_SECRET_ACCESS_KEY,
-                           aws_s3_bucket_name=MOCK_AWS_S3_BUCKET_NAME, path_prefix=prefix)
+            bucket.objects.all().delete()
+        except Exception as e:
+            raise pytest.PytestWarning("Could not clean up after test: {}".format(e))
 
 
 @pytest.fixture(scope='module')
 def vcr_config():
     live_tests = bool(os.environ.get('AWS_ACCESS_KEY_ID') and
-                      os.environ.get('AWS_SECRET_ACCESS_KEY') and
-                      os.environ.get('AWS_S3_BUCKET_NAME'))
+                      os.environ.get('AWS_SECRET_ACCESS_KEY'))
     if live_tests:
-        mode = 'all'
+        mode = 'once'
     else:
+        os.environ['AWS_ACCESS_KEY_ID'] = 'fake'
+        os.environ['AWS_SECRET_ACCESS_KEY'] = 'fake'
         mode = 'none'
     return {
         "filter_headers": [

@@ -19,10 +19,7 @@ class AwsS3Storage(StreamingStorage, ExternalStorage):
     """AWS S3 Blob Storage backend.
     """
 
-    def __init__(self, aws_access_key_id: str, aws_secret_access_key: str,
-                 aws_s3_bucket_name: str, path_prefix: Optional[str] = None, **_):
-        self.aws_access_key_id = aws_access_key_id
-        self.aws_secret_access_key = aws_secret_access_key
+    def __init__(self, aws_s3_bucket_name: str, path_prefix: Optional[str] = None, **_):
         self.aws_s3_bucket_name = aws_s3_bucket_name
         self.path_prefix = path_prefix
         self.s3: boto3.session.Session.resource = boto3.resource('s3')
