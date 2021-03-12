@@ -1,18 +1,11 @@
-import logging
 import os
-from collections import namedtuple
 from typing import Any, BinaryIO, Dict, Iterable, Optional
 
-import boto3
-import botocore
+import boto3  # type: ignore
+import botocore  # type: ignore
 
 from giftless.storage import ExternalStorage, StreamingStorage
-
 from giftless.storage.exc import ObjectNotFound
-
-Block = namedtuple('Block', ['id', 'start', 'size'])
-
-_log = logging.getLogger(__name__)
 
 
 class AwsS3Storage(StreamingStorage, ExternalStorage):
@@ -28,13 +21,15 @@ class AwsS3Storage(StreamingStorage, ExternalStorage):
     def get(self, prefix: str, oid: str) -> Iterable[bytes]:
         if not self.exists(prefix, oid):
             raise ObjectNotFound()
-        return self._s3_object(prefix, oid).get()['Body']
+        result: Iterable[bytes] = self._s3_object(prefix, oid).get()['Body']
+        return result
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
         completed = []
 
         def upload_callback(size):
             completed.append(size)
+
         bucket = self.s3.Bucket(self.aws_s3_bucket_name)
         bucket.upload_fileobj(data_stream, self._get_blob_path(prefix, oid), Callback=upload_callback)
         return sum(completed)
@@ -52,7 +47,8 @@ class AwsS3Storage(StreamingStorage, ExternalStorage):
 
     def get_size(self, prefix: str, oid: str) -> int:
         if self.exists(prefix, oid):
-            return self._s3_object(prefix, oid).content_length
+            result: int = self._s3_object(prefix, oid).content_length
+            return result
         else:
             raise ObjectNotFound()
 
