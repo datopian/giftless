@@ -106,6 +106,48 @@ TRANSFER_ADAPTERS:
         bucket_name: git-lfs
         account_key_base64: S0m3B4se64RandomStuff.....ThatI5Redac7edHeReF0rRead4b1lity==
 ```
+### AWS S3 Storage
+
+#### `giftless.storage.aws_s3:AwsS3Storage`
+Modify your `giftless.yaml` file according to the following config:
+
+```bash
+    $ cat giftless.yaml
+
+    TRANSFER_ADAPTERS:
+      basic:
+        factory: giftless.transfer.basic_external:factory
+        options:
+          storage_class: giftless.storage.aws_s3:AwsS3Storage
+          storage_options:
+            aws_s3_bucket_name: bucket-name
+            path_prefix: optional_prefix
+```
+
+#### boto3 authentication
+`AwsS3Storage` supports 3 ways of authentication defined in more detail in 
+[docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html):
+1. Environment variables
+2. Shared credential file (~/.aws/credentials)
+3. AWS config file (~/.aws/config)
+4. Instance metadata service on an Amazon EC2 instance that has an IAM role configured (usually used in production).
+
+### Running updated yaml config with uWSGI
+After configuring your `giftless.yaml` file, export it:
+```bash
+$ export GIFTLESS_CONFIG_FILE=giftless.yaml
+```
+
+You will need uWSGI running. Install it with your preferred package manager.
+Here is an example of how to run it:
+    
+```bash
+    # Run uWSGI in HTTP mode on port 8080
+    $ uwsgi -M -T --threads 2 -p 2 --manage-script-name \
+        --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
+```
+
+See `giftless/config.py` for some default configuration options.
 
 After configuring your `giftless.yaml` file, export it:
 

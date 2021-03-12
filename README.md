@@ -16,6 +16,7 @@ storage backends:
 * [Google Cloud Storage](https://cloud.google.com/storage)
 * [Azure Blob Storage](https://azure.microsoft.com/en-us/services/storage/blobs/)
   with direct-to-cloud or streamed transfers
+* [AWS S3 Storage](https://aws.amazon.com/s3/)
 
 In addition, Giftless implements a custom transfer mode called `multipart-basic`,
 which is designed to take advantage of many vendors' multipart upload

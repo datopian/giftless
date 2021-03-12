@@ -22,7 +22,7 @@ class AwsS3Storage(StreamingStorage, ExternalStorage):
     def __init__(self, aws_s3_bucket_name: str, path_prefix: Optional[str] = None, **_):
         self.aws_s3_bucket_name = aws_s3_bucket_name
         self.path_prefix = path_prefix
-        self.s3: boto3.session.Session.resource = boto3.resource('s3')
+        self.s3 = boto3.resource('s3')
         self.s3_client = boto3.client('s3')
 
     def get(self, prefix: str, oid: str) -> Iterable[bytes]:
