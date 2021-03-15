@@ -1,0 +1,191 @@
+interactions:
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - !!binary |
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
+      X-Amz-Content-SHA256:
+      - !!binary |
+        ZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3
+        ODUyYjg1NQ==
+      X-Amz-Date:
+      - !!binary |
+        MjAyMTAzMTVUMTI0MjA2Wg==
+      authorization:
+      - fake-authz-header
+    method: HEAD
+    uri: https://test-giftless.s3.amazonaws.com/giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+  response:
+    body:
+      string: ''
+    headers:
+      Connection:
+      - close
+      Content-Type:
+      - application/xml
+      Date:
+      - Mon, 15 Mar 2021 12:42:05 GMT
+      Server:
+      - AmazonS3
+      x-amz-id-2:
+      - /o9qssHk4eIGp3aqRbBA6zgVhOoLlUnyUZ7VKEX0kK66cUNa2HeCs4zafNKP+xQH1ZphJINdtyc=
+      x-amz-request-id:
+      - ZVBJVQ8F6539WM31
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - !!binary |
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
+      X-Amz-Content-SHA256:
+      - !!binary |
+        ZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3
+        ODUyYjg1NQ==
+      X-Amz-Date:
+      - !!binary |
+        MjAyMTAzMTVUMTI0MjA2Wg==
+      authorization:
+      - fake-authz-header
+    method: HEAD
+    uri: https://test-giftless.s3.amazonaws.com/
+  response:
+    body:
+      string: ''
+    headers:
+      Connection:
+      - close
+      Content-Type:
+      - application/xml
+      Date:
+      - Mon, 15 Mar 2021 12:42:05 GMT
+      Server:
+      - AmazonS3
+      x-amz-bucket-region:
+      - eu-west-1
+      x-amz-id-2:
+      - WGTfKrgNkY3Za3VfYA/x/ceKf6Y0/sIWZPWkp9jJq/Wfu3OXkqYjHX7084yQm4bWWEzg83e4Wuk=
+      x-amz-request-id:
+      - ZVBPFH718FTE0GZY
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - !!binary |
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
+      X-Amz-Content-SHA256:
+      - !!binary |
+        ZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3
+        ODUyYjg1NQ==
+      X-Amz-Date:
+      - !!binary |
+        MjAyMTAzMTVUMTI0MjA2Wg==
+      authorization:
+      - fake-authz-header
+    method: HEAD
+    uri: https://test-giftless.s3.eu-west-1.amazonaws.com/
+  response:
+    body:
+      string: ''
+    headers:
+      Content-Type:
+      - application/xml
+      Date:
+      - Mon, 15 Mar 2021 12:42:07 GMT
+      Server:
+      - AmazonS3
+      x-amz-bucket-region:
+      - eu-west-1
+      x-amz-id-2:
+      - HRm8iOrWQFc8TqXt/ZVtnpeOCB303kDm4t23ybUK8XYtmdthCrSQ5zOMn0Ywj1UWgpy04kdtGM8=
+      x-amz-request-id:
+      - ZVBMXG321D43B867
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - !!binary |
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
+      X-Amz-Content-SHA256:
+      - !!binary |
+        ZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3
+        ODUyYjg1NQ==
+      X-Amz-Date:
+      - !!binary |
+        MjAyMTAzMTVUMTI0MjA2Wg==
+      authorization:
+      - fake-authz-header
+    method: HEAD
+    uri: https://test-giftless.s3.eu-west-1.amazonaws.com/giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+  response:
+    body:
+      string: ''
+    headers:
+      Content-Type:
+      - application/xml
+      Date:
+      - Mon, 15 Mar 2021 12:42:06 GMT
+      Server:
+      - AmazonS3
+      x-amz-id-2:
+      - OiPHJKTcII364CUp8+1iJJPE/2BXfL4/V/mKrR8/0OOn+RqTScMTX7YUz2w4EqBU8oJnh5uB4GI=
+      x-amz-request-id:
+      - ZVBTTSV2Z67P1T40
+    status:
+      code: 404
+      message: Not Found
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - !!binary |
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
+      X-Amz-Content-SHA256:
+      - !!binary |
+        ZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3
+        ODUyYjg1NQ==
+      X-Amz-Date:
+      - !!binary |
+        MjAyMTAzMTVUMTI0MjA2Wg==
+      authorization:
+      - fake-authz-header
+    method: GET
+    uri: https://test-giftless.s3.eu-west-1.amazonaws.com/?encoding-type=url
+  response:
+    body:
+      string: '<?xml version="1.0" encoding="UTF-8"?>
+
+        <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Name>test-giftless</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated></ListBucketResult>'
+    headers:
+      Content-Type:
+      - application/xml
+      Date:
+      - Mon, 15 Mar 2021 12:42:07 GMT
+      Server:
+      - AmazonS3
+      Transfer-Encoding:
+      - chunked
+      x-amz-bucket-region:
+      - eu-west-1
+      x-amz-id-2:
+      - wzrFqx0IamtTlwkQ8pETRHGQUg825zUfNtWMbHTn58HYFXSsGQe8878XkFmTRnCfqLDKXweMcVo=
+      x-amz-request-id:
+      - ZVBXAHMAM7M1XBNP
+    status:
+      code: 200
+      message: OK
+version: 1

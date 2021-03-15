@@ -106,6 +106,33 @@ TRANSFER_ADAPTERS:
         bucket_name: git-lfs
         account_key_base64: S0m3B4se64RandomStuff.....ThatI5Redac7edHeReF0rRead4b1lity==
 ```
+### Amazon S3 Storage
+
+#### `giftless.storage.amazon_s3:AmazonS3Storage`
+Modify your `giftless.yaml` file according to the following config:
+
+```bash
+    $ cat giftless.yaml
+
+    TRANSFER_ADAPTERS:
+      basic:
+        factory: giftless.transfer.basic_external:factory
+        options:
+          storage_class: giftless.storage.amazon_s3:AmazonS3Storage
+          storage_options:
+            bucket_name: bucket-name
+            path_prefix: optional_prefix
+```
+
+#### boto3 authentication
+`AwsS3Storage` supports 3 ways of authentication defined in more detail in 
+[docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html):
+1. Environment variables
+2. Shared credential file (~/.aws/credentials)
+3. AWS config file (~/.aws/config)
+4. Instance metadata service on an Amazon EC2 instance that has an IAM role configured (usually used in production).
+
+### Running updated yaml config with uWSGI
 
 After configuring your `giftless.yaml` file, export it:
 

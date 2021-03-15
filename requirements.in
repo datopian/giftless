@@ -20,3 +20,4 @@ git+https://github.com/teracyhq/flask-classful.git@3bbab31#egg=flask-classful
 # TODO: Split these out so users don't have to install all of them
 azure-storage-blob==12.2.*
 google-cloud-storage==1.28.*
+boto3==1.17.*

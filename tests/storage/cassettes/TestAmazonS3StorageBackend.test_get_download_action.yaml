@@ -1,0 +1,87 @@
+interactions:
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - !!binary |
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
+      X-Amz-Content-SHA256:
+      - !!binary |
+        ZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3
+        ODUyYjg1NQ==
+      X-Amz-Date:
+      - !!binary |
+        MjAyMTAzMTVUMTI0MjEzWg==
+      authorization:
+      - fake-authz-header
+    method: GET
+    uri: https://test-giftless.s3.amazonaws.com/?encoding-type=url
+  response:
+    body:
+      string: '<?xml version="1.0" encoding="UTF-8"?>
+
+        <Error><Code>AuthorizationHeaderMalformed</Code><Message>The authorization
+        header is malformed; the region ''us-east-1'' is wrong; expecting ''eu-west-1''</Message><Region>eu-west-1</Region><RequestId>X0FQ7BTRP3FQ822G</RequestId><HostId>rnYglhB7vBiM794ay4pAVvZWg7gXk+OR0QOlVE7vAZleyE4hvVUnf8K6ZVMkhyMhTXia3GcRaSc=</HostId></Error>'
+    headers:
+      Connection:
+      - close
+      Content-Type:
+      - application/xml
+      Date:
+      - Mon, 15 Mar 2021 12:42:13 GMT
+      Server:
+      - AmazonS3
+      Transfer-Encoding:
+      - chunked
+      x-amz-bucket-region:
+      - eu-west-1
+      x-amz-id-2:
+      - rnYglhB7vBiM794ay4pAVvZWg7gXk+OR0QOlVE7vAZleyE4hvVUnf8K6ZVMkhyMhTXia3GcRaSc=
+      x-amz-request-id:
+      - X0FQ7BTRP3FQ822G
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: null
+    headers:
+      User-Agent:
+      - !!binary |
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
+      X-Amz-Content-SHA256:
+      - !!binary |
+        ZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3
+        ODUyYjg1NQ==
+      X-Amz-Date:
+      - !!binary |
+        MjAyMTAzMTVUMTI0MjEzWg==
+      authorization:
+      - fake-authz-header
+    method: GET
+    uri: https://test-giftless.s3.eu-west-1.amazonaws.com/?encoding-type=url
+  response:
+    body:
+      string: '<?xml version="1.0" encoding="UTF-8"?>
+
+        <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Name>test-giftless</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated></ListBucketResult>'
+    headers:
+      Content-Type:
+      - application/xml
+      Date:
+      - Mon, 15 Mar 2021 12:42:15 GMT
+      Server:
+      - AmazonS3
+      Transfer-Encoding:
+      - chunked
+      x-amz-bucket-region:
+      - eu-west-1
+      x-amz-id-2:
+      - 5efCJ/To3WTMGCNAwrvyyKIbs/y3DYttX++RgpZeXvxVtpQwPHFuZaHOObTgHZUU09P4uhnnWg4=
+      x-amz-request-id:
+      - 073S09AHP1866XBQ
+    status:
+      code: 200
+      message: OK
+version: 1

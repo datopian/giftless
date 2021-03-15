@@ -8,6 +8,12 @@ azure-core==1.8.2
     # via azure-storage-blob
 azure-storage-blob==12.2.0
     # via -r requirements.in
+boto3==1.17.26
+    # via -r requirements.in
+botocore==1.20.26
+    # via
+    #   boto3
+    #   s3transfer
 cachetools==4.1.1
     # via google-auth
 certifi==2020.6.20
@@ -57,6 +63,10 @@ itsdangerous==1.1.0
     # via flask
 jinja2==2.11.2
     # via flask
+jmespath==0.10.0
+    # via
+    #   boto3
+    #   botocore
 markupsafe==1.1.1
     # via jinja2
 marshmallow-enum==1.5.1
@@ -85,7 +95,9 @@ pycparser==2.20
 pyjwt==1.7.1
     # via -r requirements.in
 python-dateutil==2.8.1
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   botocore
 python-dotenv==0.13.0
     # via -r requirements.in
 pytz==2020.4
@@ -102,6 +114,8 @@ requests==2.24.0
     #   requests-oauthlib
 rsa==4.6
     # via google-auth
+s3transfer==0.3.4
+    # via boto3
 six==1.15.0
     # via
     #   azure-core
@@ -116,7 +130,9 @@ six==1.15.0
 typing-extensions==3.7.4.3
     # via -r requirements.in
 urllib3==1.25.11
-    # via requests
+    # via
+    #   botocore
+    #   requests
 webargs==5.5.3
     # via -r requirements.in
 werkzeug==1.0.1
