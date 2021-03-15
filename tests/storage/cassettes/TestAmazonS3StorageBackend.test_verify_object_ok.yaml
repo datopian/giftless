@@ -17,14 +17,14 @@ interactions:
         MTAwLWNvbnRpbnVl
       User-Agent:
       - !!binary |
-        Qm90bzMvMS4xNy4yMSBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
-        dG9jb3JlLzEuMjAuMjEgUmVzb3VyY2U=
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
       X-Amz-Content-SHA256:
       - !!binary |
         VU5TSUdORUQtUEFZTE9BRA==
       X-Amz-Date:
       - !!binary |
-        MjAyMTAzMTFUMTIyMzI3Wg==
+        MjAyMTAzMTVUMTI0MjA4Wg==
       authorization:
       - fake-authz-header
     method: PUT
@@ -34,22 +34,22 @@ interactions:
       string: '<?xml version="1.0" encoding="UTF-8"?>
 
         <Error><Code>AuthorizationHeaderMalformed</Code><Message>The authorization
-        header is malformed; the region ''us-east-1'' is wrong; expecting ''eu-west-1''</Message><Region>eu-west-1</Region><RequestId>3FE85D5BED87BB7E</RequestId><HostId>x7vuA31c3Y0wi5pYnR2qinw2ZuuR7yOvSbm+VhF6ZETqb+9tLsSwExBv9dx4vGfs//R736KLLvo=</HostId></Error>'
+        header is malformed; the region ''us-east-1'' is wrong; expecting ''eu-west-1''</Message><Region>eu-west-1</Region><RequestId>GBNEFNEXFPJX2VZ8</RequestId><HostId>GGx9o4cQ5pwC48T5yyDFCU1R8FeZujlL9BsXltTk2kfM5WmdovVpgiczNY3MRqjaGTO/Qy1FWw4=</HostId></Error>'
     headers:
       Connection:
       - close
       Content-Type:
       - application/xml
       Date:
-      - Thu, 11 Mar 2021 12:23:26 GMT
+      - Mon, 15 Mar 2021 12:42:08 GMT
       Server:
       - AmazonS3
       Transfer-Encoding:
       - chunked
       x-amz-id-2:
-      - x7vuA31c3Y0wi5pYnR2qinw2ZuuR7yOvSbm+VhF6ZETqb+9tLsSwExBv9dx4vGfs//R736KLLvo=
+      - GGx9o4cQ5pwC48T5yyDFCU1R8FeZujlL9BsXltTk2kfM5WmdovVpgiczNY3MRqjaGTO/Qy1FWw4=
       x-amz-request-id:
-      - 3FE85D5BED87BB7E
+      - GBNEFNEXFPJX2VZ8
     status:
       code: 400
       message: Bad Request
@@ -71,14 +71,14 @@ interactions:
         MTAwLWNvbnRpbnVl
       User-Agent:
       - !!binary |
-        Qm90bzMvMS4xNy4yMSBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
-        dG9jb3JlLzEuMjAuMjEgUmVzb3VyY2U=
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
       X-Amz-Content-SHA256:
       - !!binary |
         VU5TSUdORUQtUEFZTE9BRA==
       X-Amz-Date:
       - !!binary |
-        MjAyMTAzMTFUMTIyMzI3Wg==
+        MjAyMTAzMTVUMTI0MjA4Wg==
       authorization:
       - fake-authz-header
     method: PUT
@@ -90,15 +90,15 @@ interactions:
       Content-Length:
       - '0'
       Date:
-      - Thu, 11 Mar 2021 12:23:29 GMT
+      - Mon, 15 Mar 2021 12:42:10 GMT
       ETag:
       - '"5a8ff48557344ccaf33d7a926a7b0bb2"'
       Server:
       - AmazonS3
       x-amz-id-2:
-      - pBwHIwigvIDY6F49vSG+mrbKy6l2hJ1EFtElZUmEgkv1wfNnflWhx63le8ytgrI+aeecZ+YqciY=
+      - iC/18aLwd0M4l69kWSuWIyy+EuLknJLIWvWRnzcjkdSyBAJL24A5ymXvp6rNU/ygLcCBY4W7Yhs=
       x-amz-request-id:
-      - FQ9W2GAZ0WET4S3M
+      - M3W8162GRXPHQ847
     status:
       code: 200
       message: OK
@@ -107,15 +107,15 @@ interactions:
     headers:
       User-Agent:
       - !!binary |
-        Qm90bzMvMS4xNy4yMSBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
-        dG9jb3JlLzEuMjAuMjEgUmVzb3VyY2U=
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
       X-Amz-Content-SHA256:
       - !!binary |
         ZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3
         ODUyYjg1NQ==
       X-Amz-Date:
       - !!binary |
-        MjAyMTAzMTFUMTIyMzI4Wg==
+        MjAyMTAzMTVUMTI0MjA5Wg==
       authorization:
       - fake-authz-header
     method: HEAD
@@ -131,17 +131,17 @@ interactions:
       Content-Type:
       - binary/octet-stream
       Date:
-      - Thu, 11 Mar 2021 12:23:29 GMT
+      - Mon, 15 Mar 2021 12:42:10 GMT
       ETag:
       - '"5a8ff48557344ccaf33d7a926a7b0bb2"'
       Last-Modified:
-      - Thu, 11 Mar 2021 12:23:29 GMT
+      - Mon, 15 Mar 2021 12:42:10 GMT
       Server:
       - AmazonS3
       x-amz-id-2:
-      - r/O8UN7Ul+sokpkSbDj5uEiyL3L1Dwhx2lvrVEr1IR/Cpn7Ykr4NemT1aGPLDnSUCqt32UbxFMA=
+      - WyRASkoShQLPNR6Q+DoHR6hzT+HeO+VB7JzzOMjZvBYN18e7OVcU4jQf7dxEekqx/d4MtHY+ofk=
       x-amz-request-id:
-      - 293C4877A2C91663
+      - M3W8WZ63CRTHMR1P
     status:
       code: 200
       message: OK
@@ -150,15 +150,15 @@ interactions:
     headers:
       User-Agent:
       - !!binary |
-        Qm90bzMvMS4xNy4yMSBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
-        dG9jb3JlLzEuMjAuMjEgUmVzb3VyY2U=
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
       X-Amz-Content-SHA256:
       - !!binary |
         ZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3
         ODUyYjg1NQ==
       X-Amz-Date:
       - !!binary |
-        MjAyMTAzMTFUMTIyMzI4Wg==
+        MjAyMTAzMTVUMTI0MjA5Wg==
       authorization:
       - fake-authz-header
     method: GET
@@ -167,12 +167,12 @@ interactions:
     body:
       string: '<?xml version="1.0" encoding="UTF-8"?>
 
-        <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Name>test-giftless</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated><Contents><Key>giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824</Key><LastModified>2021-03-11T12:23:29.000Z</LastModified><ETag>&quot;5a8ff48557344ccaf33d7a926a7b0bb2&quot;</ETag><Size>34</Size><Owner><ID>345f1534cd72561e76741873bc8faf75fb682485278e12b0e114cce3c0428ea1</ID><DisplayName>fjelltoppltd</DisplayName></Owner><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>'
+        <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Name>test-giftless</Name><Prefix></Prefix><Marker></Marker><MaxKeys>1000</MaxKeys><EncodingType>url</EncodingType><IsTruncated>false</IsTruncated><Contents><Key>giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824</Key><LastModified>2021-03-15T12:42:10.000Z</LastModified><ETag>&quot;5a8ff48557344ccaf33d7a926a7b0bb2&quot;</ETag><Size>34</Size><Owner><ID>345f1534cd72561e76741873bc8faf75fb682485278e12b0e114cce3c0428ea1</ID><DisplayName>fjelltoppltd</DisplayName></Owner><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>'
     headers:
       Content-Type:
       - application/xml
       Date:
-      - Thu, 11 Mar 2021 12:23:29 GMT
+      - Mon, 15 Mar 2021 12:42:10 GMT
       Server:
       - AmazonS3
       Transfer-Encoding:
@@ -180,9 +180,9 @@ interactions:
       x-amz-bucket-region:
       - eu-west-1
       x-amz-id-2:
-      - E8kp5+6fgMv2ljpPFMsaJXLT3/a/wq38QaiDn5ksVXbVejD1GKKiG3DuEzB6gSPW1qcWx2h3k80=
+      - llR/BKk3N9FBh0xGRJzToKgfmJoRNn+XE9WgjNHCzV2Q9wu4mGgJdSa5EGcQEwW2YYJFjMW6HRg=
       x-amz-request-id:
-      - 162676412BC358AC
+      - M3W2A7FMSD10PKNS
     status:
       code: 200
       message: OK
@@ -196,15 +196,15 @@ interactions:
         emw5ZGdLQ0dKQnhQN2hjU0wzRUc1Zz09
       User-Agent:
       - !!binary |
-        Qm90bzMvMS4xNy4yMSBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
-        dG9jb3JlLzEuMjAuMjEgUmVzb3VyY2U=
+        Qm90bzMvMS4xNy4yNiBQeXRob24vMy44LjUgTGludXgvNS4xMS41LTA1MTEwNS1nZW5lcmljIEJv
+        dG9jb3JlLzEuMjAuMjYgUmVzb3VyY2U=
       X-Amz-Content-SHA256:
       - !!binary |
         NzBjNjY2ZmU1NTI0NGYzMjRkZTkxZTk4ZDgyMTIwOWJjNTFmNTFmNmFkY2U0OWRkZDljODY1YTBm
         Mjg5ZWI0Nw==
       X-Amz-Date:
       - !!binary |
-        MjAyMTAzMTFUMTIyMzI4Wg==
+        MjAyMTAzMTVUMTI0MjA5Wg==
       authorization:
       - fake-authz-header
     method: POST
@@ -220,15 +220,15 @@ interactions:
       Content-Type:
       - application/xml
       Date:
-      - Thu, 11 Mar 2021 12:23:29 GMT
+      - Mon, 15 Mar 2021 12:42:10 GMT
       Server:
       - AmazonS3
       Transfer-Encoding:
       - chunked
       x-amz-id-2:
-      - trboKVLTMwlNM1EFSe9FE29OdcVr+GMHKCPKA1Um1fw5lqMybu6D8IuTv6Bni5ie6JXYPD3AEFg=
+      - K6FmjRMBm9/oAu1f233riMIgML8FSNmRawZktOKA58BmPZckIPUXrD2vddZB4Nk9hrBGIMEjqvA=
       x-amz-request-id:
-      - C97798DB0C4509C9
+      - M3W54JRNXSSVFG46
     status:
       code: 200
       message: OK
