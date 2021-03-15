@@ -36,22 +36,21 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
         return sum(completed)
 
     def exists(self, prefix: str, oid: str) -> bool:
-        s3_object = self._s3_object(prefix, oid)
         try:
-            s3_object.load()
-        except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] == "404":
-                return False
-            else:
-                raise e
+            self.get_size(prefix, oid)
+        except ObjectNotFound:
+            return False
         return True
 
     def get_size(self, prefix: str, oid: str) -> int:
-        if self.exists(prefix, oid):
+        try:
             result: int = self._s3_object(prefix, oid).content_length
-            return result
-        else:
-            raise ObjectNotFound()
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                raise ObjectNotFound()
+            else:
+                raise e
+        return result
 
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
