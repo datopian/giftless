@@ -6,14 +6,15 @@ import botocore  # type: ignore
 
 from giftless.storage import ExternalStorage, StreamingStorage
 from giftless.storage.exc import ObjectNotFound
+from giftless.util import safe_filename
 
 
-class AwsS3Storage(StreamingStorage, ExternalStorage):
+class AmazonS3Storage(StreamingStorage, ExternalStorage):
     """AWS S3 Blob Storage backend.
     """
 
-    def __init__(self, aws_s3_bucket_name: str, path_prefix: Optional[str] = None, **_):
-        self.aws_s3_bucket_name = aws_s3_bucket_name
+    def __init__(self, bucket_name: str, path_prefix: Optional[str] = None, **_):
+        self.bucket_name = bucket_name
         self.path_prefix = path_prefix
         self.s3 = boto3.resource('s3')
         self.s3_client = boto3.client('s3')
@@ -30,7 +31,7 @@ class AwsS3Storage(StreamingStorage, ExternalStorage):
         def upload_callback(size):
             completed.append(size)
 
-        bucket = self.s3.Bucket(self.aws_s3_bucket_name)
+        bucket = self.s3.Bucket(self.bucket_name)
         bucket.upload_fileobj(data_stream, self._get_blob_path(prefix, oid), Callback=upload_callback)
         return sum(completed)
 
@@ -42,7 +43,7 @@ class AwsS3Storage(StreamingStorage, ExternalStorage):
             if e.response['Error']['Code'] == "404":
                 return False
             else:
-                raise RuntimeError(e)
+                raise e
         return True
 
     def get_size(self, prefix: str, oid: str) -> int:
@@ -54,12 +55,12 @@ class AwsS3Storage(StreamingStorage, ExternalStorage):
 
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        params_ = {
-            'Bucket': self.aws_s3_bucket_name,
+        params = {
+            'Bucket': self.bucket_name,
             'Key': self._get_blob_path(prefix, oid)
         }
         response = self.s3_client.generate_presigned_url('put_object',
-                                                         Params=params_,
+                                                         Params=params,
                                                          ExpiresIn=expires_in
                                                          )
         return {
@@ -73,16 +74,18 @@ class AwsS3Storage(StreamingStorage, ExternalStorage):
         }
 
     def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
-                            extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+                            extra: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
 
-        filename = extra.get('filename') if extra else oid
-        params_ = {
-            'Bucket': self.aws_s3_bucket_name,
+        raw_filename = extra.get('filename') if extra else oid
+        assert raw_filename
+        filename = safe_filename(raw_filename)
+        params = {
+            'Bucket': self.bucket_name,
             'Key': self._get_blob_path(prefix, oid),
-            'ResponseContentDisposition': f"attachment; filename = {filename}"
+            'ResponseContentDisposition': f"attachment;filename={filename}"
         }
         response = self.s3_client.generate_presigned_url('get_object',
-                                                         Params=params_,
+                                                         Params=params,
                                                          ExpiresIn=expires_in
                                                          )
         return {
@@ -107,4 +110,4 @@ class AwsS3Storage(StreamingStorage, ExternalStorage):
         return os.path.join(storage_prefix, prefix, oid)
 
     def _s3_object(self, prefix, oid):
-        return self.s3.Object(self.aws_s3_bucket_name, self._get_blob_path(prefix, oid))
+        return self.s3.Object(self.bucket_name, self._get_blob_path(prefix, oid))

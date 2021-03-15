@@ -108,7 +108,7 @@ TRANSFER_ADAPTERS:
 ```
 ### AWS S3 Storage
 
-#### `giftless.storage.aws_s3:AwsS3Storage`
+#### `giftless.storage.amazon_s3:AmazonS3Storage`
 Modify your `giftless.yaml` file according to the following config:
 
 ```bash
@@ -118,9 +118,9 @@ Modify your `giftless.yaml` file according to the following config:
       basic:
         factory: giftless.transfer.basic_external:factory
         options:
-          storage_class: giftless.storage.aws_s3:AwsS3Storage
+          storage_class: giftless.storage.amazon_s3:AmazonS3Storage
           storage_options:
-            aws_s3_bucket_name: bucket-name
+            bucket_name: bucket-name
             path_prefix: optional_prefix
 ```
 
@@ -133,21 +133,6 @@ Modify your `giftless.yaml` file according to the following config:
 4. Instance metadata service on an Amazon EC2 instance that has an IAM role configured (usually used in production).
 
 ### Running updated yaml config with uWSGI
-After configuring your `giftless.yaml` file, export it:
-```bash
-$ export GIFTLESS_CONFIG_FILE=giftless.yaml
-```
-
-You will need uWSGI running. Install it with your preferred package manager.
-Here is an example of how to run it:
-    
-```bash
-    # Run uWSGI in HTTP mode on port 8080
-    $ uwsgi -M -T --threads 2 -p 2 --manage-script-name \
-        --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
-```
-
-See `giftless/config.py` for some default configuration options.
 
 After configuring your `giftless.yaml` file, export it:
 

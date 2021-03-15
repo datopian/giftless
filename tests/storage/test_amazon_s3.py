@@ -5,7 +5,7 @@ from typing import Generator
 
 import pytest
 
-from giftless.storage.aws_s3 import AwsS3Storage
+from giftless.storage.amazon_s3 import AmazonS3Storage
 
 from . import ExternalStorageAbstractTests, StreamingStorageAbstractTests
 
@@ -13,7 +13,7 @@ TEST_AWS_S3_BUCKET_NAME = 'test-giftless'
 
 
 @pytest.fixture()
-def storage_backend() -> Generator[AwsS3Storage, None, None]:
+def storage_backend() -> Generator[AmazonS3Storage, None, None]:
     """Provide a S3 Storage backend for all AWS S3 tests
 
     For this to work against production S3, you need to set boto3 auth:
@@ -29,7 +29,7 @@ def storage_backend() -> Generator[AwsS3Storage, None, None]:
     prefix = 'giftless-tests'
 
     # We use a live S3 bucket to test
-    storage = AwsS3Storage(aws_s3_bucket_name=TEST_AWS_S3_BUCKET_NAME, path_prefix=prefix)
+    storage = AmazonS3Storage(bucket_name=TEST_AWS_S3_BUCKET_NAME, path_prefix=prefix)
     try:
         yield storage
     finally:
@@ -59,5 +59,5 @@ def vcr_config():
 
 
 @pytest.mark.vcr()
-class TestAwsS3StorageBackend(StreamingStorageAbstractTests, ExternalStorageAbstractTests):
+class TestAmazonS3StorageBackend(StreamingStorageAbstractTests, ExternalStorageAbstractTests):
     pass
