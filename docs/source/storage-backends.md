@@ -106,7 +106,7 @@ TRANSFER_ADAPTERS:
         bucket_name: git-lfs
         account_key_base64: S0m3B4se64RandomStuff.....ThatI5Redac7edHeReF0rRead4b1lity==
 ```
-### AWS S3 Storage
+### Amazon S3 Storage
 
 #### `giftless.storage.amazon_s3:AmazonS3Storage`
 Modify your `giftless.yaml` file according to the following config:
