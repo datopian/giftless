@@ -75,14 +75,13 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
     def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
                             extra: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
 
-        raw_filename = extra.get('filename') if extra else oid
-        assert raw_filename
-        filename = safe_filename(raw_filename)
         params = {
             'Bucket': self.bucket_name,
-            'Key': self._get_blob_path(prefix, oid),
-            'ResponseContentDisposition': f"attachment;filename={filename}"
+            'Key': self._get_blob_path(prefix, oid)
         }
+        if extra and 'filename' in extra:
+            filename = safe_filename(extra['filename'])
+            params['ResponseContentDisposition'] = f'attachment; filename="{filename}"'
         response = self.s3_client.generate_presigned_url('get_object',
                                                          Params=params,
                                                          ExpiresIn=expires_in
