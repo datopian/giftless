@@ -130,7 +130,7 @@ typed-ast==1.4.2
     # via mypy
 typing-extensions==3.7.4.3
     # via mypy
-urllib3==1.26.2
+urllib3==1.26.4
     # via requests
 vcrpy==4.1.1
     # via pytest-vcr
