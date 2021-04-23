@@ -87,6 +87,8 @@ class ObjectsView(BaseView):
 
         if self.storage.exists(path, oid):
             file = self.storage.get(path, oid)
+            mime_type = self.storage.get_mime_type(path, oid)
+            headers['Content-Type'] = mime_type
             return Response(file, direct_passthrough=True, status=200, headers=headers)
         else:
             raise NotFound("The object was not found")

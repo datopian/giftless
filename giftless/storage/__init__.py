@@ -32,6 +32,9 @@ class StreamingStorage(VerifiableStorage, ABC):
     def get_size(self, prefix: str, oid: str) -> int:
         pass
 
+    def get_mime_type(self, prefix: str, oid: str) -> str:
+        pass
+
     def verify_object(self, prefix: str, oid: str, size: int):
         """Verify that an object exists
         """

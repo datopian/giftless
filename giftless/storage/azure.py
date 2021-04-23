@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, BinaryIO, Dict, Iterable, List, Optional
 from urllib.parse import urlencode
 from xml.sax.saxutils import escape as xml_escape
+import mimetypes
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient, generate_blob_sas  # type: ignore
@@ -62,6 +63,16 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             return props.size  # type: ignore
         except ResourceNotFoundError:
             raise ObjectNotFound("Object does not exist")
+
+    def get_mime_type(self, prefix: str, oid: str) -> Optional[str]:
+        try:
+            blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
+                                                               blob=self._get_blob_path(prefix, oid))
+            props = blob_client.get_blob_properties()
+            return props.content_settings.get('content_type')
+        except ResourceNotFoundError:
+            raise ObjectNotFound("Object does not exist")
+
 
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
