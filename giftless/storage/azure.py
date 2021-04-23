@@ -77,7 +77,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         filename = extra.get('filename') if extra else None
-        return {
+        reply = {
             "actions": {
                 "upload": {
                     "href": self._get_signed_url(prefix, oid, expires_in, filename, create=True),
@@ -89,9 +89,17 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             }
         }
 
+        if filename:
+            mime_type = self._guess_mime_type_from_filename(filename)
+            if mime_type:
+                reply["actions"]["upload"]["header"]["x-ms-blob-content-type"] = mime_type
+
+        return reply
+
     def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
                             extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         filename = extra.get('filename') if extra else None
+
         return {
             "actions": {
                 "download": {
@@ -115,7 +123,6 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         _log.info("There are %d uncommitted blocks pre-uploaded; %d parts still need to be uploaded",
                   len(uncommitted), len(parts))
         commit_body = self._create_commit_body(blocks)
-
         reply: Dict[str, Any] = {
             "actions": {
                 "commit": {
@@ -135,10 +142,18 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             }
         }
 
+        if filename:
+            mime_type = self._guess_mime_type_from_filename(filename)
+            if mime_type:
+                reply["actions"]["commit"]["header"]["x-ms-blob-content-type"] = mime_type
+
         if parts:
             reply['actions']['parts'] = parts
 
         return reply
+
+    def _guess_mime_type_from_filename(self, filename: str) -> Optional[str]:
+        return mimetypes.guess_type(filename)[0]
 
     def _get_blob_path(self, prefix: str, oid: str) -> str:
         """Get the path to a blob in storage
