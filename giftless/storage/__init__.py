@@ -1,5 +1,5 @@
-from abc import ABC
 import mimetypes
+from abc import ABC
 from typing import Any, BinaryIO, Dict, Iterable, Optional
 
 from . import exc
@@ -40,7 +40,7 @@ class StreamingStorage(VerifiableStorage, ABC):
     def get_size(self, prefix: str, oid: str) -> int:
         pass
 
-    def get_mime_type(self, prefix: str, oid: str) -> str:
+    def get_mime_type(self, prefix: str, oid: str) -> Optional[str]:
         return "application/octet-stream"
 
     def verify_object(self, prefix: str, oid: str, size: int):

@@ -1,4 +1,3 @@
-import mimetypes
 import os
 import shutil
 from typing import Any, BinaryIO, Dict, Optional
