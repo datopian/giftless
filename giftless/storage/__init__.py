@@ -1,10 +1,18 @@
 from abc import ABC
+import mimetypes
 from typing import Any, BinaryIO, Dict, Iterable, Optional
 
 from . import exc
 
 
-class VerifiableStorage(ABC):
+class BaseStorage():
+    """Base class for all storage backends"""
+
+    def _guess_mime_type_from_filename(self, filename: str) -> Optional[str]:
+        return mimetypes.guess_type(filename)[0]
+
+
+class VerifiableStorage(BaseStorage, ABC):
     """A storage backend that supports object verification API
 
     All streaming backends should be 'verifiable'.
@@ -33,7 +41,7 @@ class StreamingStorage(VerifiableStorage, ABC):
         pass
 
     def get_mime_type(self, prefix: str, oid: str) -> str:
-        pass
+        return "application/octet-stream"
 
     def verify_object(self, prefix: str, oid: str, size: int):
         """Verify that an object exists

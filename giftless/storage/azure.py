@@ -6,7 +6,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, BinaryIO, Dict, Iterable, List, Optional
 from urllib.parse import urlencode
 from xml.sax.saxutils import escape as xml_escape
-import mimetypes
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient, generate_blob_sas  # type: ignore
@@ -151,9 +150,6 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             reply['actions']['parts'] = parts
 
         return reply
-
-    def _guess_mime_type_from_filename(self, filename: str) -> Optional[str]:
-        return mimetypes.guess_type(filename)[0]
 
     def _get_blob_path(self, prefix: str, oid: str) -> str:
         """Get the path to a blob in storage
