@@ -73,7 +73,8 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         return {
             "actions": {
                 "download": {
-                    "href": self._get_signed_url(prefix, oid, expires_in=expires_in, filename=filename, disposition=disposition),
+                    "href": self._get_signed_url(
+                        prefix, oid, expires_in=expires_in, filename=filename, disposition=disposition),
                     "header": {},
                     "expires_in": expires_in
                 }
@@ -96,6 +97,9 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
         disposition = f'attachment; filename={filename}' if filename else None
+        if filename and disposition:
+            disposition = f'{disposition}; filename="{filename}"'
+
         url: str = blob.generate_signed_url(expiration=timedelta(seconds=expires_in), method=http_method, version='v4',
                                             response_disposition=disposition, credentials=self.credentials)
         return url

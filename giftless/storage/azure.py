@@ -177,7 +177,6 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         elif disposition:
             extra_args['content_disposition'] = f'{disposition};"'
 
-
         sas_token = generate_blob_sas(account_name=self.blob_svc_client.account_name,
                                       account_key=self.blob_svc_client.credential.account_key,
                                       container_name=self.container_name,
