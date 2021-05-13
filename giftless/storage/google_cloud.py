@@ -68,10 +68,12 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
     def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
                             extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         filename = extra.get('filename') if extra else None
+        disposition = extra.get('disposition', 'attachment') if extra else 'attachment'
+
         return {
             "actions": {
                 "download": {
-                    "href": self._get_signed_url(prefix, oid, expires_in=expires_in, filename=filename),
+                    "href": self._get_signed_url(prefix, oid, expires_in=expires_in, filename=filename, disposition=disposition),
                     "header": {},
                     "expires_in": expires_in
                 }
@@ -90,7 +92,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         return os.path.join(storage_prefix, prefix, oid)
 
     def _get_signed_url(self, prefix: str, oid: str, expires_in: int, http_method: str = 'GET',
-                        filename: Optional[str] = None) -> str:
+                        filename: Optional[str] = None, disposition: Optional[str] = None) -> str:
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
         disposition = f'attachment; filename={filename}' if filename else None

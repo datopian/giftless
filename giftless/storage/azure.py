@@ -101,11 +101,12 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
     def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
                             extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         filename = extra.get('filename') if extra else None
+        disposition = extra.get('disposition', 'attachment') if extra else 'attachment'
 
         return {
             "actions": {
                 "download": {
-                    "href": self._get_signed_url(prefix, oid, expires_in, filename, read=True),
+                    "href": self._get_signed_url(prefix, oid, expires_in, filename, disposition=disposition, read=True),
                     "header": {},
                     "expires_in": expires_in
                 }
@@ -143,7 +144,6 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
                 }
             }
         }
-
         if filename:
             mime_type = self._guess_mime_type_from_filename(filename)
             if mime_type:
@@ -166,14 +166,17 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         return os.path.join(storage_prefix, prefix, oid)
 
     def _get_signed_url(self, prefix: str, oid: str, expires_in: int, filename: Optional[str] = None,
-                        **permissions: bool) -> str:
+                        disposition: Optional[str] = None, **permissions: bool) -> str:
         blob_name = self._get_blob_path(prefix, oid)
         permissions = BlobSasPermissions(**permissions)
         token_expires = (datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in))
 
         extra_args = {}
-        if filename:
-            extra_args['content_disposition'] = f'attachment; filename="{filename}"'
+        if filename and disposition:
+            extra_args['content_disposition'] = f'{disposition}; filename="{filename}"'
+        elif disposition:
+            extra_args['content_disposition'] = f'{disposition};"'
+
 
         sas_token = generate_blob_sas(account_name=self.blob_svc_client.account_name,
                                       account_key=self.blob_svc_client.credential.account_key,
