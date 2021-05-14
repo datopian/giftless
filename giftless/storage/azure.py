@@ -10,7 +10,7 @@ from xml.sax.saxutils import escape as xml_escape
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient, generate_blob_sas  # type: ignore
 
-from giftless.storage import ExternalStorage, MultipartStorage, StreamingStorage
+from giftless.storage import ExternalStorage, MultipartStorage, StreamingStorage, guess_mime_type_from_filename
 
 from .exc import ObjectNotFound
 
@@ -90,7 +90,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         }
 
         if filename:
-            mime_type = self._guess_mime_type_from_filename(filename)
+            mime_type = guess_mime_type_from_filename(filename)
             if mime_type:
                 headers["x-ms-blob-content-type"] = mime_type
 
@@ -145,7 +145,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             }
         }
         if filename:
-            mime_type = self._guess_mime_type_from_filename(filename)
+            mime_type = guess_mime_type_from_filename(filename)
             if mime_type:
                 reply["actions"]["commit"]["header"]["x-ms-blob-content-type"] = mime_type
 

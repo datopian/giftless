@@ -5,14 +5,7 @@ from typing import Any, BinaryIO, Dict, Iterable, Optional
 from . import exc
 
 
-class BaseStorage():
-    """Base class for all storage backends"""
-
-    def _guess_mime_type_from_filename(self, filename: str) -> Optional[str]:
-        return mimetypes.guess_type(filename)[0]
-
-
-class VerifiableStorage(BaseStorage, ABC):
+class VerifiableStorage(ABC):
     """A storage backend that supports object verification API
 
     All streaming backends should be 'verifiable'.
@@ -96,3 +89,7 @@ class MultipartStorage(VerifiableStorage, ABC):
             return self.get_size(prefix, oid) == size
         except exc.ObjectNotFound:
             return False
+
+
+def guess_mime_type_from_filename(filename: str) -> Optional[str]:
+    return mimetypes.guess_type(filename)[0]
