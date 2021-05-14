@@ -38,11 +38,15 @@ def test_batch_request_default_transfer():
 
 
 def test_object_schema_accepts_x_fields():
-    payload = {"oid": "123abc", "size": 1212, "x-filename": "foobarbaz", "x-mtime": 123123123123}
+    payload = {
+        "oid": "123abc", "size": 1212, "x-filename": "foobarbaz",
+        "x-mtime": 123123123123, "x-disposition": "inline"
+    }
     parsed = schema.ObjectSchema().load(payload)
     assert "foobarbaz" == parsed['extra']['filename']
     assert 123123123123 == parsed['extra']['mtime']
     assert "123abc" == parsed['oid']
+    assert "inline" == parsed['extra']['disposition']
 
 
 def test_object_schema_rejects_unknown_fields():

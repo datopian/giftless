@@ -10,7 +10,7 @@ from xml.sax.saxutils import escape as xml_escape
 from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient, generate_blob_sas  # type: ignore
 
-from giftless.storage import ExternalStorage, MultipartStorage, StreamingStorage
+from giftless.storage import ExternalStorage, MultipartStorage, StreamingStorage, guess_mime_type_from_filename
 
 from .exc import ObjectNotFound
 
@@ -63,28 +63,50 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         except ResourceNotFoundError:
             raise ObjectNotFound("Object does not exist")
 
+    def get_mime_type(self, prefix: str, oid: str) -> Optional[str]:
+        try:
+            blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
+                                                               blob=self._get_blob_path(prefix, oid))
+            props = blob_client.get_blob_properties()
+            mime_type = props.content_settings.get(
+                "content_type", "application/octet-stream")
+            return mime_type  # type: ignore
+        except ResourceNotFoundError:
+            raise ObjectNotFound("Object does not exist")
+
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         filename = extra.get('filename') if extra else None
-        return {
+        headers = {
+            "x-ms-blob-type": "BlockBlob",
+        }
+        reply = {
             "actions": {
                 "upload": {
                     "href": self._get_signed_url(prefix, oid, expires_in, filename, create=True),
-                    "header": {
-                        "x-ms-blob-type": "BlockBlob",
-                    },
                     "expires_in": expires_in
                 }
             }
         }
 
+        if filename:
+            mime_type = guess_mime_type_from_filename(filename)
+            if mime_type:
+                headers["x-ms-blob-content-type"] = mime_type
+
+        reply["actions"]["upload"]["header"] = headers
+
+        return reply
+
     def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
                             extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         filename = extra.get('filename') if extra else None
+        disposition = extra.get('disposition', 'attachment') if extra else 'attachment'
+
         return {
             "actions": {
                 "download": {
-                    "href": self._get_signed_url(prefix, oid, expires_in, filename, read=True),
+                    "href": self._get_signed_url(prefix, oid, expires_in, filename, disposition=disposition, read=True),
                     "header": {},
                     "expires_in": expires_in
                 }
@@ -104,7 +126,6 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         _log.info("There are %d uncommitted blocks pre-uploaded; %d parts still need to be uploaded",
                   len(uncommitted), len(parts))
         commit_body = self._create_commit_body(blocks)
-
         reply: Dict[str, Any] = {
             "actions": {
                 "commit": {
@@ -123,6 +144,10 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
                 }
             }
         }
+        if filename:
+            mime_type = guess_mime_type_from_filename(filename)
+            if mime_type:
+                reply["actions"]["commit"]["header"]["x-ms-blob-content-type"] = mime_type
 
         if parts:
             reply['actions']['parts'] = parts
@@ -141,14 +166,16 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         return os.path.join(storage_prefix, prefix, oid)
 
     def _get_signed_url(self, prefix: str, oid: str, expires_in: int, filename: Optional[str] = None,
-                        **permissions: bool) -> str:
+                        disposition: Optional[str] = None, **permissions: bool) -> str:
         blob_name = self._get_blob_path(prefix, oid)
         permissions = BlobSasPermissions(**permissions)
         token_expires = (datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in))
 
         extra_args = {}
-        if filename:
-            extra_args['content_disposition'] = f'attachment; filename="{filename}"'
+        if filename and disposition:
+            extra_args['content_disposition'] = f'{disposition}; filename="{filename}"'
+        elif disposition:
+            extra_args['content_disposition'] = f'{disposition};"'
 
         sas_token = generate_blob_sas(account_name=self.blob_svc_client.account_name,
                                       account_key=self.blob_svc_client.credential.account_key,

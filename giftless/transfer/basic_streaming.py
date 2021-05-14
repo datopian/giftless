@@ -83,10 +83,18 @@ class ObjectsView(BaseView):
 
         filename = request.args.get('filename')
         filename = safe_filename(filename)
-        headers = {'Content-Disposition': f'attachment; filename="{filename}"'} if filename else None
+        disposition = request.args.get('disposition')
+
+        headers = {}
+        if filename and disposition:
+            headers = {'Content-Disposition': f'attachment; filename="{filename}"'}
+        elif disposition:
+            headers = {'Content-Disposition': disposition}
 
         if self.storage.exists(path, oid):
             file = self.storage.get(path, oid)
+            mime_type = self.storage.get_mime_type(path, oid)
+            headers['Content-Type'] = mime_type
             return Response(file, direct_passthrough=True, status=200, headers=headers)
         else:
             raise NotFound("The object was not found")

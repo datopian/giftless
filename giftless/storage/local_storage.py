@@ -42,6 +42,11 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
             return os.path.getsize(self._get_path(prefix, oid))
         raise exc.ObjectNotFound("Object was not found")
 
+    def get_mime_type(self, prefix: str, oid: str) -> str:
+        if self.exists(prefix, oid):
+            return "application/octet-stream"
+        raise exc.ObjectNotFound("Object was not found")
+
     def get_multipart_actions(self, prefix: str, oid: str, size: int, part_size: int, expires_in: int,
                               extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         return super().get_multipart_actions(prefix, oid, size, part_size, expires_in, extra)

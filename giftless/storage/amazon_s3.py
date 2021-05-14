@@ -79,9 +79,16 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
             'Bucket': self.bucket_name,
             'Key': self._get_blob_path(prefix, oid)
         }
-        if extra and 'filename' in extra:
-            filename = safe_filename(extra['filename'])
+
+        filename = extra.get('filename') if extra else None
+        disposition = extra.get('disposition', 'attachment') if extra else 'attachment'
+
+        if filename and disposition:
+            filename = safe_filename(filename)
             params['ResponseContentDisposition'] = f'attachment; filename="{filename}"'
+        elif disposition:
+            params['ResponseContentDisposition'] = disposition
+
         response = self.s3_client.generate_presigned_url('get_object',
                                                          Params=params,
                                                          ExpiresIn=expires_in

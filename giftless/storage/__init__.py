@@ -1,3 +1,4 @@
+import mimetypes
 from abc import ABC
 from typing import Any, BinaryIO, Dict, Iterable, Optional
 
@@ -31,6 +32,9 @@ class StreamingStorage(VerifiableStorage, ABC):
 
     def get_size(self, prefix: str, oid: str) -> int:
         pass
+
+    def get_mime_type(self, prefix: str, oid: str) -> Optional[str]:
+        return "application/octet-stream"
 
     def verify_object(self, prefix: str, oid: str, size: int):
         """Verify that an object exists
@@ -85,3 +89,7 @@ class MultipartStorage(VerifiableStorage, ABC):
             return self.get_size(prefix, oid) == size
         except exc.ObjectNotFound:
             return False
+
+
+def guess_mime_type_from_filename(filename: str) -> Optional[str]:
+    return mimetypes.guess_type(filename)[0]
