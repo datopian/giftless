@@ -82,7 +82,7 @@ class ObjectsView(BaseView):
         path = os.path.join(organization, repo)
 
         filename = request.args.get('filename')
-        filename = safe_filename(filename)
+        filename = safe_filename(filename) if filename else None
         disposition = request.args.get('disposition')
 
         headers = {}
