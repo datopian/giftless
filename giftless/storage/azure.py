@@ -1,6 +1,6 @@
 import base64
 import logging
-import os
+import posixpath
 from collections import namedtuple
 from datetime import datetime, timedelta, timezone
 from typing import Any, BinaryIO, Dict, Iterable, List, Optional
@@ -163,7 +163,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             storage_prefix = self.path_prefix[1:]
         else:
             storage_prefix = self.path_prefix
-        return os.path.join(storage_prefix, prefix, oid)
+        return posixpath.join(storage_prefix, prefix, oid)
 
     def _get_signed_url(self, prefix: str, oid: str, expires_in: int, filename: Optional[str] = None,
                         disposition: Optional[str] = None, **permissions: bool) -> str:

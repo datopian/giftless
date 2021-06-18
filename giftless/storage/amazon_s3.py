@@ -1,4 +1,4 @@
-import os
+import posixpath
 from typing import Any, BinaryIO, Dict, Iterable, Optional
 
 import boto3  # type: ignore
@@ -112,7 +112,7 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
             storage_prefix = self.path_prefix[1:]
         else:
             storage_prefix = self.path_prefix
-        return os.path.join(storage_prefix, prefix, oid)
+        return posixpath.join(storage_prefix, prefix, oid)
 
     def _s3_object(self, prefix, oid):
         return self.s3.Object(self.bucket_name, self._get_blob_path(prefix, oid))
