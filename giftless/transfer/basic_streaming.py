@@ -6,7 +6,7 @@ cloud, ...). This module defines an
 interface through which additional streaming backends can be implemented.
 """
 
-import os
+import posixpath
 from typing import Any, Dict, Optional
 
 from flask import Response, request, url_for
@@ -41,7 +41,7 @@ class VerifyView(BaseView):
 
         self._check_authorization(organization, repo, Permission.READ_META, oid=payload['oid'])
 
-        prefix = os.path.join(organization, repo)
+        prefix = posixpath.join(organization, repo)
         if not self.storage.verify_object(prefix, payload['oid'], payload['size']):
             raise InvalidPayload("Object does not exist or size does not match")
         return Response(status=200)
@@ -79,7 +79,7 @@ class ObjectsView(BaseView):
         """Get an file open file stream from local storage
         """
         self._check_authorization(organization, repo, Permission.READ, oid=oid)
-        path = os.path.join(organization, repo)
+        path = posixpath.join(organization, repo)
 
         filename = request.args.get('filename')
         filename = safe_filename(filename) if filename else None
@@ -118,7 +118,7 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
         response = {"oid": oid,
                     "size": size}
 
-        prefix = os.path.join(organization, repo)
+        prefix = posixpath.join(organization, repo)
         if not self.storage.exists(prefix, oid) or self.storage.get_size(prefix, oid) != size:
             response['actions'] = {
                 "upload": {
@@ -142,7 +142,7 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
         response = {"oid": oid,
                     "size": size}
 
-        prefix = os.path.join(organization, repo)
+        prefix = posixpath.join(organization, repo)
         if not self.storage.exists(prefix, oid):
             response['error'] = {
                 "code": 404,

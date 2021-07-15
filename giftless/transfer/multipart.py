@@ -1,7 +1,7 @@
 """Multipart Transfer Adapter
 """
 
-import os
+import posixpath
 from typing import Any, Dict, Optional
 
 from giftless.storage import MultipartStorage, exc
@@ -21,7 +21,7 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
         self.action_lifetime = default_action_lifetime
 
     def upload(self, organization: str, repo: str, oid: str, size: int, extra: Optional[Dict[str, Any]] = None) -> Dict:
-        prefix = os.path.join(organization, repo)
+        prefix = posixpath.join(organization, repo)
         response = {"oid": oid,
                     "size": size}
 
@@ -45,7 +45,7 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
 
     def download(self, organization: str, repo: str, oid: str, size: int,
                  extra: Optional[Dict[str, Any]] = None) -> Dict:
-        prefix = os.path.join(organization, repo)
+        prefix = posixpath.join(organization, repo)
         response = {"oid": oid,
                     "size": size}
 
