@@ -6,7 +6,6 @@ cloud, ...). This module defines an
 interface through which additional streaming backends can be implemented.
 """
 
-import posixpath
 from typing import Any, Dict, Optional
 
 from flask import Response, request, url_for
@@ -18,7 +17,7 @@ from giftless.exc import InvalidPayload, NotFound
 from giftless.schema import ObjectSchema
 from giftless.storage import StreamingStorage, VerifiableStorage
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
-from giftless.util import add_query_params, get_callable, safe_filename
+from giftless.util import add_query_params, get_callable, join, safe_filename
 from giftless.view import BaseView
 
 
@@ -41,7 +40,7 @@ class VerifyView(BaseView):
 
         self._check_authorization(organization, repo, Permission.READ_META, oid=payload['oid'])
 
-        prefix = posixpath.join(organization, repo)
+        prefix = join(organization, repo)
         if not self.storage.verify_object(prefix, payload['oid'], payload['size']):
             raise InvalidPayload("Object does not exist or size does not match")
         return Response(status=200)
@@ -79,7 +78,7 @@ class ObjectsView(BaseView):
         """Get an file open file stream from local storage
         """
         self._check_authorization(organization, repo, Permission.READ, oid=oid)
-        path = posixpath.join(organization, repo)
+        path = join(organization, repo)
 
         filename = request.args.get('filename')
         filename = safe_filename(filename) if filename else None
@@ -118,7 +117,7 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
         response = {"oid": oid,
                     "size": size}
 
-        prefix = posixpath.join(organization, repo)
+        prefix = join(organization, repo)
         if not self.storage.exists(prefix, oid) or self.storage.get_size(prefix, oid) != size:
             response['actions'] = {
                 "upload": {
@@ -142,7 +141,7 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
         response = {"oid": oid,
                     "size": size}
 
-        prefix = posixpath.join(organization, repo)
+        prefix = join(organization, repo)
         if not self.storage.exists(prefix, oid):
             response['error'] = {
                 "code": 404,

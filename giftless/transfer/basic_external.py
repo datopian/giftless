@@ -11,13 +11,12 @@ Different storage backends can be used with this adapter, as long as they
 implement the `ExternalStorage` interface defined here.
 """
 
-import posixpath
 from typing import Any, Dict, Optional
 
 from giftless.storage import ExternalStorage, exc
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
 from giftless.transfer.basic_streaming import VerifyView
-from giftless.util import get_callable
+from giftless.util import get_callable, join
 
 
 class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
@@ -27,7 +26,7 @@ class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewPro
         self.action_lifetime = default_action_lifetime
 
     def upload(self, organization: str, repo: str, oid: str, size: int, extra: Optional[Dict[str, Any]] = None) -> Dict:
-        prefix = posixpath.join(organization, repo)
+        prefix = join(organization, repo)
         response = {"oid": oid,
                     "size": size}
 
@@ -50,7 +49,7 @@ class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewPro
 
     def download(self, organization: str, repo: str, oid: str, size: int,
                  extra: Optional[Dict[str, Any]] = None) -> Dict:
-        prefix = posixpath.join(organization, repo)
+        prefix = join(organization, repo)
         response = {"oid": oid,
                     "size": size}
 

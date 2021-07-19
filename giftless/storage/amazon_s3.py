@@ -1,4 +1,3 @@
-import posixpath
 from typing import Any, BinaryIO, Dict, Iterable, Optional
 
 import boto3  # type: ignore
@@ -6,7 +5,7 @@ import botocore  # type: ignore
 
 from giftless.storage import ExternalStorage, StreamingStorage
 from giftless.storage.exc import ObjectNotFound
-from giftless.util import safe_filename
+from giftless.util import join, safe_filename
 
 
 class AmazonS3Storage(StreamingStorage, ExternalStorage):
@@ -112,7 +111,7 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
             storage_prefix = self.path_prefix[1:]
         else:
             storage_prefix = self.path_prefix
-        return posixpath.join(storage_prefix, prefix, oid)
+        return join(storage_prefix, prefix, oid)
 
     def _s3_object(self, prefix, oid):
         return self.s3.Object(self.bucket_name, self._get_blob_path(prefix, oid))

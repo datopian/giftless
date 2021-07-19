@@ -1,6 +1,7 @@
 """Miscellanea
 """
 import importlib
+import posixpath
 from typing import Any, Callable, Dict, Iterable, Optional
 from urllib.parse import urlencode
 
@@ -68,6 +69,27 @@ def add_query_params(url: str, params: Dict[str, Any]) -> str:
     urlencoded_params = urlencode(params)
     separator = '&' if '?' in url else '?'
     return f'{url}{separator}{urlencoded_params}'
+
+
+def join(path: str, *paths: str) -> str:
+    """Join one or more path components with forward slash separators.
+
+    Modules os.path and posixpath expose the same API.
+    Unlike platorm dependent os.path, posixpath interprets
+    passed paths as forward slash separated.
+    See 'NOTE:' section at: https://docs.python.org/3/library/os.path.html
+
+    >>> import os
+    >>> os.name == 'nt' and os.path.join('a/b', 'c') == 'a/b\\\\c' or \
+        os.name != 'nt' and os.path.join('a/b', 'c') == 'a/b/c'
+    True
+
+    >>> import os
+    >>> os.name == 'nt' and posixpath.join('a/b', 'c') == 'a/b/c' or \
+        os.name != 'nt' and posixpath.join('a/b', 'c') == 'a/b/c'
+    True
+    """
+    return posixpath.join(path, *paths)
 
 
 def safe_filename(original_filename: str) -> str:

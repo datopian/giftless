@@ -1,6 +1,5 @@
 import base64
 import logging
-import posixpath
 from collections import namedtuple
 from datetime import datetime, timedelta, timezone
 from typing import Any, BinaryIO, Dict, Iterable, List, Optional
@@ -11,6 +10,7 @@ from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient, generate_blob_sas  # type: ignore
 
 from giftless.storage import ExternalStorage, MultipartStorage, StreamingStorage, guess_mime_type_from_filename
+from giftless.util import join
 
 from .exc import ObjectNotFound
 
@@ -163,7 +163,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             storage_prefix = self.path_prefix[1:]
         else:
             storage_prefix = self.path_prefix
-        return posixpath.join(storage_prefix, prefix, oid)
+        return join(storage_prefix, prefix, oid)
 
     def _get_signed_url(self, prefix: str, oid: str, expires_in: int, filename: Optional[str] = None,
                         disposition: Optional[str] = None, **permissions: bool) -> str:

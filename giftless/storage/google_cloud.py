@@ -1,7 +1,6 @@
 import base64
 import io
 import json
-import posixpath
 from datetime import timedelta
 from typing import Any, BinaryIO, Dict, Optional
 
@@ -9,6 +8,7 @@ from google.cloud import storage  # type: ignore
 from google.oauth2 import service_account  # type: ignore
 
 from giftless.storage import ExternalStorage, StreamingStorage
+from giftless.util import join
 
 from .exc import ObjectNotFound
 
@@ -90,7 +90,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
             storage_prefix = self.path_prefix[1:]
         else:
             storage_prefix = self.path_prefix
-        return posixpath.join(storage_prefix, prefix, oid)
+        return join(storage_prefix, prefix, oid)
 
     def _get_signed_url(self, prefix: str, oid: str, expires_in: int, http_method: str = 'GET',
                         filename: Optional[str] = None, disposition: Optional[str] = None) -> str:
