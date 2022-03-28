@@ -29,7 +29,7 @@ class VerifyView(BaseView):
     transfer adapters that need a 'verify' action as well.
     """
 
-    route_base = '<organization>/<repo>/objects/storage'
+    route_base = '<organization>/<path:repo>/objects/storage'
 
     def __init__(self, storage: VerifiableStorage):
         self.storage = storage
@@ -57,7 +57,7 @@ class VerifyView(BaseView):
 
 class ObjectsView(BaseView):
 
-    route_base = '<organization>/<repo>/objects/storage'
+    route_base = '<organization>/<path:repo>/objects/storage'
 
     def __init__(self, storage: StreamingStorage):
         self.storage = storage

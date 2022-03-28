@@ -269,8 +269,12 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         oid = None
 
         if scope.entity_ref is not None:
-            id_parts = [p if p != '*' else None for p in scope.entity_ref.split('/', maxsplit=2)]
-            if len(id_parts) == 3:
+            id_parts = [p if p != '*' else None for p in scope.entity_ref.split('/')]
+            if len(id_parts) > 3:
+                organization = id_parts.pop(0)
+                oid = id_parts.pop()
+                repo = '/'.join(id_parts)
+            elif len(id_parts) == 3:
                 organization, repo, oid = id_parts
             elif len(id_parts) == 2:
                 organization, repo = id_parts

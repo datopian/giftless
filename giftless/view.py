@@ -47,7 +47,7 @@ class BaseView(FlaskView):
 class BatchView(BaseView):
     """Batch operations
     """
-    route_base = '<organization>/<repo>/objects/batch'
+    route_base = '<organization>/<path:repo>/objects/batch'
 
     def post(self, organization, repo):
         """Batch operations
