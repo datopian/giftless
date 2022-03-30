@@ -13,11 +13,11 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
     """AWS S3 Blob Storage backend.
     """
 
-    def __init__(self, bucket_name: str, path_prefix: Optional[str] = None, **_):
+    def __init__(self, bucket_name: str, path_prefix: Optional[str] = None, endpoint: Optional[str] = None, **_):
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
-        self.s3 = boto3.resource('s3')
-        self.s3_client = boto3.client('s3')
+        self.s3 = boto3.resource('s3', endpoint_url=endpoint)
+        self.s3_client = boto3.client('s3', endpoint_url=endpoint)
 
     def get(self, prefix: str, oid: str) -> Iterable[bytes]:
         if not self.exists(prefix, oid):
