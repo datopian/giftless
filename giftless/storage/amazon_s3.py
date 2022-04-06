@@ -56,7 +56,8 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         params = {
             'Bucket': self.bucket_name,
-            'Key': self._get_blob_path(prefix, oid)
+            'Key': self._get_blob_path(prefix, oid),
+            'ContentType': 'application/octet-stream',
         }
         response = self.s3_client.generate_presigned_url('put_object',
                                                          Params=params,
@@ -66,7 +67,9 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
             "actions": {
                 "upload": {
                     "href": response,
-                    "header": {},
+                    "header": {
+                        "Content-Type": "application/octet-stream",
+                    },
                     "expires_in": expires_in
                 }
             }

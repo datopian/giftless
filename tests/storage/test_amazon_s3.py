@@ -5,6 +5,7 @@ from typing import Generator
 
 import pytest
 
+from giftless.storage import ExternalStorage
 from giftless.storage.amazon_s3 import AmazonS3Storage
 
 from . import ExternalStorageAbstractTests, StreamingStorageAbstractTests
@@ -60,4 +61,7 @@ def vcr_config():
 
 @pytest.mark.vcr()
 class TestAmazonS3StorageBackend(StreamingStorageAbstractTests, ExternalStorageAbstractTests):
-    pass
+    def test_get_upload_action(self, storage_backend: ExternalStorage):
+        upload = super().test_get_upload_action(storage_backend)
+
+        assert upload['header']['Content-Type'] == 'application/octet-stream'
