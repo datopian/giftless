@@ -1,3 +1,5 @@
+import base64
+import binascii
 import posixpath
 from typing import Any, BinaryIO, Dict, Iterable, Optional
 
@@ -54,10 +56,13 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
 
     def get_upload_action(self, prefix: str, oid: str, size: int, expires_in: int,
                           extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+
+        base64_oid = base64.b64encode(binascii.a2b_hex(oid)).decode('ascii')
         params = {
             'Bucket': self.bucket_name,
             'Key': self._get_blob_path(prefix, oid),
             'ContentType': 'application/octet-stream',
+            'ChecksumSHA256': base64_oid,
         }
         response = self.s3_client.generate_presigned_url('put_object',
                                                          Params=params,
@@ -69,6 +74,7 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
                     "href": response,
                     "header": {
                         "Content-Type": "application/octet-stream",
+                        "x-amz-checksum-sha256": base64_oid,
                     },
                     "expires_in": expires_in
                 }

@@ -1,6 +1,8 @@
 """Tests for the Azure storage backend
 """
 import os
+from base64 import b64decode
+from binascii import unhexlify
 from typing import Generator
 
 import pytest
@@ -8,7 +10,7 @@ import pytest
 from giftless.storage import ExternalStorage
 from giftless.storage.amazon_s3 import AmazonS3Storage
 
-from . import ExternalStorageAbstractTests, StreamingStorageAbstractTests
+from . import ARBITRARY_OID, ExternalStorageAbstractTests, StreamingStorageAbstractTests
 
 TEST_AWS_S3_BUCKET_NAME = 'test-giftless'
 
@@ -66,3 +68,6 @@ class TestAmazonS3StorageBackend(StreamingStorageAbstractTests, ExternalStorageA
         upload = super().test_get_upload_action(storage_backend)
 
         assert upload['header']['Content-Type'] == 'application/octet-stream'
+
+        b64_oid = upload['header']['x-amz-checksum-sha256']
+        assert b64decode(b64_oid) == unhexlify(ARBITRARY_OID)
