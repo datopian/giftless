@@ -3,7 +3,7 @@ import logging
 import posixpath
 from collections import namedtuple
 from datetime import datetime, timedelta, timezone
-from typing import Any, BinaryIO, Dict, Iterable, List, Optional
+from typing import IO, Any, Dict, Iterable, List, Optional
 from urllib.parse import urlencode
 from xml.sax.saxutils import escape as xml_escape
 
@@ -30,7 +30,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
                  enable_content_digest: bool = True, **_):
         self.container_name = container_name
         self.path_prefix = path_prefix
-        self.blob_svc_client = BlobServiceClient.from_connection_string(connection_string)
+        self.blob_svc_client: BlobServiceClient = BlobServiceClient.from_connection_string(connection_string)
         self.enable_content_digest = enable_content_digest
 
     def get(self, prefix: str, oid: str) -> Iterable[bytes]:
@@ -41,10 +41,10 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         except ResourceNotFoundError:
             raise ObjectNotFound("Object does not exist")
 
-    def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
+    def put(self, prefix: str, oid: str, data_stream: IO[bytes]) -> int:
         blob_client = self.blob_svc_client.get_blob_client(container=self.container_name,
                                                            blob=self._get_blob_path(prefix, oid))
-        blob_client.upload_blob(data_stream)
+        blob_client.upload_blob(data_stream)  # type: ignore
         return data_stream.tell()
 
     def exists(self, prefix: str, oid: str) -> bool:
@@ -168,10 +168,10 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
     def _get_signed_url(self, prefix: str, oid: str, expires_in: int, filename: Optional[str] = None,
                         disposition: Optional[str] = None, **permissions: bool) -> str:
         blob_name = self._get_blob_path(prefix, oid)
-        permissions = BlobSasPermissions(**permissions)
+        blob_permissions = BlobSasPermissions(**permissions)
         token_expires = (datetime.now(tz=timezone.utc) + timedelta(seconds=expires_in))
 
-        extra_args = {}
+        extra_args: Dict[str, Any] = {}
         if filename and disposition:
             extra_args['content_disposition'] = f'{disposition}; filename="{filename}"'
         elif disposition:
@@ -181,7 +181,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
                                       account_key=self.blob_svc_client.credential.account_key,
                                       container_name=self.container_name,
                                       blob_name=blob_name,
-                                      permission=permissions,
+                                      permission=blob_permissions,
                                       expiry=token_expires,
                                       **extra_args)
 

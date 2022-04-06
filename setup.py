@@ -19,8 +19,6 @@ setup(
         'webargs',
         'python-dotenv',
         'typing-extensions',
-        # This is currently unsupported by pypi: pull unreleased version of Flask-classful directly from GitHub
-        # 'flask-classful @ https://codeload.github.com/teracyhq/flask-classful/tar.gz/3bbab31705b4aa2903e7e62aa8c5ee70a1e6d789#egg=flask-classful-0.15.0',
         'flask-classful',
     ],
     package_data={}
