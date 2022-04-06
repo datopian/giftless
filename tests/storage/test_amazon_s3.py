@@ -50,6 +50,7 @@ def vcr_config():
     else:
         os.environ['AWS_ACCESS_KEY_ID'] = 'fake'
         os.environ['AWS_SECRET_ACCESS_KEY'] = 'fake'
+        os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
         mode = 'none'
     return {
         "filter_headers": [
