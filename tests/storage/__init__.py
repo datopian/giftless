@@ -95,9 +95,11 @@ class ExternalStorageAbstractTests(_CommonStorageAbstractTests, _VerifiableStora
         upload = action_spec['actions']['upload']
         assert upload['href'][0:4] == 'http'
         assert upload['expires_in'] == 3600
+        return upload
 
     def test_get_download_action(self, storage_backend):
         action_spec = storage_backend.get_download_action('org/repo', ARBITRARY_OID, 100, 7200)
         download = action_spec['actions']['download']
         assert download['href'][0:4] == 'http'
         assert download['expires_in'] == 7200
+        return download

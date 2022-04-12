@@ -1,14 +1,19 @@
-pip-tools==5.5.*
-pytest==5.3.*
-pytest-flake8==1.0.*
-pytest-isort==1.*
-pytest-mypy==0.5.*
-pytest-env==0.6.*
-pytest-cov==2.8.*
-pytest-vcr==1.*
+pip-tools
+pytest
+pytest-flake8
+pytest-isort
+pytest-mypy
+pytest-env
+pytest-cov
+pytest-vcr
+
+types-pytz
+types-jwt
+types-python-dateutil
+types-PyYAML
 
 # Documentation Requirements
-sphinx==3.*
-sphinx-autodoc-typehints[type_comments]==1.*
-recommonmark==0.*
-furo==2021.2.28b28
+sphinx~=4.5
+sphinx-autodoc-typehints[type_comments]
+recommonmark
+furo

@@ -30,7 +30,7 @@ def storage_backend() -> Generator[AzureBlobsStorage, None, None]:
 
     if container_name and connection_str:
         # We use a live Azure container to test
-        client = BlobServiceClient.from_connection_string(connection_str)
+        client: BlobServiceClient = BlobServiceClient.from_connection_string(connection_str)
         try:
             yield AzureBlobsStorage(connection_str, container_name, path_prefix=prefix)
         finally:

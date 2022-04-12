@@ -19,7 +19,7 @@ interactions:
       x-ms-version:
       - '2019-07-07'
     method: HEAD
-    uri: https://my-account.blob.core.windows.net/my-container/giftless-tests%2Forg%2Frepo%2F2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+    uri: https://my-account.blob.core.windows.net/my-container/giftless-tests/org/repo/2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
   response:
     body:
       string: ''
