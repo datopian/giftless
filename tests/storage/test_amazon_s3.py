@@ -1,13 +1,16 @@
 """Tests for the Azure storage backend
 """
 import os
+from base64 import b64decode
+from binascii import unhexlify
 from typing import Generator
 
 import pytest
 
+from giftless.storage import ExternalStorage
 from giftless.storage.amazon_s3 import AmazonS3Storage
 
-from . import ExternalStorageAbstractTests, StreamingStorageAbstractTests
+from . import ARBITRARY_OID, ExternalStorageAbstractTests, StreamingStorageAbstractTests
 
 TEST_AWS_S3_BUCKET_NAME = 'test-giftless'
 
@@ -49,6 +52,7 @@ def vcr_config():
     else:
         os.environ['AWS_ACCESS_KEY_ID'] = 'fake'
         os.environ['AWS_SECRET_ACCESS_KEY'] = 'fake'
+        os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
         mode = 'none'
     return {
         "filter_headers": [
@@ -60,4 +64,10 @@ def vcr_config():
 
 @pytest.mark.vcr()
 class TestAmazonS3StorageBackend(StreamingStorageAbstractTests, ExternalStorageAbstractTests):
-    pass
+    def test_get_upload_action(self, storage_backend: ExternalStorage):
+        upload = super().test_get_upload_action(storage_backend)
+
+        assert upload['header']['Content-Type'] == 'application/octet-stream'
+
+        b64_oid = upload['header']['x-amz-checksum-sha256']
+        assert b64decode(b64_oid) == unhexlify(ARBITRARY_OID)
