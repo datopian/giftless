@@ -79,7 +79,7 @@ requirements.txt: requirements.in
 dev-requirements.txt: dev-requirements.in requirements.txt
 	$(PIP_COMPILE) --no-emit-index-url -o dev-requirements.txt dev-requirements.in
 
-$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl: $(SOURCE_FILES) setup.py | $(SENTINELS)/dist-setup
+$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl: $(SOURCE_FILES) setup.py VERSION README.md | $(SENTINELS)/dist-setup
 	$(PYTHON) setup.py sdist bdist_wheel
 
 $(SENTINELS):
