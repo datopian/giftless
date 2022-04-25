@@ -24,6 +24,8 @@ SOURCE_FILES := $(shell find $(PACKAGE_DIRS) $(TESTS_DIR) -type f -name "*.py")
 SENTINELS := .make-cache
 DIST_DIR := dist
 
+PYVER := $(shell $(PYTHON) -c "import sys;print(f'{sys.version_info[0]}{sys.version_info[1]}')")
+
 default: help
 
 ## Regenerate requirements files
@@ -69,10 +71,13 @@ docs-html:
 .PHONY: test docker release dist distclean requirements docs-html
 
 requirements.txt: requirements.in
-	$(PIP_COMPILE) --no-index --output-file=requirements.txt requirements.in
+	@if [ "$(PYVER)" != "37" ]; then \
+		echo "Run pip-compile under Python 3.7. See requirements.in"; exit 1; \
+	fi
+	$(PIP_COMPILE) --no-emit-index-url -o requirements.txt requirements.in
 
-dev-requirements.txt: dev-requirements.in
-	$(PIP_COMPILE) --no-index --output-file=dev-requirements.txt dev-requirements.in
+dev-requirements.txt: dev-requirements.in requirements.txt
+	$(PIP_COMPILE) --no-emit-index-url -o dev-requirements.txt dev-requirements.in
 
 $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl: $(SOURCE_FILES) setup.py | $(SENTINELS)/dist-setup
 	$(PYTHON) setup.py sdist bdist_wheel

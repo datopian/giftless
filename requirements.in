@@ -20,3 +20,7 @@ flask-classful~=0.15.0b1
 azure-storage-blob~=12.11
 google-cloud-storage~=1.28
 boto3~=1.21
+
+# https://github.com/PyCQA/flake8/pull/1438
+# pip-compile doesn't support env specifiers, so we need to run it under Py3.7
+importlib-metadata<4.3; python_version < '3.8'
