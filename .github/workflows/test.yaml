@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [ 3.7, 3.8 ]
+        python-version: [ "3.7", "3.8", "3.9", "3.10" ]
     steps:
       - uses: actions/checkout@v2
       - name: Install Python 3
@@ -20,7 +20,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set up the test environment
-        run: make dev-setup
+        run: |
+          touch requirements.txt dev-requirements.txt
+          make dev-setup
       - name: Run tests
         run: |
           make test PYTEST_EXTRA_ARGS="--cov=giftless"
