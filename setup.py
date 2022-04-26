@@ -21,5 +21,5 @@ setup(
         'typing-extensions',
         'flask-classful',
     ],
-    package_data={}
+    include_package_data=True
 )
