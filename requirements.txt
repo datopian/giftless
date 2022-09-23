@@ -92,7 +92,7 @@ oauthlib==3.2.0
     # via requests-oauthlib
 packaging==21.3
     # via marshmallow
-protobuf==3.20.1
+protobuf==3.20.2
     # via
     #   google-api-core
     #   google-cloud-storage
