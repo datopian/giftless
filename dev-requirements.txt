@@ -216,7 +216,7 @@ vcrpy==4.1.1
     # via pytest-vcr
 virtualenv==20.14.1
     # via tox
-wheel==0.37.1
+wheel==0.38.1
     # via pip-tools
 wrapt==1.14.0
     # via vcrpy
