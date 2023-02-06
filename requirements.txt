@@ -88,7 +88,7 @@ marshmallow-enum==1.5.1
     # via -r requirements.in
 msrest==0.6.21
     # via azure-storage-blob
-oauthlib==3.2.0
+oauthlib==3.2.2
     # via requests-oauthlib
 packaging==21.3
     # via marshmallow
