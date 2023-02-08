@@ -26,7 +26,7 @@ charset-normalizer==2.0.12
     # via requests
 click==8.1.2
     # via flask
-cryptography==36.0.2
+cryptography==39.0.1
     # via
     #   -r requirements.in
     #   azure-storage-blob
