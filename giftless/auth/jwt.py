@@ -192,9 +192,9 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
     def _authenticate(self, request: Request):
         """Authenticate a request
         """
-        token = self._get_token_from_headers(request)
+        token = self._get_token_from_qs(request)
         if token is None:
-            token = self._get_token_from_qs(request)
+            token = self._get_token_from_headers(request)
         if token is None:
             return None
 
