@@ -53,6 +53,25 @@ def test_jwt_can_authorize_request_token_in_qs(app):
     assert identity.id == 'some-user-id'
 
 
+def test_jwt_first_look_for_token_in_qs_then_in_header(app):
+    """Test that JWT authorizer first looks for token in query string and later in Authorization header if not found
+    """
+    authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm='HS256')
+    valid_token = _get_test_token()
+    expired_token = _get_test_token(lifetime=-600, user_id='expired-token-user-id')
+    with app.test_request_context(f'/myorg/myrepo/objects/batch?jwt={valid_token}', method='POST', headers={
+        "Authorization": f'Bearer {expired_token}'
+    }):
+        identity = authz(flask.request)
+    assert identity.id == 'some-user-id'
+
+    with app.test_request_context(f'/myorg/myrepo/objects/batch?jwt={expired_token}', method='POST', headers={
+        "Authorization": f'Bearer {valid_token}'
+    }):
+        with pytest.raises(Unauthorized):
+            authz(flask.request)
+
+
 def test_jwt_can_authorize_request_token_as_basic_password(app):
     """Test that we can pass a JWT token as 'Basic' authorization password
     """
@@ -249,9 +268,9 @@ def test_scope_stringify(scope, expected):
     assert expected == str(scope)
 
 
-def _get_test_token(lifetime=300, headers=None, algo='HS256', **kwargs):
+def _get_test_token(lifetime=300, headers=None, algo='HS256', user_id='some-user-id', **kwargs):
     payload = {"exp": datetime.now(tz=pytz.utc) + timedelta(seconds=lifetime),
-               "sub": 'some-user-id'}
+               "sub": user_id}
 
     payload.update(kwargs)
 
