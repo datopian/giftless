@@ -106,15 +106,6 @@ git clone fake-remote-repo local-repo
 cd local-repo
 ```
 
-Create some files and add them to git:
-```shell
-# This README file will be committed to Git as usual
-echo "# This is a Giftless test" > README.md
-# Let's also create a 1mb binary file which we'll want to store in Git LFS 
-dd if=/dev/zero of=1mb-blob.bin bs=1024 count=1024
-git add README.md 1mb-blob.bin
-```
-
 Enable Git LFS and tell it to track `.bin` files:
 ```shell
 git lfs install
@@ -142,12 +133,22 @@ configuration as us when cloning the repository:
 ```shell
 git add .gitattributes .lfsconfig
 ```
-
+Create some files and add them to git:
+```shell
+# This README file will be committed to Git as usual
+echo "# This is a Giftless test" > README.md
+# Let's also create a 1mb binary file which we'll want to store in Git LFS 
+dd if=/dev/zero of=1mb-blob.bin bs=1024 count=1024
+git add README.md 1mb-blob.bin
+```
 Commit all the files we have staged:
 ```shell
 git commit -m "Adding some files to track"
 ```
-
+Before pushing we need to disable locking of the files:
+```shell
+git config lfs.locksverify false
+```
 Finally, let's push our tracked files to Git LFS:
 ```shell
 git push -u origin master
