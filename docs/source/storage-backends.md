@@ -106,6 +106,12 @@ TRANSFER_ADAPTERS:
         bucket_name: git-lfs
         account_key_base64: S0m3B4se64RandomStuff.....ThatI5Redac7edHeReF0rRead4b1lity==
 ```
+
+If you have Workload Identity configured, you can omit the account key
+entirely, in which case you will need to supply `serviceaccount_email`
+instead to define which Google service account to bind to.  That service
+account must have the ability to issue tokens in order to generate
+signed URLs.
 ### Amazon S3 Storage
 
 #### `giftless.storage.amazon_s3:AmazonS3Storage`
