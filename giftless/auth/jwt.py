@@ -5,8 +5,13 @@ from typing import Any, Dict, Optional, Set, Union
 import jwt
 from dateutil.tz import UTC
 from flask import Request
-from werkzeug import Authorization
-
+NEW_WERKZEUG=False
+try:
+    from werkzeug import Authorization  # type: ignore
+    NEW_WERKZEUG=True
+except ImportError:
+    from werkzeug.http import parse_authorization_header
+    
 from giftless.auth import PreAuthorizedActionAuthenticator, Unauthorized
 from giftless.auth.identity import DefaultIdentity, Identity, Permission
 from giftless.util import to_iterable
@@ -238,7 +243,10 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             self._log.debug("Found token in Authorization: Bearer header")
             return payload
         elif authz_type.lower() == 'basic' and self.basic_auth_user:
-            parsed_header = Authorization.from_header(header)
+            if NEW_WERKZEUG:
+                parsed_header = Authorization(header)
+            else:
+                parsed_header = parse_authorization_header(header)
             if parsed_header and parsed_header.username == self.basic_auth_user:
                 self._log.debug("Found token in Authorization: Basic header")
                 return str(parsed_header.password)
