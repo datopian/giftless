@@ -11,3 +11,4 @@
 /.coverage
 /.make-cache
 /.tox
+/.DS_Store
