@@ -13,7 +13,7 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
     While it can be used in production, large scale deployment will most likely
     want to use a more scalable solution such as one of the cloud storage backends.
     """
-    def __init__(self, path: str = None, **_):
+    def __init__(self, path: Optional[str] = None, **_) -> None:
         if path is None:
             path = 'lfs-storage'
         self.path = path
@@ -49,11 +49,11 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
 
     def get_multipart_actions(self, prefix: str, oid: str, size: int, part_size: int, expires_in: int,
                               extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        return super().get_multipart_actions(prefix, oid, size, part_size, expires_in, extra)
+        return {}
 
     def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
                             extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        return super().get_download_action(prefix, oid, size, expires_in, extra)
+        return {}
 
     def register_views(self, app):
         super().register_views(app)

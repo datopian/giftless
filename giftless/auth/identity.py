@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
 from typing import Dict, Optional, Set
@@ -29,6 +29,7 @@ class Identity(ABC):
     id: Optional[str] = None
     email: Optional[str] = None
 
+    @abstractmethod
     def is_authorized(self, organization: str, repo: str, permission: Permission, oid: Optional[str] = None) -> bool:
         """Tell if user is authorized to perform an operation on an object / repo
         """

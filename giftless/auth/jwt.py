@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, Set, Union
 import jwt
 from dateutil.tz import UTC
 from flask import Request
-from werkzeug.http import parse_authorization_header
+from werkzeug import Authorization
 
 from giftless.auth import PreAuthorizedActionAuthenticator, Unauthorized
 from giftless.auth.identity import DefaultIdentity, Identity, Permission
@@ -187,7 +187,13 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         if self.key_id:
             headers['kid'] = self.key_id
 
-        return jwt.encode(payload, self.private_key, algorithm=self.algorithm, headers=headers)
+        # This is weird.  The jwt 2.x docs say this is `str`.  That's a
+        # change from 1.x, where it was `bytes`.  But the typing still
+        # seems to think it's bytes.  So...
+        token = jwt.encode(payload, self.private_key, algorithm=self.algorithm, headers=headers)
+        if type(token) is str:
+            return token  # type: ignore
+        return token.decode('ascii')
 
     def _authenticate(self, request: Request) -> Any:
         """Authenticate a request
@@ -232,10 +238,10 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             self._log.debug("Found token in Authorization: Bearer header")
             return payload
         elif authz_type.lower() == 'basic' and self.basic_auth_user:
-            parsed_header = parse_authorization_header(header)
+            parsed_header = Authorization.from_header(header)
             if parsed_header and parsed_header.username == self.basic_auth_user:
                 self._log.debug("Found token in Authorization: Basic header")
-                return parsed_header.password
+                return str(parsed_header.password)
 
         return None
 
