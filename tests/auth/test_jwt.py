@@ -263,4 +263,4 @@ def _get_test_token(lifetime=300, headers=None, algo='HS256', **kwargs):
     else:
         raise ValueError("Don't know how to test algo: {}".format(algo))
 
-    return jwt.encode(payload, key, algorithm=algo, headers=headers).decode('utf8')
+    return jwt.encode(payload, key, algorithm=algo, headers=headers)

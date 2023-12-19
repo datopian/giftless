@@ -151,7 +151,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         if lifetime:
             token_payload['exp'] = datetime.now(tz=UTC) + timedelta(seconds=lifetime)
 
-        return self._generate_token(**token_payload).decode('ascii')
+        return self._generate_token(**token_payload)
 
     @staticmethod
     def _generate_action_scopes(org: str, repo: str, actions: Optional[Set[str]] = None, oid: Optional[str] = None) \
@@ -163,7 +163,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         obj_id = f'{org}/{repo}/{oid}'
         return str(Scope('obj', obj_id, actions))
 
-    def _generate_token(self, **kwargs) -> bytes:
+    def _generate_token(self, **kwargs) -> str:
         """Generate a JWT token that can be used later to authenticate a request
         """
         if not self.private_key:
@@ -187,7 +187,13 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         if self.key_id:
             headers['kid'] = self.key_id
 
-        return jwt.encode(payload, self.private_key, algorithm=self.algorithm, headers=headers)  # type: ignore
+        token = jwt.encode(payload, self.private_key, algorithm=self.algorithm, headers=headers)
+        # Type of jwt.encode() went from bytes to str in jwt 2.x, but the
+        # typing hints somehow aren't keeping up.  This lets us do the
+        # right thing with jwt 2.x.
+        if type(token) == str:
+            return token  # type: ignore
+        return token.decode('ascii')
 
     def _authenticate(self, request: Request):
         """Authenticate a request
