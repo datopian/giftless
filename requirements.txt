@@ -70,7 +70,7 @@ idna==3.6
     # via
     #   anyio
     #   requests
-importlib-metadata==4.2.0 ; python_version < "3.11"
+importlib-metadata==7.0.0 ; python_version < "3.11"
     # via -r requirements.in
 isodate==0.6.1
     # via azure-storage-blob

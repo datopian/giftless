@@ -191,7 +191,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         # Type of jwt.encode() went from bytes to str in jwt 2.x, but the
         # typing hints somehow aren't keeping up.  This lets us do the
         # right thing with jwt 2.x.
-        if type(token) == str:
+        if isinstance(token, str):
             return token  # type: ignore
         return token.decode('ascii')
 
