@@ -12,7 +12,7 @@ cryptography>=3.2  # not direct dependency, but pin to >=3.2 due to vulnerabilit
 
 flask-classful~=0.16
 
-werkzeug<3
+werkzeug==3.*
 
 # Storage backend dependencies
 # TODO: Split these out so users don't have to install all of them

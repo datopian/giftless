@@ -51,7 +51,9 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
 
 class Authentication:
 
-    def __init__(self, app=None, default_identity: Identity = None):
+    def __init__(
+        self, app=None, default_identity: Optional[Identity] = None
+    ) -> None:
         self._default_identity = default_identity
         self._authenticators: List[Authenticator] = []
         self._unauthorized_handler: Optional[Callable] = None
