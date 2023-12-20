@@ -95,6 +95,7 @@ packaging==23.2
     # via
     #   flask-marshmallow
     #   marshmallow
+    #   webargs
 protobuf==4.25.1
     # via
     #   google-api-core
@@ -114,7 +115,7 @@ python-dateutil==2.8.2
     # via
     #   -r requirements.in
     #   botocore
-python-dotenv==0.13.0
+python-dotenv==1.0.0
     # via -r requirements.in
 pyyaml==6.0.1
     # via -r requirements.in
@@ -145,7 +146,7 @@ urllib3==2.0.7
     # via
     #   botocore
     #   requests
-webargs==5.5.3
+webargs==8.3.0
     # via -r requirements.in
 werkzeug==3.0.1
     # via
