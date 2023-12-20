@@ -36,7 +36,7 @@ def storage_backend() -> Generator[AzureBlobsStorage, None, None]:
         finally:
             container = client.get_container_client(container_name)
             try:
-                for blob in container.list_blobs(name_starts_with=prefix):
+                for blob in container.list_blob_names(name_starts_with=prefix):
                     container.delete_blob(blob)
             except AzureError:
                 pass

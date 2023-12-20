@@ -12,9 +12,9 @@ azure-storage-blob==12.19.0
     # via -r requirements.in
 blinker==1.7.0
     # via flask
-boto3==1.34.4
+boto3==1.34.5
     # via -r requirements.in
-botocore==1.34.4
+botocore==1.34.5
     # via
     #   boto3
     #   s3transfer
@@ -43,7 +43,7 @@ flask==2.3.3
     #   flask-marshmallow
 flask-classful==0.16.0
     # via -r requirements.in
-flask-marshmallow==0.11.0
+flask-marshmallow==0.15.0
     # via -r requirements.in
 google-api-core==2.15.0
     # via
@@ -92,7 +92,9 @@ marshmallow==3.20.1
 marshmallow-enum==1.5.1
     # via -r requirements.in
 packaging==23.2
-    # via marshmallow
+    # via
+    #   flask-marshmallow
+    #   marshmallow
 protobuf==4.25.1
     # via
     #   google-api-core
@@ -128,7 +130,6 @@ s3transfer==0.9.0
 six==1.16.0
     # via
     #   azure-core
-    #   flask-marshmallow
     #   google-cloud-storage
     #   isodate
     #   python-dateutil
