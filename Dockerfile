@@ -2,7 +2,7 @@
 
 ### --- Build Depdendencies ---
 
-FROM python:3.7 as builder
+FROM python:3.10 as builder
 MAINTAINER "Shahar Evron <shahar.evron@datopian.com>"
 
 # Build wheels for uWSGI and all requirements
@@ -19,7 +19,7 @@ RUN pip wheel -w /wheels -r /requirements.txt
 
 ### --- Build Final Image ---
 
-FROM python:3.7-slim
+FROM python:3.10-slim
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && apt-get install -y libpcre3 libxml2 tini \

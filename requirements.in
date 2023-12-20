@@ -10,10 +10,9 @@ python-dotenv==0.13.*
 python-dateutil==2.*
 cryptography>=3.2  # not direct dependency, but pin to >=3.2 due to vulnerabilities
 
-# For now we are using a development version of Flask-Classful which supports
-# passing init arguments to view classes when they are registered. Hopefully
-# it is released as 0.15 soon and we can start pinning to it.
-flask-classful~=0.15.0b1
+flask-classful~=0.16
+
+werkzeug<3
 
 # Storage backend dependencies
 # TODO: Split these out so users don't have to install all of them
@@ -22,5 +21,4 @@ google-cloud-storage~=1.28
 boto3~=1.21
 
 # https://github.com/PyCQA/flake8/pull/1438
-# pip-compile doesn't support env specifiers, so we need to run it under Py3.7
-importlib-metadata<4.3; python_version < '3.8'
+importlib-metadata<4.3; python_version < '3.11'

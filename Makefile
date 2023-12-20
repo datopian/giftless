@@ -71,9 +71,6 @@ docs-html:
 .PHONY: test docker release dist distclean requirements docs-html
 
 requirements.txt: requirements.in
-	@if [ "$(PYVER)" != "37" ]; then \
-		echo "Run pip-compile under Python 3.7. See requirements.in"; exit 1; \
-	fi
 	$(PIP_COMPILE) --no-emit-index-url -o requirements.txt requirements.in
 
 dev-requirements.txt: dev-requirements.in requirements.txt

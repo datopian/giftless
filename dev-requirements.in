@@ -10,6 +10,7 @@ pytest-env
 pytest-cov
 pytest-vcr
 
+pytz
 types-pytz
 types-jwt
 types-python-dateutil
