@@ -6,6 +6,7 @@ cloud, ...). This module defines an
 interface through which additional streaming backends can be implemented.
 """
 
+import marshmallow
 import posixpath
 from typing import Any, Dict, Optional
 
@@ -36,7 +37,7 @@ class VerifyView(BaseView):
 
     @route('/verify', methods=['POST'])
     def verify(self, organization, repo):
-        schema = ObjectSchema()
+        schema = ObjectSchema(unknown=marshmallow.EXCLUDE)
         payload = parser.parse(schema)
 
         self._check_authorization(organization, repo, Permission.READ_META, oid=payload['oid'])

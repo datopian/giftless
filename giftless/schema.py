@@ -1,5 +1,6 @@
 """Schema for Git LFS APIs
 """
+import marshmallow
 from enum import Enum
 
 from flask_marshmallow import Marshmallow  # type: ignore
@@ -50,4 +51,4 @@ class BatchRequest(ma.Schema):  # type: ignore
     objects = fields.Nested(ObjectSchema, validate=validate.Length(min=1), many=True, required=True)
 
 
-batch_request_schema = BatchRequest()
+batch_request_schema = BatchRequest(unknown=marshmallow.EXCLUDE)
