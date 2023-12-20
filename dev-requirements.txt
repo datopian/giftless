@@ -12,11 +12,18 @@ babel==2.14.0
     # via sphinx
 beautifulsoup4==4.12.2
     # via furo
+boto3-stubs==1.34.5
+    # via -r dev-requirements.in
+botocore-stubs==1.34.5
+    # via
+    #   -r dev-requirements.in
+    #   boto3-stubs
 build==1.0.3
     # via pip-tools
 cachetools==5.3.2
     # via
     #   -c requirements.txt
+    #   google-auth
     #   tox
 certifi==2023.11.17
     # via
@@ -59,6 +66,16 @@ flake8==6.1.0
     # via pytest-flake8
 furo==2022.9.29
     # via -r dev-requirements.in
+google-auth==2.25.2
+    # via
+    #   -c requirements.txt
+    #   google-auth-stubs
+google-auth-stubs==0.2.0
+    # via -r dev-requirements.in
+grpc-stubs==1.53.0.3
+    # via google-auth-stubs
+grpcio==1.60.0
+    # via grpc-stubs
 idna==3.6
     # via
     #   -c requirements.txt
@@ -104,6 +121,15 @@ pluggy==1.3.0
     # via
     #   pytest
     #   tox
+pyasn1==0.5.1
+    # via
+    #   -c requirements.txt
+    #   pyasn1-modules
+    #   rsa
+pyasn1-modules==0.3.0
+    # via
+    #   -c requirements.txt
+    #   google-auth
 pycodestyle==2.11.1
     # via flake8
 pyflakes==3.1.0
@@ -149,6 +175,10 @@ requests==2.31.0
     # via
     #   -c requirements.txt
     #   sphinx
+rsa==4.9
+    # via
+    #   -c requirements.txt
+    #   google-auth
 snowballstemmer==2.2.0
     # via sphinx
 soupsieve==2.5
@@ -191,6 +221,8 @@ tomli==2.0.1
     #   tox
 tox==4.11.4
     # via -r dev-requirements.in
+types-awscrt==0.20.0
+    # via botocore-stubs
 types-cryptography==3.3.23.2
     # via types-jwt
 types-jwt==0.1.3
@@ -201,14 +233,20 @@ types-pytz==2023.3.1.1
     # via -r dev-requirements.in
 types-pyyaml==6.0.12.12
     # via -r dev-requirements.in
+types-requests==2.31.0.10
+    # via google-auth-stubs
+types-s3transfer==0.9.0
+    # via boto3-stubs
 typing-extensions==4.9.0
     # via
     #   -c requirements.txt
+    #   boto3-stubs
     #   mypy
 urllib3==2.0.7
     # via
     #   -c requirements.txt
     #   requests
+    #   types-requests
 vcrpy==5.1.0
     # via pytest-vcr
 virtualenv==20.25.0

@@ -16,6 +16,10 @@ types-jwt
 types-python-dateutil
 types-PyYAML
 
+boto3-stubs
+botocore-stubs
+google-auth-stubs
+
 # Documentation Requirements
 recommonmark
 furo
