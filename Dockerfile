@@ -11,7 +11,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update \
 RUN pip install -U pip
 RUN mkdir /wheels
 
-ARG UWSGI_VERSION=2.0.18
+ARG UWSGI_VERSION=2.0.20
 RUN pip wheel -w /wheels uwsgi==$UWSGI_VERSION
 
 COPY requirements.txt /
