@@ -4,6 +4,8 @@ flask-marshmallow~=0.15
 marshmallow-enum~=1.5
 pyyaml~=6.0
 PyJWT~=2.4
+# FIXME advancing webargs to 6 or beyond gives a 422 when doing git LFS.
+# Come back and figure out why so we can get current.
 webargs~=5.5
 typing-extensions~=4.9
 python-dotenv~=1.0
@@ -16,9 +18,9 @@ werkzeug~=3.0
 
 # Storage backend dependencies
 # TODO: Split these out so users don't have to install all of them
-azure-storage-blob~=12.11
-google-cloud-storage~=1.28
-boto3~=1.21
+azure-storage-blob~=12.19
+google-cloud-storage~=2.14
+boto3~=1.34
 
 # https://github.com/PyCQA/flake8/pull/1438
 importlib-metadata<4.3; python_version < '3.11'
