@@ -6,10 +6,10 @@ cloud, ...). This module defines an
 interface through which additional streaming backends can be implemented.
 """
 
-import marshmallow
 import posixpath
 from typing import Any, Dict, Optional
 
+import marshmallow
 from flask import Response, request, url_for
 from flask_classful import route
 from webargs.flaskparser import parser  # type: ignore

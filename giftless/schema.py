@@ -1,8 +1,8 @@
 """Schema for Git LFS APIs
 """
-import marshmallow
 from enum import Enum
 
+import marshmallow
 from flask_marshmallow import Marshmallow  # type: ignore
 from marshmallow import fields, pre_load, validate
 from marshmallow_enum import EnumField
