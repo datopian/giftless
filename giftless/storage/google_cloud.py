@@ -3,9 +3,9 @@ import io
 import json
 import posixpath
 from datetime import timedelta
-from typing import Any, BinaryIO, Dict, Optional
+from typing import Any, BinaryIO, Dict, Optional, Union
 
-import google.auth
+import google.auth  # type: ignore
 from google.auth import impersonated_credentials
 from google.cloud import storage  # type: ignore
 from google.oauth2 import service_account  # type: ignore
@@ -30,7 +30,11 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
                  **_):
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
-        self.credentials: Optional[service_account.Credentials] = self._load_credentials(account_key_file, account_key_base64)
+        self.credentials: Optional[Union[
+            service_account.Credentials, impersonated_credentials.Credentials
+        ]] = self._load_credentials(
+            account_key_file, account_key_base64
+        )
         self.storage_client = storage.Client(project=project_name, credentials=self.credentials)
         if not self.credentials:
             if not serviceaccount_email:
@@ -38,7 +42,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
                     "If no account key is given, serviceaccount_email must "
                     "be set in order to use workload identity."
                 )
-            self._serviceaccount_email=serviceaccount_email
+            self._serviceaccount_email = serviceaccount_email
 
     def get(self, prefix: str, oid: str) -> BinaryIO:
         bucket = self.storage_client.bucket(self.bucket_name)
@@ -137,7 +141,9 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         else:
             return None  # Will use Workload Identity if available
 
-    def _get_workload_identity_credentials(self, expires_in: int) -> None:
+    def _get_workload_identity_credentials(
+        self, expires_in: int
+    ) -> impersonated_credentials.Credentials:
         lifetime = expires_in
         if lifetime > 3600:
             lifetime = 3600  # Signing credentials are good for one hour max
