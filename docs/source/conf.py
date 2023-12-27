@@ -11,10 +11,12 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+
+from recommonmark.transform import AutoStructify
+
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-from recommonmark.transform import AutoStructify
 
 # -- Project information -----------------------------------------------------
 

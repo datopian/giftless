@@ -5,7 +5,7 @@ import posixpath
 from datetime import timedelta
 from typing import Any, BinaryIO, Dict, Optional, Union
 
-import google.auth  # type: ignore
+import google.auth
 from google.auth import impersonated_credentials
 from google.cloud import storage  # type: ignore
 from google.oauth2 import service_account  # type: ignore

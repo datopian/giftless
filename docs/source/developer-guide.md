@@ -8,7 +8,7 @@ endpoint implementation with Flask
 input / output serialization and validation
 * [figcan](https://github.com/shoppimon/figcan) for configuration handling
 
-You must have Python 3.7 and newer set up to run or develop `giftless`.
+You must have Python 3.10 or newer set up to run or develop `giftless`.
 
 ## Code Style
 We use the following tools and standards to write `giftless` code:

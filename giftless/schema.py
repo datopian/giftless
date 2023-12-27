@@ -2,6 +2,7 @@
 """
 from enum import Enum
 
+import marshmallow
 from flask_marshmallow import Marshmallow  # type: ignore
 from marshmallow import fields, pre_load, validate
 from marshmallow_enum import EnumField
@@ -50,4 +51,4 @@ class BatchRequest(ma.Schema):  # type: ignore
     objects = fields.Nested(ObjectSchema, validate=validate.Length(min=1), many=True, required=True)
 
 
-batch_request_schema = BatchRequest()
+batch_request_schema = BatchRequest(unknown=marshmallow.EXCLUDE)

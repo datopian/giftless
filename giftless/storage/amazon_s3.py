@@ -3,8 +3,8 @@ import binascii
 import posixpath
 from typing import Any, BinaryIO, Dict, Iterable, Optional
 
-import boto3  # type: ignore
-import botocore  # type: ignore
+import boto3
+import botocore
 
 from giftless.storage import ExternalStorage, StreamingStorage
 from giftless.storage.exc import ObjectNotFound
