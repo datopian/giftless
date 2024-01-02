@@ -1,6 +1,6 @@
 """Flask-Classful View Classes
 """
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from flask_classful import FlaskView
 from webargs.flaskparser import parser  # type: ignore
@@ -35,13 +35,17 @@ class BaseView(FlaskView):
     def _check_authorization(cls, organization, repo, permission, oid=None):
         """Check the current user is authorized to perform an action and raise an exception otherwise"""
         if not cls._is_authorized(organization, repo, permission, oid):
-            raise exc.Forbidden("Your are not authorized to perform this action")
+            raise exc.Forbidden(
+                "Your are not authorized to perform this action"
+            )
 
     @staticmethod
     def _is_authorized(organization, repo, permission, oid=None):
         """Check the current user is authorized to perform an action"""
         identity = authn.get_identity()
-        return identity and identity.is_authorized(organization, repo, permission, oid)
+        return identity and identity.is_authorized(
+            organization, repo, permission, oid
+        )
 
 
 class BatchView(BaseView):
@@ -76,14 +80,18 @@ class BatchView(BaseView):
                 raise
 
         response = {"transfer": transfer_type}
-        action = adapter.get_action(payload["operation"].value, organization, repo)
+        action = adapter.get_action(
+            payload["operation"].value, organization, repo
+        )
         response["objects"] = [action(**o) for o in payload["objects"]]
 
         if all(self._is_error(o, 404) for o in response["objects"]):
             raise exc.NotFound("Cannot find any of the requested objects")
 
         if all(self._is_error(o) for o in response["objects"]):
-            raise exc.InvalidPayload("Cannot validate any of the requested objects")
+            raise exc.InvalidPayload(
+                "Cannot validate any of the requested objects"
+            )
 
         # TODO: Check Accept header
         # TODO: do we need an output schema?
@@ -91,7 +99,7 @@ class BatchView(BaseView):
         return response
 
     @staticmethod
-    def _is_error(obj: Dict[str, Any], code: Optional[int] = None):
+    def _is_error(obj: dict[str, Any], code: Optional[int] = None):
         try:
             return obj["error"]["code"] == code or code is None
         except KeyError:

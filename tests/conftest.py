@@ -7,7 +7,7 @@ from giftless.app import init_app
 from giftless.auth import allow_anon, authentication
 
 
-@pytest.fixture()
+@pytest.fixture
 def storage_path(tmp_path):
     path = tmp_path / "lfs-tests"
     path.mkdir()
@@ -17,14 +17,16 @@ def storage_path(tmp_path):
         shutil.rmtree(path)
 
 
-@pytest.fixture()
+@pytest.fixture
 def app(storage_path):
     """Session fixture to configure the Flask app"""
     app = init_app(
         additional_config={
             "TESTING": True,
             "TRANSFER_ADAPTERS": {
-                "basic": {"options": {"storage_options": {"path": storage_path}}}
+                "basic": {
+                    "options": {"storage_options": {"path": storage_path}}
+                }
             },
         }
     )
@@ -32,7 +34,7 @@ def app(storage_path):
     return app
 
 
-@pytest.fixture()
+@pytest.fixture
 def app_context(app):
     ctx = app.app_context()
     try:
@@ -42,13 +44,13 @@ def app_context(app):
         ctx.pop()
 
 
-@pytest.fixture()
+@pytest.fixture
 def test_client(app_context: AppContext):
     test_client = app_context.app.test_client()
     return test_client
 
 
-@pytest.fixture()
+@pytest.fixture
 def authz_full_access(
     app_context,
 ):  # needed to ensure we call init_authenticators before app context is destroyed

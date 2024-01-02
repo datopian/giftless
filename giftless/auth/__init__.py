@@ -2,8 +2,9 @@
 """
 import abc
 import logging
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Set, Union
+from typing import Any, Optional, Union
 
 from flask import Request, current_app, g
 from flask import request as flask_request
@@ -45,10 +46,10 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
         identity: Identity,
         org: str,
         repo: str,
-        actions: Optional[Set[str]] = None,
+        actions: Optional[set[str]] = None,
         oid: Optional[str] = None,
         lifetime: Optional[int] = None,
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         """Authorize an action by adding credientaisl to the query string"""
         return {}
 
@@ -57,18 +58,20 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
         identity: Identity,
         org: str,
         repo: str,
-        actions: Optional[Set[str]] = None,
+        actions: Optional[set[str]] = None,
         oid: Optional[str] = None,
         lifetime: Optional[int] = None,
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         """Authorize an action by adding credentials to the request headers"""
         return {}
 
 
 class Authentication:
-    def __init__(self, app=None, default_identity: Optional[Identity] = None) -> None:
+    def __init__(
+        self, app=None, default_identity: Optional[Identity] = None
+    ) -> None:
         self._default_identity = default_identity
-        self._authenticators: List[Authenticator] = []
+        self._authenticators: list[Authenticator] = []
         self._unauthorized_handler: Optional[Callable] = None
         self.preauth_handler: Optional[PreAuthorizedActionAuthenticator] = None
 
@@ -141,7 +144,8 @@ class Authentication:
         )
 
         self._authenticators = [
-            _create_authenticator(a) for a in current_app.config["AUTH_PROVIDERS"]
+            _create_authenticator(a)
+            for a in current_app.config["AUTH_PROVIDERS"]
         ]
 
         if current_app.config["PRE_AUTHORIZED_ACTION_PROVIDER"]:
@@ -173,7 +177,7 @@ class Authentication:
         return self._default_identity
 
 
-def _create_authenticator(spec: Union[str, Dict[str, Any]]) -> Authenticator:
+def _create_authenticator(spec: Union[str, dict[str, Any]]) -> Authenticator:
     """Instantiate an authenticator from configuration spec
 
     Configuration spec can be a string referencing a callable (e.g. mypackage.mymodule:callable)

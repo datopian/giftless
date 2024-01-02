@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Optional
 from urllib.parse import urlencode
 
 import pytest
@@ -12,13 +12,13 @@ def test_factory_returns_object():
     base_url = "https://s4.example.com/"
     lifetime = 300
     adapter = basic_external.factory(
-        "{}:MockExternalStorageBackend".format(
-            __name__,
-        ),
+        f"{__name__}:MockExternalStorageBackend",
         {"base_url": base_url},
         lifetime,
     )
-    assert isinstance(adapter, basic_external.BasicExternalBackendTransferAdapter)
+    assert isinstance(
+        adapter, basic_external.BasicExternalBackendTransferAdapter
+    )
     assert getattr(adapter.storage, "base_url", None) == base_url
     assert adapter.action_lifetime == lifetime
 
@@ -26,9 +26,7 @@ def test_factory_returns_object():
 @pytest.mark.usefixtures("app_context")
 def test_upload_action_new_file():
     adapter = basic_external.factory(
-        "{}:MockExternalStorageBackend".format(
-            __name__,
-        ),
+        f"{__name__}:MockExternalStorageBackend",
         {},
         900,
     )
@@ -56,7 +54,7 @@ def test_upload_action_new_file():
 @pytest.mark.usefixtures("app_context")
 def test_upload_action_extras_are_passed():
     adapter = basic_external.factory(
-        "{}:MockExternalStorageBackend".format(__name__), {}, 900
+        f"{__name__}:MockExternalStorageBackend", {}, 900
     )
     response = adapter.upload(
         "myorg", "myrepo", "abcdef123456", 1234, {"filename": "foo.csv"}
@@ -187,7 +185,7 @@ class MockExternalStorageBackend(basic_external.ExternalStorage):
     """
 
     def __init__(self, base_url: str = "https://cloudstorage.example.com/"):
-        self.existing_objects: Dict[Tuple[str, str], int] = {}
+        self.existing_objects: dict[tuple[str, str], int] = {}
         self.base_url = base_url
 
     def exists(self, prefix: str, oid: str) -> bool:
@@ -205,12 +203,14 @@ class MockExternalStorageBackend(basic_external.ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         return {
             "actions": {
                 "upload": {
-                    "href": self._get_signed_url(prefix, oid, expires_in, extra),
+                    "href": self._get_signed_url(
+                        prefix, oid, expires_in, extra
+                    ),
                     "header": {"x-foo-bar": "bazbaz"},
                     "expires_in": expires_in,
                 }
@@ -223,12 +223,14 @@ class MockExternalStorageBackend(basic_external.ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         return {
             "actions": {
                 "download": {
-                    "href": self._get_signed_url(prefix, oid, expires_in, extra),
+                    "href": self._get_signed_url(
+                        prefix, oid, expires_in, extra
+                    ),
                     "header": {},
                     "expires_in": 900,
                 }
@@ -240,9 +242,9 @@ class MockExternalStorageBackend(basic_external.ExternalStorage):
         prefix: str,
         oid: str,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
+        extra: Optional[dict[str, Any]] = None,
     ):
-        url = "{}{}/{}?expires_in={}".format(self.base_url, prefix, oid, expires_in)
+        url = f"{self.base_url}{prefix}/{oid}?expires_in={expires_in}"
         if extra:
             url = f"{url}&{urlencode(extra, doseq=False)}"
         return url

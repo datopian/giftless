@@ -1,7 +1,7 @@
 """Tests for the Azure storage backend
 """
 import os
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
 from azure.core.exceptions import AzureError  # type: ignore
@@ -15,7 +15,7 @@ MOCK_AZURE_ACCOUNT_NAME = "my-account"
 MOCK_AZURE_CONTAINER_NAME = "my-container"
 
 
-@pytest.fixture()
+@pytest.fixture
 def storage_backend() -> Generator[AzureBlobsStorage, None, None]:
     """Provide an Azure Blob Storage backend for all Azure tests
 
@@ -34,7 +34,9 @@ def storage_backend() -> Generator[AzureBlobsStorage, None, None]:
             connection_str
         )
         try:
-            yield AzureBlobsStorage(connection_str, container_name, path_prefix=prefix)
+            yield AzureBlobsStorage(
+                connection_str, container_name, path_prefix=prefix
+            )
         finally:
             container = client.get_container_client(container_name)
             try:
@@ -55,7 +57,8 @@ def storage_backend() -> Generator[AzureBlobsStorage, None, None]:
 @pytest.fixture(scope="module")
 def vcr_config():
     live_tests = bool(
-        os.environ.get("AZURE_CONNECTION_STRING") and os.environ.get("AZURE_CONTAINER")
+        os.environ.get("AZURE_CONNECTION_STRING")
+        and os.environ.get("AZURE_CONTAINER")
     )
     if live_tests:
         mode = "once"
@@ -67,7 +70,7 @@ def vcr_config():
     }
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 class TestAzureBlobStorageBackend(
     StreamingStorageAbstractTests, ExternalStorageAbstractTests
 ):

@@ -28,7 +28,11 @@ def test_batch_request_schema_valid(input):
         ({}),
         (batch_request_payload(operation="sneeze")),
         (batch_request_payload(objects=[])),
-        (batch_request_payload(objects=[{"oid": 123456, "size": "large of course"}])),
+        (
+            batch_request_payload(
+                objects=[{"oid": 123456, "size": "large of course"}]
+            )
+        ),
         (batch_request_payload(objects=[{"oid": "123abc", "size": -12}])),
     ],
 )
@@ -52,10 +56,10 @@ def test_object_schema_accepts_x_fields():
         "x-disposition": "inline",
     }
     parsed = schema.ObjectSchema().load(payload)
-    assert "foobarbaz" == parsed["extra"]["filename"]
-    assert 123123123123 == parsed["extra"]["mtime"]
-    assert "123abc" == parsed["oid"]
-    assert "inline" == parsed["extra"]["disposition"]
+    assert parsed["extra"]["filename"] == "foobarbaz"
+    assert parsed["extra"]["mtime"] == 123123123123
+    assert parsed["oid"] == "123abc"
+    assert parsed["extra"]["disposition"] == "inline"
 
 
 def test_object_schema_rejects_unknown_fields():

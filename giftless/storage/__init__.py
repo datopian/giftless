@@ -1,6 +1,7 @@
 import mimetypes
 from abc import ABC, abstractmethod
-from typing import Any, BinaryIO, Dict, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any, BinaryIO, Optional
 
 from . import exc
 
@@ -17,7 +18,6 @@ class VerifiableStorage(ABC):
 
         This method should not throw an error if the object does not exist, but return False
         """
-        pass
 
 
 class StreamingStorage(VerifiableStorage, ABC):
@@ -60,8 +60,8 @@ class ExternalStorage(VerifiableStorage, ABC):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         pass
 
     @abstractmethod
@@ -71,8 +71,8 @@ class ExternalStorage(VerifiableStorage, ABC):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         pass
 
     @abstractmethod
@@ -99,8 +99,8 @@ class MultipartStorage(VerifiableStorage, ABC):
         size: int,
         part_size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         pass
 
     @abstractmethod
@@ -110,8 +110,8 @@ class MultipartStorage(VerifiableStorage, ABC):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         pass
 
     @abstractmethod

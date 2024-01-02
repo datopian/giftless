@@ -7,7 +7,7 @@ interface through which additional streaming backends can be implemented.
 """
 
 import posixpath
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import marshmallow
 from flask import Response, request, url_for
@@ -45,8 +45,12 @@ class VerifyView(BaseView):
         )
 
         prefix = posixpath.join(organization, repo)
-        if not self.storage.verify_object(prefix, payload["oid"], payload["size"]):
-            raise InvalidPayload("Object does not exist or size does not match")
+        if not self.storage.verify_object(
+            prefix, payload["oid"], payload["size"]
+        ):
+            raise InvalidPayload(
+                "Object does not exist or size does not match"
+            )
         return Response(status=200)
 
     @classmethod
@@ -56,7 +60,11 @@ class VerifyView(BaseView):
         """Get the URL for upload / download requests for this object"""
         op_name = f"{cls.__name__}:verify"
         url: str = url_for(
-            op_name, organization=organization, repo=repo, oid=oid, _external=True
+            op_name,
+            organization=organization,
+            repo=repo,
+            oid=oid,
+            _external=True,
         )
         return url
 
@@ -75,9 +83,13 @@ class ObjectsView(BaseView):
         into the WSGI Server -> Werkzeug -> Flask stack, and it may also depend on specific WSGI
         server implementation and even how a proxy (e.g. nginx) is configured.
         """
-        self._check_authorization(organization, repo, Permission.WRITE, oid=oid)
+        self._check_authorization(
+            organization, repo, Permission.WRITE, oid=oid
+        )
         stream = request.stream
-        self.storage.put(prefix=f"{organization}/{repo}", oid=oid, data_stream=stream)
+        self.storage.put(
+            prefix=f"{organization}/{repo}", oid=oid, data_stream=stream
+        )
         return Response(status=200)
 
     def get(self, organization, repo, oid):
@@ -91,7 +103,9 @@ class ObjectsView(BaseView):
 
         headers = {}
         if filename and disposition:
-            headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+            headers = {
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
         elif disposition:
             headers = {"Content-Disposition": disposition}
 
@@ -99,23 +113,35 @@ class ObjectsView(BaseView):
             file = self.storage.get(path, oid)
             mime_type = self.storage.get_mime_type(path, oid)
             headers["Content-Type"] = mime_type
-            return Response(file, direct_passthrough=True, status=200, headers=headers)
+            return Response(
+                file, direct_passthrough=True, status=200, headers=headers
+            )
         else:
             raise NotFound("The object was not found")
 
     @classmethod
     def get_storage_url(
-        cls, operation: str, organization: str, repo: str, oid: Optional[str] = None
+        cls,
+        operation: str,
+        organization: str,
+        repo: str,
+        oid: Optional[str] = None,
     ) -> str:
         """Get the URL for upload / download requests for this object"""
         op_name = f"{cls.__name__}:{operation}"
         url: str = url_for(
-            op_name, organization=organization, repo=repo, oid=oid, _external=True
+            op_name,
+            organization=organization,
+            repo=repo,
+            oid=oid,
+            _external=True,
         )
         return url
 
 
-class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
+class BasicStreamingTransferAdapter(
+    PreAuthorizingTransferAdapter, ViewProvider
+):
     def __init__(self, storage: StreamingStorage, action_lifetime: int):
         self.storage = storage
         self.action_lifetime = action_lifetime
@@ -126,8 +152,8 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict:
         response = {"oid": oid, "size": size}
 
         prefix = posixpath.join(organization, repo)
@@ -137,7 +163,9 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
         ):
             response["actions"] = {
                 "upload": {
-                    "href": ObjectsView.get_storage_url("put", organization, repo, oid),
+                    "href": ObjectsView.get_storage_url(
+                        "put", organization, repo, oid
+                    ),
                     "header": self._preauth_headers(
                         organization, repo, actions={"write"}, oid=oid
                     ),
@@ -165,19 +193,27 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict:
         response = {"oid": oid, "size": size}
 
         prefix = posixpath.join(organization, repo)
         if not self.storage.exists(prefix, oid):
-            response["error"] = {"code": 404, "message": "Object does not exist"}
+            response["error"] = {
+                "code": 404,
+                "message": "Object does not exist",
+            }
 
         elif self.storage.get_size(prefix, oid) != size:
-            response["error"] = {"code": 422, "message": "Object size does not match"}
+            response["error"] = {
+                "code": 422,
+                "message": "Object size does not match",
+            }
 
         else:
-            download_url = ObjectsView.get_storage_url("get", organization, repo, oid)
+            download_url = ObjectsView.get_storage_url(
+                "get", organization, repo, oid
+            )
             preauth_url = self._preauth_url(
                 download_url, organization, repo, actions={"read"}, oid=oid
             )
@@ -205,4 +241,6 @@ class BasicStreamingTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider)
 def factory(storage_class, storage_options, action_lifetime):
     """Factory for basic transfer adapter with local storage"""
     storage = get_callable(storage_class, __name__)
-    return BasicStreamingTransferAdapter(storage(**storage_options), action_lifetime)
+    return BasicStreamingTransferAdapter(
+        storage(**storage_options), action_lifetime
+    )

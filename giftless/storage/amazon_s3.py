@@ -1,7 +1,8 @@
 import base64
 import binascii
 import posixpath
-from typing import Any, BinaryIO, Dict, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any, BinaryIO, Optional
 
 import boto3
 import botocore
@@ -40,7 +41,9 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
 
         bucket = self.s3.Bucket(self.bucket_name)
         bucket.upload_fileobj(
-            data_stream, self._get_blob_path(prefix, oid), Callback=upload_callback
+            data_stream,
+            self._get_blob_path(prefix, oid),
+            Callback=upload_callback,
         )
         return sum(completed)
 
@@ -67,8 +70,8 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         base64_oid = base64.b64encode(binascii.a2b_hex(oid)).decode("ascii")
         params = {
             "Bucket": self.bucket_name,
@@ -98,16 +101,23 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
-        params = {"Bucket": self.bucket_name, "Key": self._get_blob_path(prefix, oid)}
+        extra: Optional[dict[str, str]] = None,
+    ) -> dict[str, Any]:
+        params = {
+            "Bucket": self.bucket_name,
+            "Key": self._get_blob_path(prefix, oid),
+        }
 
         filename = extra.get("filename") if extra else None
-        disposition = extra.get("disposition", "attachment") if extra else "attachment"
+        disposition = (
+            extra.get("disposition", "attachment") if extra else "attachment"
+        )
 
         if filename and disposition:
             filename = safe_filename(filename)
-            params["ResponseContentDisposition"] = f'attachment; filename="{filename}"'
+            params[
+                "ResponseContentDisposition"
+            ] = f'attachment; filename="{filename}"'
         elif disposition:
             params["ResponseContentDisposition"] = disposition
 
@@ -116,7 +126,11 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
         )
         return {
             "actions": {
-                "download": {"href": response, "header": {}, "expires_in": expires_in}
+                "download": {
+                    "href": response,
+                    "header": {},
+                    "expires_in": expires_in,
+                }
             }
         }
 
@@ -131,4 +145,6 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
         return posixpath.join(storage_prefix, prefix, oid)
 
     def _s3_object(self, prefix, oid):
-        return self.s3.Object(self.bucket_name, self._get_blob_path(prefix, oid))
+        return self.s3.Object(
+            self.bucket_name, self._get_blob_path(prefix, oid)
+        )

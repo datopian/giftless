@@ -3,7 +3,7 @@ import io
 import json
 import posixpath
 from datetime import timedelta
-from typing import Any, BinaryIO, Dict, Optional, Union
+from typing import Any, BinaryIO, Optional, Union
 
 import google.auth
 from google.auth import impersonated_credentials
@@ -33,7 +33,10 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
         self.credentials: Optional[
-            Union[service_account.Credentials, impersonated_credentials.Credentials]
+            Union[
+                service_account.Credentials,
+                impersonated_credentials.Credentials,
+            ]
         ] = self._load_credentials(account_key_file, account_key_base64)
         self.storage_client = storage.Client(
             project=project_name, credentials=self.credentials
@@ -80,8 +83,8 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         return {
             "actions": {
                 "upload": {
@@ -100,10 +103,12 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         filename = extra.get("filename") if extra else None
-        disposition = extra.get("disposition", "attachment") if extra else "attachment"
+        disposition = (
+            extra.get("disposition", "attachment") if extra else "attachment"
+        )
 
         return {
             "actions": {
@@ -173,7 +178,9 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
             )
         elif account_key_base64:
             account_info = json.loads(base64.b64decode(account_key_base64))
-            return service_account.Credentials.from_service_account_info(account_info)
+            return service_account.Credentials.from_service_account_info(
+                account_info
+            )
         else:
             return None  # Will use Workload Identity if available
 

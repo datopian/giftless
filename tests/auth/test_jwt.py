@@ -15,8 +15,12 @@ from giftless.auth.jwt import JWTAuthenticator, Scope, factory
 JWT_HS_KEY = b"some-random-secret"
 
 # Asymmetric key files used in tests
-JWT_RS_PRI_KEY = os.path.join(os.path.dirname(__file__), "data", "test-key.pem")
-JWT_RS_PUB_KEY = os.path.join(os.path.dirname(__file__), "data", "test-key.pub.pem")
+JWT_RS_PRI_KEY = os.path.join(
+    os.path.dirname(__file__), "data", "test-key.pem"
+)
+JWT_RS_PUB_KEY = os.path.join(
+    os.path.dirname(__file__), "data", "test-key.pub.pem"
+)
 
 
 def test_jwt_can_authorize_request_symmetric_key(app):
@@ -60,9 +64,9 @@ def test_jwt_can_authorize_request_token_as_basic_password(app):
     """Test that we can pass a JWT token as 'Basic' authorization password"""
     authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm="HS256")
     token = _get_test_token()
-    auth_value = base64.b64encode(b":".join([b"_jwt", token.encode("ascii")])).decode(
-        "ascii"
-    )
+    auth_value = base64.b64encode(
+        b":".join([b"_jwt", token.encode("ascii")])
+    ).decode("ascii")
 
     with app.test_request_context(
         "/myorg/myrepo/objects/batch",
@@ -79,9 +83,9 @@ def test_jwt_can_authorize_request_token_basic_password_disabled(app):
         private_key=JWT_HS_KEY, algorithm="HS256", basic_auth_user=None
     )
     token = _get_test_token()
-    auth_value = base64.b64encode(b":".join([b"_jwt", token.encode("ascii")])).decode(
-        "ascii"
-    )
+    auth_value = base64.b64encode(
+        b":".join([b"_jwt", token.encode("ascii")])
+    ).decode("ascii")
 
     with app.test_request_context(
         "/myorg/myrepo/objects/batch",
@@ -124,11 +128,15 @@ def test_jwt_pre_authorize_action():
     authz = JWTAuthenticator(
         private_key=JWT_HS_KEY, algorithm="HS256", default_lifetime=120
     )
-    identity = DefaultIdentity(name="joe", email="joe@shmoe.com", id="babab0ba")
-    header = authz.get_authz_header(identity, "myorg", "somerepo", actions={"read"})
+    identity = DefaultIdentity(
+        name="joe", email="joe@shmoe.com", id="babab0ba"
+    )
+    header = authz.get_authz_header(
+        identity, "myorg", "somerepo", actions={"read"}
+    )
 
     auth_type, token = header["Authorization"].split(" ")
-    assert "Bearer" == auth_type
+    assert auth_type == "Bearer"
 
     payload = jwt.decode(token, JWT_HS_KEY, algorithms="HS256")
     assert payload["sub"] == "babab0ba"
@@ -136,7 +144,11 @@ def test_jwt_pre_authorize_action():
 
     # Check that now() - expiration time is within 5 seconds of 120 seconds
     assert (
-        abs((datetime.fromtimestamp(payload["exp"]) - datetime.now()).seconds - 120) < 5
+        abs(
+            (datetime.fromtimestamp(payload["exp"]) - datetime.now()).seconds
+            - 120
+        )
+        < 5
     )
 
 
@@ -144,13 +156,15 @@ def test_jwt_pre_authorize_action_custom_lifetime():
     authz = JWTAuthenticator(
         private_key=JWT_HS_KEY, algorithm="HS256", default_lifetime=120
     )
-    identity = DefaultIdentity(name="joe", email="joe@shmoe.com", id="babab0ba")
+    identity = DefaultIdentity(
+        name="joe", email="joe@shmoe.com", id="babab0ba"
+    )
     header = authz.get_authz_header(
         identity, "myorg", "somerepo", actions={"read"}, lifetime=3600
     )
 
     auth_type, token = header["Authorization"].split(" ")
-    assert "Bearer" == auth_type
+    assert auth_type == "Bearer"
 
     payload = jwt.decode(token, JWT_HS_KEY, algorithms="HS256")
     assert payload["sub"] == "babab0ba"
@@ -158,7 +172,10 @@ def test_jwt_pre_authorize_action_custom_lifetime():
 
     # Check that now() - expiration time is within 5 seconds of 3600 seconds
     assert (
-        abs((datetime.fromtimestamp(payload["exp"]) - datetime.now()).seconds - 3600)
+        abs(
+            (datetime.fromtimestamp(payload["exp"]) - datetime.now()).seconds
+            - 3600
+        )
         < 5
     )
 
@@ -168,47 +185,83 @@ def test_jwt_pre_authorize_action_custom_lifetime():
     [
         (
             [],
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.READ,
+            },
             False,
         ),
         (
             ["blah:foo/bar:*"],
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.READ,
+            },
             False,
         ),
         (
             ["obj:myorg/myrepo/*"],
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.READ,
+            },
             True,
         ),
         (
             ["obj:myorg/myrepo/*"],
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.WRITE,
+            },
             True,
         ),
         (
             ["obj:myorg/otherrepo/*"],
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.READ,
+            },
             False,
         ),
         (
             ["obj:myorg/myrepo/*"],
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.READ,
+            },
             True,
         ),
         (
             ["obj:myorg/myrepo/*:read"],
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.WRITE,
+            },
             False,
         ),
         (
             ["obj:myorg/myrepo/*:write"],
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.WRITE,
+            },
             True,
         ),
         (
             ["obj:myorg/myrepo/*:read,write"],
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.WRITE,
+            },
             True,
         ),
         (
@@ -240,7 +293,11 @@ def test_jwt_pre_authorize_action_custom_lifetime():
         ),
         (
             ["obj:myorg/myrepo/*:meta:read,write,verify"],
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.READ,
+            },
             False,
         ),
         (
@@ -254,7 +311,11 @@ def test_jwt_pre_authorize_action_custom_lifetime():
         ),
         (
             "obj:myorg/*/*:read",
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.READ,
+            },
             True,
         ),
         (
@@ -268,12 +329,20 @@ def test_jwt_pre_authorize_action_custom_lifetime():
         ),
         (
             "obj:myorg/*/*:read",
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.WRITE,
+            },
             False,
         ),
         (
             "obj:*/*/*:read",
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.READ,
+            },
             True,
         ),
         (
@@ -493,6 +562,6 @@ def _get_test_token(lifetime=300, headers=None, algo="HS256", **kwargs):
         with open(JWT_RS_PRI_KEY) as f:
             key = f.read()
     else:
-        raise ValueError("Don't know how to test algo: {}".format(algo))
+        raise ValueError(f"Don't know how to test algo: {algo}")
 
     return jwt.encode(payload, key, algorithm=algo, headers=headers)

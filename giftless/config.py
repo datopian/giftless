@@ -1,7 +1,7 @@
 """Configuration handling helper functions and default configuration
 """
 import os
-from typing import Dict, Optional
+from typing import Optional
 
 import figcan
 import yaml
@@ -17,7 +17,9 @@ default_transfer_config = {
             "options": figcan.Extensible(
                 {
                     "storage_class": "giftless.storage.local_storage:LocalStorage",
-                    "storage_options": figcan.Extensible({"path": "lfs-storage"}),
+                    "storage_options": figcan.Extensible(
+                        {"path": "lfs-storage"}
+                    ),
                     "action_lifetime": 900,
                 }
             ),
@@ -48,17 +50,21 @@ default_config = {
 load_dotenv()
 
 
-def configure(app, additional_config: Optional[Dict] = None):
+def configure(app, additional_config: Optional[dict] = None):
     """Configure a Flask app using Figcan managed configuration object"""
     config = _compose_config(additional_config)
     app.config.update(config)
     return app
 
 
-def _compose_config(additional_config: Optional[Dict] = None) -> figcan.Configuration:
+def _compose_config(
+    additional_config: Optional[dict] = None,
+) -> figcan.Configuration:
     """Compose configuration object from all available sources"""
     config = figcan.Configuration(default_config)
-    environ = dict(os.environ)  # Copy the environment as we're going to change it
+    environ = dict(
+        os.environ
+    )  # Copy the environment as we're going to change it
 
     if environ.get(f"{ENV_PREFIX}CONFIG_FILE"):
         with open(environ[f"{ENV_PREFIX}CONFIG_FILE"]) as f:

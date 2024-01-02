@@ -1,13 +1,12 @@
 """Tests for the Google Cloud Storage storage backend
 """
 import os
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
 from google.api_core.exceptions import GoogleAPIError  # type: ignore
 
 from giftless.storage.google_cloud import GoogleCloudStorage
-
 
 MOCK_GCP_PROJECT_NAME = "giftless-tests"
 MOCK_GCP_BUCKET_NAME = "giftless-tests-20200818"
@@ -56,7 +55,7 @@ MOCK_GCP_KEY_B64 = (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def storage_backend() -> Generator[GoogleCloudStorage, None, None]:
     """Provide a Google Cloud Storage backend for all GCS tests
 
@@ -89,7 +88,7 @@ def storage_backend() -> Generator[GoogleCloudStorage, None, None]:
                 bucket.delete_blobs(blobs)
             except GoogleAPIError as e:
                 raise pytest.PytestWarning(
-                    "Could not clean up after test: {}".format(e)
+                    f"Could not clean up after test: {e}"
                 )
     else:
         yield GoogleCloudStorage(

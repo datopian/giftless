@@ -12,7 +12,7 @@ implement the `ExternalStorage` interface defined here.
 """
 
 import posixpath
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from giftless.storage import ExternalStorage, exc
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
@@ -20,7 +20,9 @@ from giftless.transfer.basic_streaming import VerifyView
 from giftless.util import get_callable
 
 
-class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
+class BasicExternalBackendTransferAdapter(
+    PreAuthorizingTransferAdapter, ViewProvider
+):
     def __init__(self, storage: ExternalStorage, default_action_lifetime: int):
         self.storage = storage
         self.action_lifetime = default_action_lifetime
@@ -31,8 +33,8 @@ class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewPro
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict:
         prefix = posixpath.join(organization, repo)
         response = {"oid": oid, "size": size}
 
@@ -68,8 +70,8 @@ class BasicExternalBackendTransferAdapter(PreAuthorizingTransferAdapter, ViewPro
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict:
         prefix = posixpath.join(organization, repo)
         response = {"oid": oid, "size": size}
 

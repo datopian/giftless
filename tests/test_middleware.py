@@ -7,14 +7,16 @@ from giftless.app import init_app
 from .helpers import batch_request_payload
 
 
-@pytest.fixture()
+@pytest.fixture
 def app(storage_path):
     """Session fixture to configure the Flask app"""
     app = init_app(
         additional_config={
             "TESTING": True,
             "TRANSFER_ADAPTERS": {
-                "basic": {"options": {"storage_options": {"path": storage_path}}}
+                "basic": {
+                    "options": {"storage_options": {"path": storage_path}}
+                }
             },
             "MIDDLEWARE": [
                 {
@@ -35,11 +37,13 @@ def app(storage_path):
 def test_upload_request_with_x_forwarded_middleware(test_client):
     """Test the ProxyFix middleware generates correct URLs if X-Forwarded headers are set"""
     request_payload = batch_request_payload(operation="upload")
-    response = test_client.post("/myorg/myrepo/objects/batch", json=request_payload)
+    response = test_client.post(
+        "/myorg/myrepo/objects/batch", json=request_payload
+    )
 
-    assert 200 == response.status_code
+    assert response.status_code == 200
     href = response.json["objects"][0]["actions"]["upload"]["href"]
-    assert "http://localhost/myorg/myrepo/objects/storage/12345678" == href
+    assert href == "http://localhost/myorg/myrepo/objects/storage/12345678"
 
     response = test_client.post(
         "/myorg/myrepo/objects/batch",
@@ -52,8 +56,9 @@ def test_upload_request_with_x_forwarded_middleware(test_client):
         },
     )
 
-    assert 200 == response.status_code
+    assert response.status_code == 200
     href = response.json["objects"][0]["actions"]["upload"]["href"]
     assert (
-        "https://mycompany.xyz:1234/lfs/myorg/myrepo/objects/storage/12345678" == href
+        href
+        == "https://mycompany.xyz:1234/lfs/myorg/myrepo/objects/storage/12345678"
     )

@@ -1,11 +1,14 @@
 """Miscellanea
 """
 import importlib
-from typing import Any, Callable, Dict, Iterable, Optional
+from collections.abc import Callable, Iterable
+from typing import Any, Optional
 from urllib.parse import urlencode
 
 
-def get_callable(callable_str: str, base_package: Optional[str] = None) -> Callable:
+def get_callable(
+    callable_str: str, base_package: Optional[str] = None
+) -> Callable:
     """Get a callable function / class constructor from a string of the form
     `package.subpackage.module:callable`
 
@@ -57,7 +60,7 @@ def to_iterable(val: Any) -> Iterable:
     return (val,)
 
 
-def add_query_params(url: str, params: Dict[str, Any]) -> str:
+def add_query_params(url: str, params: dict[str, Any]) -> str:
     """Safely add query params to a url that may or may not already contain
     query params.
 
@@ -82,5 +85,7 @@ def safe_filename(original_filename: str) -> str:
     >>> safe_filename("_ex@mple 2%.old.xlsx")
     '_exmple2.old.xlsx'
     """
-    valid_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_."
+    valid_chars = (
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_."
+    )
     return "".join(c for c in original_filename if c in valid_chars)

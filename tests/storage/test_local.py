@@ -3,7 +3,7 @@
 import os
 import pathlib
 import shutil
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
 
@@ -12,7 +12,7 @@ from giftless.storage.local_storage import LocalStorage
 from . import StreamingStorageAbstractTests
 
 
-@pytest.fixture()
+@pytest.fixture
 def storage_dir(tmp_path) -> Generator[pathlib.Path, None, None]:
     """Create a unique temp dir for testing storage"""
     dir = None
@@ -25,7 +25,7 @@ def storage_dir(tmp_path) -> Generator[pathlib.Path, None, None]:
             shutil.rmtree(dir)
 
 
-@pytest.fixture()
+@pytest.fixture
 def storage_backend(storage_dir) -> LocalStorage:
     """Provide a local storage backend for all local tests"""
     return LocalStorage(path=storage_dir)

@@ -5,7 +5,9 @@ import pytest
 from giftless.storage import ExternalStorage, StreamingStorage
 from giftless.storage.exc import ObjectNotFound
 
-ARBITRARY_OID = "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+ARBITRARY_OID = (
+    "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+)
 
 
 class _CommonStorageAbstractTests:
@@ -18,7 +20,9 @@ class _CommonStorageAbstractTests:
         """Test getting the size of a stored object"""
         content = b"The contents of a file-like object"
         storage_backend.put("org/repo", ARBITRARY_OID, io.BytesIO(content))
-        assert len(content) == storage_backend.get_size("org/repo", ARBITRARY_OID)
+        assert len(content) == storage_backend.get_size(
+            "org/repo", ARBITRARY_OID
+        )
 
     def test_get_size_not_existing(self, storage_backend):
         """Test getting the size of a non-existing object raises an exception"""
@@ -45,7 +49,9 @@ class _VerifiableStorageAbstractTests:
     def test_verify_object_ok(self, storage_backend):
         content = b"The contents of a file-like object"
         storage_backend.put("org/repo", ARBITRARY_OID, io.BytesIO(content))
-        assert storage_backend.verify_object("org/repo", ARBITRARY_OID, len(content))
+        assert storage_backend.verify_object(
+            "org/repo", ARBITRARY_OID, len(content)
+        )
 
     def test_verify_object_wrong_size(self, storage_backend):
         content = b"The contents of a file-like object"
@@ -70,7 +76,9 @@ class StreamingStorageAbstractTests(
     def test_put_get_object(self, storage_backend: StreamingStorage):
         """Test a full put-then-get cycle"""
         content = b"The contents of a file-like object"
-        written = storage_backend.put("org/repo", ARBITRARY_OID, io.BytesIO(content))
+        written = storage_backend.put(
+            "org/repo", ARBITRARY_OID, io.BytesIO(content)
+        )
 
         assert len(content) == written
 

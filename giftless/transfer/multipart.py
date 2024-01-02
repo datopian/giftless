@@ -2,7 +2,7 @@
 """
 
 import posixpath
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from giftless.storage import MultipartStorage, exc
 from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
@@ -30,8 +30,8 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict:
         prefix = posixpath.join(organization, repo)
         response = {"oid": oid, "size": size}
 
@@ -66,8 +66,8 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict:
         prefix = posixpath.join(organization, repo)
         response = {"oid": oid, "size": size}
 
@@ -114,5 +114,7 @@ def factory(
     except (AttributeError, ImportError):
         raise ValueError(f"Unable to load storage module: {storage_class}")
     return MultipartTransferAdapter(
-        storage(**storage_options), action_lifetime, max_part_size=max_part_size
+        storage(**storage_options),
+        action_lifetime,
+        max_part_size=max_part_size,
     )

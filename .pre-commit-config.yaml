@@ -9,12 +9,14 @@ repos:
       #   args: [--allow-multiple-documents]
       - id: trailing-whitespace
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.8
-    hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
-      - id: ruff-format
+  # FIXME: introduce after initial cleanup; it's going to take a lot
+  # of work.
+  # - repo: https://github.com/astral-sh/ruff-pre-commit
+  #   rev: v0.1.8
+  #   hooks:
+  #     - id: ruff
+  #       args: [--fix, --exit-non-zero-on-fix]
+  #     - id: ruff-format
 
   - repo: https://github.com/adamchainz/blacken-docs
     rev: 1.16.0

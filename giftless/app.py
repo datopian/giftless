@@ -25,7 +25,8 @@ def init_app(app=None, additional_config=None):
     else:
         level = logging.WARNING
     logging.basicConfig(
-        format="%(asctime)-15s %(name)-15s %(levelname)s %(message)s", level=level
+        format="%(asctime)-15s %(name)-15s %(levelname)s %(message)s",
+        level=level,
     )
 
     # Load middleware

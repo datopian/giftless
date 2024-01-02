@@ -1,6 +1,6 @@
 import os
 import shutil
-from typing import Any, BinaryIO, Dict, Optional
+from typing import Any, BinaryIO, Optional
 
 from giftless.storage import MultipartStorage, StreamingStorage, exc
 from giftless.view import ViewProvider
@@ -55,8 +55,8 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
         size: int,
         part_size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         return {}
 
     def get_download_action(
@@ -65,8 +65,8 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         return {}
 
     def register_views(self, app):

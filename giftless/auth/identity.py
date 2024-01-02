@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
-from typing import Dict, Optional, Set
+from typing import Optional
 
 
 class Permission(Enum):
@@ -12,12 +12,12 @@ class Permission(Enum):
     WRITE = "write"
 
     @classmethod
-    def all(cls) -> Set["Permission"]:
+    def all(cls) -> set["Permission"]:
         return set(cls)
 
 
-PermissionTree = Dict[
-    Optional[str], Dict[Optional[str], Dict[Optional[str], Set[Permission]]]
+PermissionTree = dict[
+    Optional[str], dict[Optional[str], dict[Optional[str], set[Permission]]]
 ]
 
 
@@ -41,10 +41,9 @@ class Identity(ABC):
         oid: Optional[str] = None,
     ) -> bool:
         """Tell if user is authorized to perform an operation on an object / repo"""
-        pass
 
     def __repr__(self):
-        return "<{} id:{} name:{}>".format(self.__class__.__name__, self.id, self.name)
+        return f"<{self.__class__.__name__} id:{self.id} name:{self.name}>"
 
 
 class DefaultIdentity(Identity):
@@ -65,7 +64,7 @@ class DefaultIdentity(Identity):
         self,
         organization: Optional[str] = None,
         repo: Optional[str] = None,
-        permissions: Optional[Set[Permission]] = None,
+        permissions: Optional[set[Permission]] = None,
         oid: Optional[str] = None,
     ):
         if permissions is None:
@@ -85,7 +84,9 @@ class DefaultIdentity(Identity):
                 if oid in self._allowed[organization][repo]:
                     return permission in self._allowed[organization][repo][oid]
                 elif None in self._allowed[organization][repo]:
-                    return permission in self._allowed[organization][repo][None]
+                    return (
+                        permission in self._allowed[organization][repo][None]
+                    )
             elif None in self._allowed[organization]:
                 return permission in self._allowed[organization][None][None]
         elif None in self._allowed and None in self._allowed[None]:

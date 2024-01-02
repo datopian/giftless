@@ -8,7 +8,9 @@ from giftless.auth.identity import DefaultIdentity, Permission
 
 def test_default_identity_properties():
     """Test the basic properties of the default identity object"""
-    user = DefaultIdentity("arthur", "kingofthebritons", "arthur@camelot.gov.uk")
+    user = DefaultIdentity(
+        "arthur", "kingofthebritons", "arthur@camelot.gov.uk"
+    )
     assert user.name == "arthur"
     assert user.id == "kingofthebritons"
     assert user.email == "arthur@camelot.gov.uk"
@@ -17,7 +19,13 @@ def test_default_identity_properties():
 @pytest.mark.parametrize(
     "requested",
     [
-        ({"permission": Permission.READ, "organization": "myorg", "repo": "somerepo"}),
+        (
+            {
+                "permission": Permission.READ,
+                "organization": "myorg",
+                "repo": "somerepo",
+            }
+        ),
         (
             {
                 "permission": Permission.READ,
@@ -33,11 +41,19 @@ def test_default_identity_properties():
                 "oid": "foobar",
             }
         ),
-        ({"permission": Permission.WRITE, "organization": "myorg", "repo": "somerepo"}),
+        (
+            {
+                "permission": Permission.WRITE,
+                "organization": "myorg",
+                "repo": "somerepo",
+            }
+        ),
     ],
 )
 def test_default_identity_denied_by_default(requested):
-    user = DefaultIdentity("arthur", "kingofthebritons", "arthur@camelot.gov.uk")
+    user = DefaultIdentity(
+        "arthur", "kingofthebritons", "arthur@camelot.gov.uk"
+    )
     assert user.is_authorized(**requested) is False
 
 
@@ -88,8 +104,12 @@ def test_default_identity_denied_by_default(requested):
     ],
 )
 def test_default_identity_allow_specific_repo(requested, expected):
-    user = DefaultIdentity("arthur", "kingofthebritons", "arthur@camelot.gov.uk")
-    user.allow(organization="myorg", repo="somerepo", permissions=Permission.all())
+    user = DefaultIdentity(
+        "arthur", "kingofthebritons", "arthur@camelot.gov.uk"
+    )
+    user.allow(
+        organization="myorg", repo="somerepo", permissions=Permission.all()
+    )
     assert expected is user.is_authorized(**requested)
 
 
@@ -147,9 +167,12 @@ def test_default_identity_allow_specific_repo(requested, expected):
     ],
 )
 def test_default_identity_allow_specific_org_permissions(requested, expected):
-    user = DefaultIdentity("arthur", "kingofthebritons", "arthur@camelot.gov.uk")
+    user = DefaultIdentity(
+        "arthur", "kingofthebritons", "arthur@camelot.gov.uk"
+    )
     user.allow(
-        organization="myorg", permissions={Permission.READ_META, Permission.READ}
+        organization="myorg",
+        permissions={Permission.READ_META, Permission.READ},
     )
     assert expected is user.is_authorized(**requested)
 
@@ -158,7 +181,11 @@ def test_default_identity_allow_specific_org_permissions(requested, expected):
     "requested, expected",
     [
         (
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.READ,
+            },
             True,
         ),
         (
@@ -178,7 +205,11 @@ def test_default_identity_allow_specific_org_permissions(requested, expected):
             True,
         ),
         (
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.WRITE,
+            },
             False,
         ),
         (
@@ -201,7 +232,11 @@ def test_allow_anon_read_only(requested, expected):
     "requested, expected",
     [
         (
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.READ},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.READ,
+            },
             True,
         ),
         (
@@ -221,7 +256,11 @@ def test_allow_anon_read_only(requested, expected):
             True,
         ),
         (
-            {"organization": "myorg", "repo": "myrepo", "permission": Permission.WRITE},
+            {
+                "organization": "myorg",
+                "repo": "myrepo",
+                "permission": Permission.WRITE,
+            },
             True,
         ),
         (

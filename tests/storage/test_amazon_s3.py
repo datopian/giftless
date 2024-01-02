@@ -3,19 +3,23 @@
 import os
 from base64 import b64decode
 from binascii import unhexlify
-from typing import Generator
+from collections.abc import Generator
 
 import pytest
 
 from giftless.storage import ExternalStorage
 from giftless.storage.amazon_s3 import AmazonS3Storage
 
-from . import ARBITRARY_OID, ExternalStorageAbstractTests, StreamingStorageAbstractTests
+from . import (
+    ARBITRARY_OID,
+    ExternalStorageAbstractTests,
+    StreamingStorageAbstractTests,
+)
 
 TEST_AWS_S3_BUCKET_NAME = "test-giftless"
 
 
-@pytest.fixture()
+@pytest.fixture
 def storage_backend() -> Generator[AmazonS3Storage, None, None]:
     """Provide a S3 Storage backend for all AWS S3 tests
 
@@ -32,7 +36,9 @@ def storage_backend() -> Generator[AmazonS3Storage, None, None]:
     prefix = "giftless-tests"
 
     # We use a live S3 bucket to test
-    storage = AmazonS3Storage(bucket_name=TEST_AWS_S3_BUCKET_NAME, path_prefix=prefix)
+    storage = AmazonS3Storage(
+        bucket_name=TEST_AWS_S3_BUCKET_NAME, path_prefix=prefix
+    )
     try:
         yield storage
     finally:
@@ -40,13 +46,14 @@ def storage_backend() -> Generator[AmazonS3Storage, None, None]:
         try:
             bucket.objects.all().delete()
         except Exception as e:
-            raise pytest.PytestWarning("Could not clean up after test: {}".format(e))
+            raise pytest.PytestWarning(f"Could not clean up after test: {e}")
 
 
 @pytest.fixture(scope="module")
 def vcr_config():
     live_tests = bool(
-        os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get("AWS_SECRET_ACCESS_KEY")
+        os.environ.get("AWS_ACCESS_KEY_ID")
+        and os.environ.get("AWS_SECRET_ACCESS_KEY")
     )
     if live_tests:
         mode = "once"
@@ -61,7 +68,7 @@ def vcr_config():
     }
 
 
-@pytest.mark.vcr()
+@pytest.mark.vcr
 class TestAmazonS3StorageBackend(
     StreamingStorageAbstractTests, ExternalStorageAbstractTests
 ):

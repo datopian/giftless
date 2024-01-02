@@ -4,14 +4,15 @@ See https://github.com/git-lfs/git-lfs/blob/master/docs/api/basic-transfers.md
 for more information about what transfer APIs do in Git LFS.
 """
 from abc import ABC
+from collections.abc import Callable
 from functools import partial
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Optional
 
 from giftless.auth import Authentication, authentication
 from giftless.util import add_query_params, get_callable
 from giftless.view import ViewProvider
 
-_registered_adapters: Dict[str, "TransferAdapter"] = {}
+_registered_adapters: dict[str, "TransferAdapter"] = {}
 
 
 class TransferAdapter(ABC):
@@ -23,9 +24,11 @@ class TransferAdapter(ABC):
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict:
-        raise NotImplementedError("This transfer adapter is not fully implemented")
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict:
+        raise NotImplementedError(
+            "This transfer adapter is not fully implemented"
+        )
 
     def download(
         self,
@@ -33,15 +36,19 @@ class TransferAdapter(ABC):
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[Dict[str, Any]] = None,
-    ) -> Dict:
-        raise NotImplementedError("This transfer adapter is not fully implemented")
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict:
+        raise NotImplementedError(
+            "This transfer adapter is not fully implemented"
+        )
 
     def get_action(
         self, name: str, organization: str, repo: str
-    ) -> Callable[[str, int], Dict]:
+    ) -> Callable[[str, int], dict]:
         """Shortcut for quickly getting an action callable for transfer adapter objects"""
-        return partial(getattr(self, name), organization=organization, repo=repo)
+        return partial(
+            getattr(self, name), organization=organization, repo=repo
+        )
 
 
 class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
@@ -60,7 +67,7 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         original_url: str,
         org: str,
         repo: str,
-        actions: Optional[Set[str]] = None,
+        actions: Optional[set[str]] = None,
         oid: Optional[str] = None,
         lifetime: Optional[int] = None,
     ) -> str:
@@ -81,10 +88,10 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         self,
         org: str,
         repo: str,
-        actions: Optional[Set[str]] = None,
+        actions: Optional[set[str]] = None,
         oid: Optional[str] = None,
         lifetime: Optional[int] = None,
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         if not (self._auth_module and self._auth_module.preauth_handler):
             return {}
 
@@ -120,14 +127,16 @@ def register_adapter(key: str, adapter: TransferAdapter):
     _registered_adapters[key] = adapter
 
 
-def match_transfer_adapter(transfers: List[str]) -> Tuple[str, TransferAdapter]:
+def match_transfer_adapter(
+    transfers: list[str],
+) -> tuple[str, TransferAdapter]:
     for t in transfers:
         if t in _registered_adapters:
             return t, _registered_adapters[t]
-    raise ValueError("Unable to match any transfer adapter: {}".format(transfers))
+    raise ValueError(f"Unable to match any transfer adapter: {transfers}")
 
 
-def _init_adapter(config: Dict) -> TransferAdapter:
+def _init_adapter(config: dict) -> TransferAdapter:
     """Call adapter factory to create a transfer adapter instance"""
     factory: Callable[..., TransferAdapter] = get_callable(config["factory"])
     adapter: TransferAdapter = factory(**config.get("options", {}))

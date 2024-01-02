@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, Set, Union
+from typing import Any, Optional, Union
 
 import jwt
 from dateutil.tz import UTC
@@ -132,11 +132,11 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             return None
         return self._get_identity(token_payload)
 
-    def get_authz_header(self, *args, **kwargs) -> Dict[str, str]:
+    def get_authz_header(self, *args, **kwargs) -> dict[str, str]:
         token = self._generate_token_for_action(*args, **kwargs)
         return {"Authorization": f"Bearer {token}"}
 
-    def get_authz_query_params(self, *args, **kwargs) -> Dict[str, str]:
+    def get_authz_query_params(self, *args, **kwargs) -> dict[str, str]:
         return {"jwt": self._generate_token_for_action(*args, **kwargs)}
 
     def _generate_token_for_action(
@@ -144,12 +144,12 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         identity: Identity,
         org: str,
         repo: str,
-        actions: Optional[Set[str]] = None,
+        actions: Optional[set[str]] = None,
         oid: Optional[str] = None,
         lifetime: Optional[int] = None,
     ) -> str:
         """Generate a JWT token authorizing the specific requested action"""
-        token_payload: Dict[str, Any] = {"sub": identity.id}
+        token_payload: dict[str, Any] = {"sub": identity.id}
         if self.issuer:
             token_payload["iss"] = self.issuer
         if self.audience:
@@ -160,11 +160,15 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             token_payload["name"] = identity.name
 
         # Scopes
-        token_payload["scopes"] = self._generate_action_scopes(org, repo, actions, oid)
+        token_payload["scopes"] = self._generate_action_scopes(
+            org, repo, actions, oid
+        )
 
         # Custom lifetime
         if lifetime:
-            token_payload["exp"] = datetime.now(tz=UTC) + timedelta(seconds=lifetime)
+            token_payload["exp"] = datetime.now(tz=UTC) + timedelta(
+                seconds=lifetime
+            )
 
         return self._generate_token(**token_payload)
 
@@ -172,7 +176,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
     def _generate_action_scopes(
         org: str,
         repo: str,
-        actions: Optional[Set[str]] = None,
+        actions: Optional[set[str]] = None,
         oid: Optional[str] = None,
     ) -> str:
         """Generate token scopes based on target object and actions"""
@@ -188,8 +192,9 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
                 "This authenticator is not configured to generate tokens; Set private_key to fix"
             )
 
-        payload: Dict[str, Any] = {
-            "exp": datetime.now(tz=UTC) + timedelta(seconds=self.default_lifetime),
+        payload: dict[str, Any] = {
+            "exp": datetime.now(tz=UTC)
+            + timedelta(seconds=self.default_lifetime),
             "iat": datetime.now(tz=UTC),
             "nbf": datetime.now(tz=UTC),
         }
@@ -207,7 +212,10 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             headers["kid"] = self.key_id
 
         token = jwt.encode(
-            payload, self.private_key, algorithm=self.algorithm, headers=headers
+            payload,
+            self.private_key,
+            algorithm=self.algorithm,
+            headers=headers,
         )
         # Type of jwt.encode() went from bytes to str in jwt 2.x, but the
         # typing hints somehow aren't keeping up.  This lets us do the
@@ -242,7 +250,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             )
         except jwt.PyJWTError as e:
             raise Unauthorized(
-                "Expired or otherwise invalid JWT token ({})".format(str(e))
+                f"Expired or otherwise invalid JWT token ({e!s})"
             )
 
     def _get_token_from_headers(self, request: Request) -> Optional[str]:
@@ -266,7 +274,10 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             return payload
         elif authz_type.lower() == "basic" and self.basic_auth_user:
             parsed_header = Authorization.from_header(header)
-            if parsed_header and parsed_header.username == self.basic_auth_user:
+            if (
+                parsed_header
+                and parsed_header.username == self.basic_auth_user
+            ):
                 self._log.debug("Found token in Authorization: Basic header")
                 if parsed_header.password is None:
                     return None
@@ -279,7 +290,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         """Get JWT token from the query string"""
         return request.args.get("jwt")
 
-    def _get_identity(self, jwt_payload: Dict[str, Any]) -> Identity:
+    def _get_identity(self, jwt_payload: dict[str, Any]) -> Identity:
         identity = DefaultIdentity(
             id=jwt_payload.get("sub"),
             email=jwt_payload.get("email"),
@@ -293,7 +304,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
         return identity
 
-    def _parse_scope(self, scope_str: str) -> Dict[str, Any]:
+    def _parse_scope(self, scope_str: str) -> dict[str, Any]:
         """Parse a scope string and convert it into arguments for Identity.allow()"""
         scope = Scope.from_string(scope_str)
         if scope.entity_type != "obj":
@@ -305,7 +316,8 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
         if scope.entity_ref is not None:
             id_parts = [
-                p if p != "*" else None for p in scope.entity_ref.split("/", maxsplit=2)
+                p if p != "*" else None
+                for p in scope.entity_ref.split("/", maxsplit=2)
             ]
             if len(id_parts) == 3:
                 organization, repo, oid = id_parts
@@ -324,7 +336,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         }
 
     @staticmethod
-    def _parse_scope_permissions(scope: "Scope") -> Set[Permission]:
+    def _parse_scope_permissions(scope: "Scope") -> set[Permission]:
         """Extract granted permissions from scope object"""
         permissions_map = {
             "read": {Permission.READ, Permission.READ_META},
@@ -360,7 +372,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         return self._verification_key
 
 
-class Scope(object):
+class Scope:
     """Scope object"""
 
     entity_type = None
@@ -372,7 +384,7 @@ class Scope(object):
         self,
         entity_type: str,
         entity_id: Optional[str] = None,
-        actions: Optional[Set[str]] = None,
+        actions: Optional[set[str]] = None,
         subscope: Optional[str] = None,
     ):
         self.entity_type = entity_type
@@ -381,7 +393,7 @@ class Scope(object):
         self.subscope = subscope
 
     def __repr__(self):
-        return "<Scope {}>".format(str(self))
+        return f"<Scope {self!s}>"
 
     def __str__(self):
         """Convert scope to a string"""
@@ -429,7 +441,7 @@ class Scope(object):
         return scope
 
     @classmethod
-    def _parse_actions(cls, actions_str: str) -> Set[str]:
+    def _parse_actions(cls, actions_str: str) -> set[str]:
         if not actions_str:
             return set()
         return set(actions_str.split(","))
