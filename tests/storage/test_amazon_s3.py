@@ -12,7 +12,7 @@ from giftless.storage.amazon_s3 import AmazonS3Storage
 
 from . import ARBITRARY_OID, ExternalStorageAbstractTests, StreamingStorageAbstractTests
 
-TEST_AWS_S3_BUCKET_NAME = 'test-giftless'
+TEST_AWS_S3_BUCKET_NAME = "test-giftless"
 
 
 @pytest.fixture()
@@ -29,7 +29,7 @@ def storage_backend() -> Generator[AmazonS3Storage, None, None]:
     If these variables are not set, and pytest-vcr is not in use, the
     tests *will* fail.
     """
-    prefix = 'giftless-tests'
+    prefix = "giftless-tests"
 
     # We use a live S3 bucket to test
     storage = AmazonS3Storage(bucket_name=TEST_AWS_S3_BUCKET_NAME, path_prefix=prefix)
@@ -43,31 +43,32 @@ def storage_backend() -> Generator[AmazonS3Storage, None, None]:
             raise pytest.PytestWarning("Could not clean up after test: {}".format(e))
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def vcr_config():
-    live_tests = bool(os.environ.get('AWS_ACCESS_KEY_ID') and
-                      os.environ.get('AWS_SECRET_ACCESS_KEY'))
+    live_tests = bool(
+        os.environ.get("AWS_ACCESS_KEY_ID") and os.environ.get("AWS_SECRET_ACCESS_KEY")
+    )
     if live_tests:
-        mode = 'once'
+        mode = "once"
     else:
-        os.environ['AWS_ACCESS_KEY_ID'] = 'fake'
-        os.environ['AWS_SECRET_ACCESS_KEY'] = 'fake'
-        os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
-        mode = 'none'
+        os.environ["AWS_ACCESS_KEY_ID"] = "fake"
+        os.environ["AWS_SECRET_ACCESS_KEY"] = "fake"
+        os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+        mode = "none"
     return {
-        "filter_headers": [
-            ('authorization', 'fake-authz-header')
-        ],
-        "record_mode": mode
+        "filter_headers": [("authorization", "fake-authz-header")],
+        "record_mode": mode,
     }
 
 
 @pytest.mark.vcr()
-class TestAmazonS3StorageBackend(StreamingStorageAbstractTests, ExternalStorageAbstractTests):
+class TestAmazonS3StorageBackend(
+    StreamingStorageAbstractTests, ExternalStorageAbstractTests
+):
     def test_get_upload_action(self, storage_backend: ExternalStorage):
         upload = super().test_get_upload_action(storage_backend)
 
-        assert upload['header']['Content-Type'] == 'application/octet-stream'
+        assert upload["header"]["Content-Type"] == "application/octet-stream"
 
-        b64_oid = upload['header']['x-amz-checksum-sha256']
+        b64_oid = upload["header"]["x-amz-checksum-sha256"]
         assert b64decode(b64_oid) == unhexlify(ARBITRARY_OID)

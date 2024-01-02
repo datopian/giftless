@@ -10,8 +10,8 @@ else:
 
 
 class ObjectAttributes(TypedDict):
-    """Type for object attributes sent in batch request
-    """
+    """Type for object attributes sent in batch request"""
+
     oid: str
     size: int
 

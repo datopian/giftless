@@ -19,21 +19,16 @@ def storage_path(tmp_path):
 
 @pytest.fixture()
 def app(storage_path):
-    """Session fixture to configure the Flask app
-    """
-    app = init_app(additional_config={
-        "TESTING": True,
-        "TRANSFER_ADAPTERS": {
-            "basic": {
-                "options": {
-                    "storage_options": {
-                        "path": storage_path
-                    }
-                }
-            }
+    """Session fixture to configure the Flask app"""
+    app = init_app(
+        additional_config={
+            "TESTING": True,
+            "TRANSFER_ADAPTERS": {
+                "basic": {"options": {"storage_options": {"path": storage_path}}}
+            },
         }
-    })
-    app.config.update({"SERVER_NAME": 'giftless.local'})
+    )
+    app.config.update({"SERVER_NAME": "giftless.local"})
     return app
 
 
@@ -54,7 +49,9 @@ def test_client(app_context: AppContext):
 
 
 @pytest.fixture()
-def authz_full_access(app_context):  # needed to ensure we call init_authenticators before app context is destroyed
+def authz_full_access(
+    app_context,
+):  # needed to ensure we call init_authenticators before app context is destroyed
     """Fixture that enables full anonymous access to all actions for tests that
     use it
     """

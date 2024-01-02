@@ -8,4 +8,4 @@ from werkzeug.exceptions import Forbidden, NotFound, UnprocessableEntity
 
 InvalidPayload = UnprocessableEntity
 
-__all__ = ['NotFound', 'Forbidden', 'InvalidPayload']
+__all__ = ["NotFound", "Forbidden", "InvalidPayload"]

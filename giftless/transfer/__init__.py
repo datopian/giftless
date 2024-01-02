@@ -11,29 +11,41 @@ from giftless.auth import Authentication, authentication
 from giftless.util import add_query_params, get_callable
 from giftless.view import ViewProvider
 
-_registered_adapters: Dict[str, 'TransferAdapter'] = {}
+_registered_adapters: Dict[str, "TransferAdapter"] = {}
 
 
 class TransferAdapter(ABC):
-    """A transfer adapter tells Git LFS Server how to respond to batch API requests
-    """
-    def upload(self, organization: str, repo: str, oid: str, size: int,
-               extra: Optional[Dict[str, Any]] = None) -> Dict:
+    """A transfer adapter tells Git LFS Server how to respond to batch API requests"""
+
+    def upload(
+        self,
+        organization: str,
+        repo: str,
+        oid: str,
+        size: int,
+        extra: Optional[Dict[str, Any]] = None,
+    ) -> Dict:
         raise NotImplementedError("This transfer adapter is not fully implemented")
 
-    def download(self, organization: str, repo: str, oid: str, size: int,
-                 extra: Optional[Dict[str, Any]] = None) -> Dict:
+    def download(
+        self,
+        organization: str,
+        repo: str,
+        oid: str,
+        size: int,
+        extra: Optional[Dict[str, Any]] = None,
+    ) -> Dict:
         raise NotImplementedError("This transfer adapter is not fully implemented")
 
-    def get_action(self, name: str, organization: str, repo: str) -> Callable[[str, int], Dict]:
-        """Shortcut for quickly getting an action callable for transfer adapter objects
-        """
+    def get_action(
+        self, name: str, organization: str, repo: str
+    ) -> Callable[[str, int], Dict]:
+        """Shortcut for quickly getting an action callable for transfer adapter objects"""
         return partial(getattr(self, name), organization=organization, repo=repo)
 
 
 class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
-    """A transfer adapter that can pre-authohrize one or more of the actions it supports
-    """
+    """A transfer adapter that can pre-authohrize one or more of the actions it supports"""
 
     # Lifetime of verify tokens can be very long
     VERIFY_LIFETIME = 3600 * 12
@@ -43,8 +55,15 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
     def set_auth_module(self, auth_module: Authentication):
         self._auth_module = auth_module
 
-    def _preauth_url(self, original_url: str, org: str, repo: str, actions: Optional[Set[str]] = None,
-                     oid: Optional[str] = None, lifetime: Optional[int] = None) -> str:
+    def _preauth_url(
+        self,
+        original_url: str,
+        org: str,
+        repo: str,
+        actions: Optional[Set[str]] = None,
+        oid: Optional[str] = None,
+        lifetime: Optional[int] = None,
+    ) -> str:
         if not (self._auth_module and self._auth_module.preauth_handler):
             return original_url
 
@@ -52,13 +71,20 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         if identity is None:
             return original_url
 
-        params = self._auth_module.preauth_handler.get_authz_query_params(identity, org, repo, actions, oid,
-                                                                          lifetime=lifetime)
+        params = self._auth_module.preauth_handler.get_authz_query_params(
+            identity, org, repo, actions, oid, lifetime=lifetime
+        )
 
         return add_query_params(original_url, params)
 
-    def _preauth_headers(self, org: str, repo: str, actions: Optional[Set[str]] = None,
-                         oid: Optional[str] = None, lifetime: Optional[int] = None) -> Dict[str, str]:
+    def _preauth_headers(
+        self,
+        org: str,
+        repo: str,
+        actions: Optional[Set[str]] = None,
+        oid: Optional[str] = None,
+        lifetime: Optional[int] = None,
+    ) -> Dict[str, str]:
         if not (self._auth_module and self._auth_module.preauth_handler):
             return {}
 
@@ -66,7 +92,9 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         if identity is None:
             return {}
 
-        return self._auth_module.preauth_handler.get_authz_header(identity, org, repo, actions, oid, lifetime=lifetime)
+        return self._auth_module.preauth_handler.get_authz_header(
+            identity, org, repo, actions, oid, lifetime=lifetime
+        )
 
 
 def init_flask_app(app):
@@ -76,18 +104,19 @@ def init_flask_app(app):
     - Instantiate all transfer adapters defined in config
     - Register any Flask views provided by these adapters
     """
-    config = app.config.get('TRANSFER_ADAPTERS', {})
+    config = app.config.get("TRANSFER_ADAPTERS", {})
     adapters = {k: _init_adapter(v) for k, v in config.items()}
     for k, adapter in adapters.items():
         register_adapter(k, adapter)
 
-    for adapter in (a for a in _registered_adapters.values() if isinstance(a, ViewProvider)):
+    for adapter in (
+        a for a in _registered_adapters.values() if isinstance(a, ViewProvider)
+    ):
         adapter.register_views(app)
 
 
 def register_adapter(key: str, adapter: TransferAdapter):
-    """Register a transfer adapter
-    """
+    """Register a transfer adapter"""
     _registered_adapters[key] = adapter
 
 
@@ -99,10 +128,9 @@ def match_transfer_adapter(transfers: List[str]) -> Tuple[str, TransferAdapter]:
 
 
 def _init_adapter(config: Dict) -> TransferAdapter:
-    """Call adapter factory to create a transfer adapter instance
-    """
-    factory: Callable[..., TransferAdapter] = get_callable(config['factory'])
-    adapter: TransferAdapter = factory(**config.get('options', {}))
+    """Call adapter factory to create a transfer adapter instance"""
+    factory: Callable[..., TransferAdapter] = get_callable(config["factory"])
+    adapter: TransferAdapter = factory(**config.get("options", {}))
     if isinstance(adapter, PreAuthorizingTransferAdapter):
         adapter.set_auth_module(authentication)
     return adapter

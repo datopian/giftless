@@ -8,7 +8,6 @@ from .representation import output_git_lfs_json
 
 
 class ApiErrorHandler:
-
     def __init__(self, app=None):
         if app:
             self.init_app(app)
@@ -19,9 +18,8 @@ class ApiErrorHandler:
 
     @classmethod
     def error_as_json(cls, ex):
-        """Handle errors by returning a JSON response
-        """
-        code = ex.code if hasattr(ex, 'code') else 500
+        """Handle errors by returning a JSON response"""
+        code = ex.code if hasattr(ex, "code") else 500
         data = {"message": str(ex)}
 
         return output_git_lfs_json(data=data, code=code)

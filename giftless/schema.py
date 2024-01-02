@@ -11,21 +11,21 @@ ma = Marshmallow()
 
 
 class Operation(Enum):
-    """Batch operations
-    """
-    upload = 'upload'
-    download = 'download'
+    """Batch operations"""
+
+    upload = "upload"
+    download = "download"
 
 
 class RefSchema(ma.Schema):  # type: ignore
-    """ref field schema
-    """
+    """ref field schema"""
+
     name = fields.String(required=True)
 
 
 class ObjectSchema(ma.Schema):  # type: ignore
-    """object field schema
-    """
+    """object field schema"""
+
     oid = fields.String(required=True)
     size = fields.Integer(required=True, validate=validate.Range(min=0))
 
@@ -36,19 +36,20 @@ class ObjectSchema(ma.Schema):  # type: ignore
         extra = {}
         rest = {}
         for k, v in data.items():
-            if k.startswith('x-'):
+            if k.startswith("x-"):
                 extra[k[2:]] = v
             else:
                 rest[k] = v
-        return {'extra': extra, **rest}
+        return {"extra": extra, **rest}
 
 
 class BatchRequest(ma.Schema):  # type: ignore
-
     operation = EnumField(Operation, required=True)
-    transfers = fields.List(fields.String, required=False, missing=['basic'])
+    transfers = fields.List(fields.String, required=False, missing=["basic"])
     ref = fields.Nested(RefSchema, required=False)
-    objects = fields.Nested(ObjectSchema, validate=validate.Length(min=1), many=True, required=True)
+    objects = fields.Nested(
+        ObjectSchema, validate=validate.Length(min=1), many=True, required=True
+    )
 
 
 batch_request_schema = BatchRequest(unknown=marshmallow.EXCLUDE)

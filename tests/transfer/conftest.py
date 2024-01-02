@@ -7,8 +7,7 @@ from giftless import transfer
 
 @pytest.fixture()
 def reset_registered_transfers():
-    """Reset global registered transfer adapters for each module
-    """
+    """Reset global registered transfer adapters for each module"""
     adapters = dict(transfer._registered_adapters)  # noqa
     try:
         yield

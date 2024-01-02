@@ -15,14 +15,16 @@ def get_callable(callable_str: str, base_package: Optional[str] = None) -> Calla
     >>> type(get_callable('basename', 'os.path')).__name__
     'function'
     """
-    if ':' in callable_str:
-        module_name, callable_name = callable_str.split(':', 1)
+    if ":" in callable_str:
+        module_name, callable_name = callable_str.split(":", 1)
         module = importlib.import_module(module_name, base_package)
     elif base_package:
         module = importlib.import_module(base_package)
         callable_name = callable_str
     else:
-        raise ValueError("Expecting base_package to be set if only class name is provided")
+        raise ValueError(
+            "Expecting base_package to be set if only class name is provided"
+        )
 
     return getattr(module, callable_name)  # type: ignore
 
@@ -66,8 +68,8 @@ def add_query_params(url: str, params: Dict[str, Any]) -> str:
     'https://example.org?param1=value1&param2=value2'
     """
     urlencoded_params = urlencode(params)
-    separator = '&' if '?' in url else '?'
-    return f'{url}{separator}{urlencoded_params}'
+    separator = "&" if "?" in url else "?"
+    return f"{url}{separator}{urlencoded_params}"
 
 
 def safe_filename(original_filename: str) -> str:
@@ -80,5 +82,5 @@ def safe_filename(original_filename: str) -> str:
     >>> safe_filename("_ex@mple 2%.old.xlsx")
     '_exmple2.old.xlsx'
     """
-    valid_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.'
-    return ''.join(c for c in original_filename if c in valid_chars)
+    valid_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_."
+    return "".join(c for c in original_filename if c in valid_chars)

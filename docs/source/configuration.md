@@ -2,7 +2,7 @@ Runtime Configuration
 =====================
 
 ## Passing Configuration Options
-Giftless can be configured by pointing it to a [`YAML`](https://yaml.org/) 
+Giftless can be configured by pointing it to a [`YAML`](https://yaml.org/)
 configuration file when starting, or through the use of environment variables.
 
 ```note:: Changes to any configuration options will only take effect when Giftless is restarted.
@@ -21,12 +21,12 @@ EOF
 
 # start giftless
 export GIFTLESS_CONFIG_FILE=giftless.conf.yaml
-uwsgi --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080 
+uwsgi --module giftless.wsgi_entrypoint --callable app --http 127.0.0.1:8080
 ```
 
 ### As a YAML / JSON string passed as environment variable
 If you prefer not to use a configuration file, you can pass the same YAML content as the
-value of the `GIFTLESS_CONFIG_STR` environment variable: 
+value of the `GIFTLESS_CONFIG_STR` environment variable:
 
 ```shell
 export GIFTLESS_CONFIG_STR="
@@ -44,14 +44,14 @@ export GIFTLESS_CONFIG_STR='{"AUTH_PROVIDERS":["giftless.auth.allow_anon:read_wr
 # Proceed to start Giftless
 ```
 
-```important:: 
+```important::
    If you provide both a YAML file (as ``GIFTLESS_CONFIG_FILE``) and a
    literal YAML string (as ``GIFTLESS_CONFIG_STR``), the two will be merged, with values
    from the YAML string taking precedence over values from the YAML file.
 ```
 
 ### By overriding specific options using environment variables
-You can override some specific configuration options using environment variables, by 
+You can override some specific configuration options using environment variables, by
 exporting an environment variable that starts with `GIFTLESS_CONFIG_` and appends
 configuration object keys separated by underscores.
 
@@ -77,54 +77,54 @@ GIFTLESS_CONFIG_TRANSFER_ADAPTERS_BASIC_OPTIONS_STORAGE_CLASS="mymodule:CustomSt
 ```
 
 ### Using a `.env` file
-If Giftless is started from a working directory that has a `.env` file, it will be loaded when Giftless is started 
-and used to set environment variables. 
+If Giftless is started from a working directory that has a `.env` file, it will be loaded when Giftless is started
+and used to set environment variables.
 
 ## Configuration Options
 The following configuration options are accepted by Giftless:
 
 #### `TRANSFER_ADAPTERS`
 A set of transfer mode name -> transfer adapter configuration pairs. Controls transfer adapters and the storage backends
-used by them. 
+used by them.
 
-See the [Transfer Adapters](transfer-adapters.md) section for a full list of built-in transfer adapters and their 
-respective options. 
+See the [Transfer Adapters](transfer-adapters.md) section for a full list of built-in transfer adapters and their
+respective options.
 
 You can configure multiple Git LFS transfer modes, each with its own transfer adapter and configuration.
-The only transfer mode that is configured by default, and that is required by the Git LFS standard, is 
-`basic` mode. 
+The only transfer mode that is configured by default, and that is required by the Git LFS standard, is
+`basic` mode.
 
 Each transfer adapter configuration value is an object with two keys:
-* `factory` (required) - a string referencing a Python callable, in the form `package.module.submodule:callable`. 
+* `factory` (required) - a string referencing a Python callable, in the form `package.module.submodule:callable`.
   This callable should either be an adapter class, or a factory callable that returns an adapter instance.
 * `options` (optional) - a key-value dictionary of options to pass to the callable above.
 
 #### `AUTH_PROVIDERS`
-An ordered list of authentication and authorization adapters to load. Each adapter can have different 
-options. 
+An ordered list of authentication and authorization adapters to load. Each adapter can have different
+options.
 
 Auth providers are evaluated in the order that they are configured when a request is received, until one of them
 provides Giftless with a user identity. This allows supporting more than one authentication scheme in the same Giftless
-instance. 
+instance.
 
-See the [Auth Providers](auth-providers.md) section for a full list of supported auth providers and their 
+See the [Auth Providers](auth-providers.md) section for a full list of supported auth providers and their
 respective options.
 
-Each auth provider can be specified either as a string of the form `package.module.submodule:callable`, 
+Each auth provider can be specified either as a string of the form `package.module.submodule:callable`,
 referencing a Python callable that returns the provider instance, or as an object with the following keys:
 * `factory` - a string of the same form referencing a callable
 * `options` - key-value pairs of arguments to pass to the callable
 
 #### `MIDDLEWARE`
-An ordered list of custom WSGI middleware configuration. See [Using WSGI Middleware](wsgi-middleware.md) 
+An ordered list of custom WSGI middleware configuration. See [Using WSGI Middleware](wsgi-middleware.md)
 for details and examples.
 
 #### `PRE_AUTHORIZED_ACTION_PROVIDER`
-Configures an additional single, special auth provider, which implements the `PreAuthorizedActionAuthenticator` 
+Configures an additional single, special auth provider, which implements the `PreAuthorizedActionAuthenticator`
 interface. This is used by Giftless when it needs to generate URLs referencing itself, and wants to pre-authorize
 clients using these URLs. By default, the JWT auth provider is used here.
 
-There is typically no need to override the default behavior. 
+There is typically no need to override the default behavior.
 
 #### `DEBUG`
 If set to `true`, enables more verbose debugging output in logs.

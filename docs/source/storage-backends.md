@@ -2,20 +2,20 @@ Storage Backends
 ================
 
 Storage Backend classes are responsible for managing and interacting with the
-system that handles actual file storage, be it a local file system or a remote, 
-3rd party cloud based storage. 
+system that handles actual file storage, be it a local file system or a remote,
+3rd party cloud based storage.
 
 Storage Adapters can implement one or more of several interfaces, which defines
-the capabilities provided by the backend, and which 
-[transfer adapters](transfer-adapters.md) the backend can be used with. 
+the capabilities provided by the backend, and which
+[transfer adapters](transfer-adapters.md) the backend can be used with.
 
 ## Types of Storage Backends
 
 Each storage backend adapter can implement one or more of the following interfaces:
 
 * **`StreamingStorage`** - provides APIs for streaming object upload / download
-through the Giftless HTTP server. Works with the `basic_streaming` transfer 
-adapter. 
+through the Giftless HTTP server. Works with the `basic_streaming` transfer
+adapter.
 * **`ExternalStorage`** - provides APIs for referring clients to upload / download
 objects using an external HTTP server. Works with the `basic_external` transfer
 adapter. Typically, these backends interact with Cloud Storage providers.
@@ -36,9 +36,9 @@ TRANSFER_ADAPTERS:
     options:
       storage_class: giftless.storage.google_cloud:GoogleCloudStorage
       storage_options:
-      
+
     # add an example here
-``` 
+```
 
 Built-In Storage Backends
 -------------------------
@@ -65,7 +65,7 @@ Modify your `giftless.yaml` file according to the following config:
 
 ### Google Cloud Storage
 
-#### `giftless.storage.google_cloud:GoogleCloudStorage` 
+#### `giftless.storage.google_cloud:GoogleCloudStorage`
 
 To use Google Cloud Storage as a backend, you'll first need:
 * A Google Cloud Storage bucket to store objects in
@@ -74,10 +74,10 @@ To use Google Cloud Storage as a backend, you'll first need:
 The key must be associated with either a user or a service account, and should have
 read / write permissions on objects in the bucket.
 
-If you plan to access objects from a browser, your bucket needs to have 
+If you plan to access objects from a browser, your bucket needs to have
 [CORS enabled](https://cloud.google.com/storage/docs/configuring-cors).
 
-You can deploy the account key JSON file and provide the path to it as 
+You can deploy the account key JSON file and provide the path to it as
 the `account_key_file` storage option:
 
 ```yaml
@@ -93,7 +93,7 @@ TRANSFER_ADAPTERS:
 ```
 
 Alternatively, you can base64-encode the contents of the JSON file and provide
-it inline as `account_key_base64`: 
+it inline as `account_key_base64`:
 
 ```yaml
 TRANSFER_ADAPTERS:
@@ -131,7 +131,7 @@ Modify your `giftless.yaml` file according to the following config:
 ```
 
 #### boto3 authentication
-`AwsS3Storage` supports 3 ways of authentication defined in more detail in 
+`AwsS3Storage` supports 3 ways of authentication defined in more detail in
 [docs](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html):
 1. Environment variables
 2. Shared credential file (~/.aws/credentials)
@@ -148,7 +148,7 @@ $ export GIFTLESS_CONFIG_FILE=giftless.yaml
 
 You will need uWSGI running. Install it with your preferred package manager.
 Here is an example of how to run it:
-    
+
 ```bash
     # Run uWSGI in HTTP mode on port 8080
     $ uwsgi -M -T --threads 2 -p 2 --manage-script-name \
@@ -157,7 +157,7 @@ Here is an example of how to run it:
 
 #### Notes
 
-* If you plan to access objects directly from a browser (e.g. using a JavaScript based Git LFS client library), 
+* If you plan to access objects directly from a browser (e.g. using a JavaScript based Git LFS client library),
   your GCS bucket needs to be [CORS enabled](https://cloud.google.com/storage/docs/configuring-cors).
 
 ### Local Filesystem Storage
