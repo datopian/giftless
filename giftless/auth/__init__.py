@@ -192,7 +192,9 @@ def _create_authenticator(spec: Union[str, dict[str, Any]]) -> Authenticator:
         return get_callable(spec, __name__)
 
     log.debug("Creating authenticator using factory: %s", spec["factory"])
-    factory = get_callable(spec["factory"], __name__)  # type: Callable[..., Authenticator]
+    factory = get_callable(
+        spec["factory"], __name__
+    )  # type: Callable[..., Authenticator]
     options = spec.get("options", {})
     return factory(**options)
 

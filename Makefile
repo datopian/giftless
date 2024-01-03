@@ -83,7 +83,7 @@ $(SENTINELS):
 	mkdir $@
 
 $(SENTINELS)/dist-setup: | $(SENTINELS)
-	$(PIP) install -U pip wheel twine
+	$(PIP) install -U pip wheel twine pre-commit
 	@touch $@
 
 $(SENTINELS)/dist: $(SENTINELS)/dist-setup $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl | $(SENTINELS)

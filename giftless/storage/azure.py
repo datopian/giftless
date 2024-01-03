@@ -3,7 +3,7 @@ import logging
 import posixpath
 from collections import namedtuple
 from collections.abc import Iterable
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import IO, Any, Optional
 from urllib.parse import urlencode
 from xml.sax.saxutils import escape as xml_escape
@@ -248,7 +248,9 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
     ) -> str:
         blob_name = self._get_blob_path(prefix, oid)
         blob_permissions = BlobSasPermissions(**permissions)
-        token_expires = datetime.now(tz=UTC) + timedelta(seconds=expires_in)
+        token_expires = datetime.now(tz=timezone.utc) + timedelta(
+            seconds=expires_in
+        )
 
         extra_args: dict[str, Any] = {}
         if filename and disposition:
