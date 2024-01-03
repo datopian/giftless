@@ -4,18 +4,12 @@ import os
 
 
 def batch_request_payload(delete_keys=(), **kwargs):
-    """Generate sample batch request payload
-    """
+    """Generate sample batch request payload"""
     payload = {
         "operation": "download",
         "transfers": ["basic"],
         "ref": {"name": "refs/heads/master"},
-        "objects": [
-            {
-                "oid": "12345678",
-                "size": 8
-            }
-        ]
+        "objects": [{"oid": "12345678", "size": 8}],
     }
 
     for key in delete_keys:
@@ -35,6 +29,6 @@ def create_file_in_storage(storage_path, org, repo, filename, size=1):
     """
     repo_path = os.path.join(storage_path, org, repo)
     os.makedirs(repo_path, exist_ok=True)
-    with open(os.path.join(repo_path, filename), 'wb') as f:
-        for c in (b'0' for _ in range(size)):
+    with open(os.path.join(repo_path, filename), "wb") as f:
+        for c in (b"0" for _ in range(size)):
             f.write(c)

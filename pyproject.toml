@@ -1,0 +1,272 @@
+[project]
+# https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+name = "giftless"
+description = "A Git LFS Server implementation in Python with support for pluggable backends"
+license = {file = "LICENSE"}
+readme = "README.md"
+keywords = [
+    "git",
+    "git-lfs",
+    "datopian",
+]
+# https://pypi.org/classifiers/
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved:: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Natural Language :: English",
+    "Operating System :: POSIX",
+    "Typing :: Typed",
+]
+requires-python = ">=3.10"
+dependencies = []
+dynamic = ["version"]
+
+[[project.authors]]
+name="Shahar Evron"
+email="shahar.evron@datopian.com"
+
+[[project.authors]]
+name="Rufus Pollock"
+email="hello@rufuspollock.com"
+
+[[project.authors]]
+name="Adam Thornton"
+email="athornton@lsst.org"
+
+[project.urls]
+Homepage = "https://giftless.datopian.com"
+Source = "https://github.com/datopian/giftless"
+"Issue tracker" = "https://github.com/datopian/giftless/issues"
+
+[build-system]
+requires = [
+    "setuptools>=61",
+    "wheel",
+    "setuptools_scm[toml]>=6.2",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+
+[tool.black]
+line-length = 79
+target-version = ["py310"]
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | build
+  | dist
+)/
+'''
+# Use single-quoted strings so TOML treats the string like a Python r-string
+# Multi-line strings are implicitly treated by black as regular expressions
+
+[tool.coverage.run]
+parallel = true
+branch = true
+source = ["giftless"]
+
+[tool.coverage.paths]
+source = ["giftless", ".tox/*/site-packages"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:"
+]
+
+[tool.mypy]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+ignore_missing_imports = true
+local_partial_types = true
+no_implicit_reexport = true
+plugins = [
+    "pydantic.mypy",
+    "sqlalchemy.ext.mypy.plugin",
+]
+show_error_codes = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_ignores = true
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+filterwarnings = [
+    # Google modules call a deprecated pkg_resources API.
+    "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
+    "ignore:.*pkg_resources\\.declare_namespace:DeprecationWarning",
+    # Bug in kopf
+    "ignore:.*require all values to be sortable:DeprecationWarning:kopf.*",
+]
+# The python_files setting is not for test detection (pytest will pick up any
+# test files named *_test.py without this setting) but to enable special
+# assert processing in any non-test supporting files under tests.  We
+# conventionally put test support functions under tests.support and may
+# sometimes use assert in test fixtures in conftest.py, and pytest only
+# enables magical assert processing (showing a full diff on assert failures
+# with complex data structures rather than only the assert message) in files
+# listed in python_files.
+python_files = [
+    "tests/*.py",
+    "tests/*/*.py"
+]
+
+# The rule used with Ruff configuration is to disable every lint that has
+# legitimate exceptions that are not dodgy code, rather than cluttering code
+# with noqa markers. This is therefore a reiatively relaxed configuration that
+# errs on the side of disabling legitimate lints.
+#
+# Reference for settings: https://docs.astral.sh/ruff/settings/
+# Reference for rules: https://docs.astral.sh/ruff/rules/
+[tool.ruff]
+exclude = [
+    "docs/conf.py",
+]
+line-length = 79
+ignore = [
+    "ANN101",  # self should not have a type annotation
+    "ANN102",  # cls should not have a type annotation
+    "ANN401",  # sometimes Any is the right type
+    "ARG001",  # unused function arguments are often legitimate
+    "ARG002",  # unused method arguments are often legitimate
+    "ARG005",  # unused lambda arguments are often legitimate
+    "BLE001",  # we want to catch and report Exception in background tasks
+    "C414",    # nested sorted is how you sort by multiple keys with reverse
+    "COM812",  # omitting trailing commas allows black autoreformatting
+    "D102",    # sometimes we use docstring inheritence
+    "D104",    # don't see the point of documenting every package
+    "D105",    # our style doesn't require docstrings for magic methods
+    "D106",    # Pydantic uses a nested Config class that doesn't warrant docs
+    "D205",    # our documentation style allows a folded first line
+    "EM101",   # justification (duplicate string in traceback) is silly
+    "EM102",   # justification (duplicate string in traceback) is silly
+    "FBT003",  # positional booleans are normal for Pydantic field defaults
+    "FIX002",  # point of a TODO comment is that we're not ready to fix it
+    "G004",    # forbidding logging f-strings is appealing, but not our style
+    "RET505",  # disagree that omitting else always makes code more readable
+    "PLR0911", # often many returns is clearer and simpler style
+    "PLR0913", # factory pattern uses constructors with many arguments
+    "PLR2004", # too aggressive about magic values
+    "PLW0603", # yes global is discouraged but if needed, it's needed
+    "S105",    # good idea but too many false positives on non-passwords
+    "S106",    # good idea but too many false positives on non-passwords
+    "S107",    # good idea but too many false positives on non-passwords
+    "S603",    # not going to manually mark every subprocess call as reviewed
+    "S607",    # using PATH is not a security vulnerability
+    "SIM102",  # sometimes the formatting of nested if statements is clearer
+    "SIM117",  # sometimes nested with contexts are clearer
+    "TCH001",  # we decided to not maintain separate TYPE_CHECKING blocks
+    "TCH002",  # we decided to not maintain separate TYPE_CHECKING blocks
+    "TCH003",  # we decided to not maintain separate TYPE_CHECKING blocks
+    "TD003",   # we don't require issues be created for TODOs
+    "TID252",  # if we're going to use relative imports, use them always
+    "TRY003",  # good general advice but lint is way too aggressive
+    "TRY301",  # sometimes raising exceptions inside try is the best flow
+
+    # The following settings should be disabled when using ruff format
+    # per https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "W191",
+    "E111",
+    "E114",
+    "E117",
+    "D206",
+    "D300",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "COM812",
+    "COM819",
+    "ISC001",
+    "ISC002",
+]
+select = ["ALL"]
+target-version = "py311"
+
+[tool.ruff.per-file-ignores]
+"tests/**" = [
+    "C901",    # tests are allowed to be complex, sometimes that's convenient
+    "D101",    # tests don't need docstrings
+    "D103",    # tests don't need docstrings
+    "PLR0915", # tests are allowed to be long, sometimes that's convenient
+    "PT012",   # way too aggressive about limiting pytest.raises blocks
+    "S101",    # tests should use assert
+    "S106",    # tests are allowed to hard-code dummy passwords
+    "SLF001",  # tests are allowed to access private members
+]
+
+[tool.ruff.isort]
+known-first-party = ["giftless", "tests"]
+split-on-trailing-comma = false
+
+[tool.ruff.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Form",
+    "fastapi.Header",
+    "fastapi.Depends",
+    "fastapi.Path",
+    "fastapi.Query",
+]
+
+# These are too useful as attributes or methods to allow the conflict with the
+# built-in to rule out their use.
+[tool.ruff.flake8-builtins]
+builtins-ignorelist = [
+    "all",
+    "any",
+    "dict",
+    "help",
+    "id",
+    "list",
+    "open",
+    "type",
+]
+
+[tool.ruff.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+[tool.ruff.mccabe]
+max-complexity = 11
+
+[tool.ruff.pydocstyle]
+convention = "numpy"
+
+[tool.scriv]
+categories = [
+    "Backwards-incompatible changes",
+    "New features",
+    "Bug fixes",
+    "Other changes",
+]
+entry_title_template = "{{ version }} ({{ date.strftime('%Y-%m-%d') }})"
+format = "md"
+md_header_level = "2"
+new_fragment_template = "file:changelog.d/_template.md.jinja"
+skip_fragments = "_template.md.jinja"

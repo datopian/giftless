@@ -4,13 +4,12 @@ from typing import Optional
 
 
 class StorageError(RuntimeError):
-    """Base class for storage errors
-    """
+    """Base class for storage errors"""
+
     code: Optional[int] = None
 
     def as_dict(self):
-        return {"message": str(self),
-                "code": self.code}
+        return {"message": str(self), "code": self.code}
 
 
 class ObjectNotFound(StorageError):

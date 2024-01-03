@@ -5,12 +5,11 @@ import pytest
 from giftless import transfer
 
 
-@pytest.fixture()
+@pytest.fixture
 def reset_registered_transfers():
-    """Reset global registered transfer adapters for each module
-    """
-    adapters = dict(transfer._registered_adapters)  # noqa
+    """Reset global registered transfer adapters for each module"""
+    adapters = dict(transfer._registered_adapters)
     try:
         yield
     finally:
-        transfer._registered_adapters = adapters  # noqa
+        transfer._registered_adapters = adapters

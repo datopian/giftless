@@ -1,6 +1,6 @@
 import os
 import shutil
-from typing import Any, BinaryIO, Dict, Optional
+from typing import Any, BinaryIO, Optional
 
 from giftless.storage import MultipartStorage, StreamingStorage, exc
 from giftless.view import ViewProvider
@@ -13,16 +13,17 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
     While it can be used in production, large scale deployment will most likely
     want to use a more scalable solution such as one of the cloud storage backends.
     """
+
     def __init__(self, path: Optional[str] = None, **_) -> None:
         if path is None:
-            path = 'lfs-storage'
+            path = "lfs-storage"
         self.path = path
         self._create_path(self.path)
 
     def get(self, prefix: str, oid: str) -> BinaryIO:
         path = self._get_path(prefix, oid)
         if os.path.isfile(path):
-            return open(path, 'br')
+            return open(path, "br")
         else:
             raise exc.ObjectNotFound("Object was not found")
 
@@ -30,7 +31,7 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
         path = self._get_path(prefix, oid)
         directory = os.path.dirname(path)
         self._create_path(directory)
-        with open(path, 'bw') as dest:
+        with open(path, "bw") as dest:
             shutil.copyfileobj(data_stream, dest)
             return dest.tell()
 
@@ -47,12 +48,25 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
             return "application/octet-stream"
         raise exc.ObjectNotFound("Object was not found")
 
-    def get_multipart_actions(self, prefix: str, oid: str, size: int, part_size: int, expires_in: int,
-                              extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def get_multipart_actions(
+        self,
+        prefix: str,
+        oid: str,
+        size: int,
+        part_size: int,
+        expires_in: int,
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         return {}
 
-    def get_download_action(self, prefix: str, oid: str, size: int, expires_in: int,
-                            extra: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def get_download_action(
+        self,
+        prefix: str,
+        oid: str,
+        size: int,
+        expires_in: int,
+        extra: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         return {}
 
     def register_views(self, app):

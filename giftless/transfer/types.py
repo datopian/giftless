@@ -1,7 +1,7 @@
 """Some useful type definitions for transfer protocols
 """
 import sys
-from typing import Any, Dict, List
+from typing import Any
 
 if sys.version_info >= (3, 8):
     from typing import TypedDict
@@ -10,15 +10,15 @@ else:
 
 
 class ObjectAttributes(TypedDict):
-    """Type for object attributes sent in batch request
-    """
+    """Type for object attributes sent in batch request"""
+
     oid: str
     size: int
 
 
 class BasicUploadActions(TypedDict, total=False):
-    upload: Dict[str, Any]
-    verify: Dict[str, Any]
+    upload: dict[str, Any]
+    verify: dict[str, Any]
 
 
 class UploadObjectAttributes(ObjectAttributes, total=False):
@@ -26,11 +26,11 @@ class UploadObjectAttributes(ObjectAttributes, total=False):
 
 
 class MultipartUploadActions(TypedDict, total=False):
-    init: Dict[str, Any]
-    commit: Dict[str, Any]
-    parts: List[Dict[str, Any]]
-    abort: Dict[str, Any]
-    verify: Dict[str, Any]
+    init: dict[str, Any]
+    commit: dict[str, Any]
+    parts: list[dict[str, Any]]
+    abort: dict[str, Any]
+    verify: dict[str, Any]
 
 
 class MultipartUploadObjectAttributes(ObjectAttributes, total=False):
