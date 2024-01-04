@@ -5,16 +5,13 @@ from base64 import b64decode
 from binascii import unhexlify
 from collections.abc import Generator
 from typing import Any
+
 import pytest
 
 from giftless.storage import ExternalStorage
 from giftless.storage.amazon_s3 import AmazonS3Storage
 
-from . import (
-    ARBITRARY_OID,
-    ExternalStorageAbstractTests,
-    StreamingStorageAbstractTests,
-)
+from . import ARBITRARY_OID, ExternalStorageAbstractTests, StreamingStorageAbstractTests
 
 TEST_AWS_S3_BUCKET_NAME = "test-giftless"
 

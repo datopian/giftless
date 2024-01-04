@@ -1,10 +1,11 @@
 """Test common transfer module functionality
 """
+from typing import Any
+
 import pytest
 
 from giftless import transfer
 
-from typing import Any
 
 @pytest.mark.parametrize(
     "register,requested,expected",

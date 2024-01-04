@@ -1,13 +1,12 @@
 """Schema for Git LFS APIs
 """
 from enum import Enum
+from typing import Any
 
 import marshmallow
 from flask_marshmallow import Marshmallow
 from marshmallow import fields, pre_load, validate
 from marshmallow_enum import EnumField
-
-from typing import Any
 
 ma = Marshmallow()
 

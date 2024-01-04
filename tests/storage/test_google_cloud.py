@@ -2,13 +2,12 @@
 """
 import os
 from collections.abc import Generator
+from typing import Any
 
 import pytest
 from google.api_core.exceptions import GoogleAPIError
 
 from giftless.storage.google_cloud import GoogleCloudStorage
-
-from typing import Any
 
 MOCK_GCP_PROJECT_NAME = "giftless-tests"
 MOCK_GCP_BUCKET_NAME = "giftless-tests-20200818"

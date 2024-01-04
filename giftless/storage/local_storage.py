@@ -1,7 +1,8 @@
 import os
 import shutil
-from flask import Flask
 from typing import Any, BinaryIO, Optional
+
+from flask import Flask
 
 from giftless.storage import MultipartStorage, StreamingStorage, exc
 from giftless.view import ViewProvider

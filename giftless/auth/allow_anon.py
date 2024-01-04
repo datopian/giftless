@@ -13,8 +13,10 @@ If for some reason you want to allow anonymous users as a fall back (e.g. you
 want to allow read-only access to anyone), be sure to load this authenticator
 last.
 """
-from .identity import DefaultIdentity, Permission
 from typing import Any
+
+from .identity import DefaultIdentity, Permission
+
 
 class AnonymousUser(DefaultIdentity):
     """An anonymous user object"""

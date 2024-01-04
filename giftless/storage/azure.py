@@ -9,19 +9,9 @@ from urllib.parse import urlencode
 from xml.sax.saxutils import escape as xml_escape
 
 from azure.core.exceptions import ResourceNotFoundError
-from azure.storage.blob import (
-    BlobClient,
-    BlobSasPermissions,
-    BlobServiceClient,
-    generate_blob_sas,
-)
+from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient, generate_blob_sas
 
-from giftless.storage import (
-    ExternalStorage,
-    MultipartStorage,
-    StreamingStorage,
-    guess_mime_type_from_filename,
-)
+from giftless.storage import ExternalStorage, MultipartStorage, StreamingStorage, guess_mime_type_from_filename
 
 from .exc import ObjectNotFound
 

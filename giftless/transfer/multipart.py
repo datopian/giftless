@@ -8,9 +8,9 @@ from flask import Flask
 
 from giftless.storage import MultipartStorage, exc
 from giftless.transfer import PreAuthorizingTransferAdapter
-from giftless.view import ViewProvider
 from giftless.transfer.basic_streaming import VerifyView
 from giftless.util import get_callable
+from giftless.view import ViewProvider
 
 DEFAULT_PART_SIZE = 10240000  # 10mb
 DEFAULT_ACTION_LIFETIME = 6 * 3600  # 6 hours

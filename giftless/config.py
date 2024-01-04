@@ -1,12 +1,12 @@
 """Configuration handling helper functions and default configuration
 """
 import os
-
-from flask import Flask
-from figcan import Extensible, Configuration  # type:ignore
 from typing import Any
+
 import yaml
 from dotenv import load_dotenv
+from figcan import Configuration, Extensible  # type:ignore
+from flask import Flask
 
 ENV_PREFIX = "GIFTLESS_"
 ENV_FILE = ".env"

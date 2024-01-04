@@ -1,7 +1,9 @@
 """Some global fixtures for transfer tests
 """
-import pytest
 from typing import Generator
+
+import pytest
+
 from giftless import transfer
 
 

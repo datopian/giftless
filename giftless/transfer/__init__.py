@@ -5,11 +5,12 @@ for more information about what transfer APIs do in Git LFS.
 """
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from flask import Flask
 from functools import partial
 from typing import Any, Optional, cast
 
-from giftless.auth import Authentication, authentication, PreAuthorizedActionAuthenticator
+from flask import Flask
+
+from giftless.auth import Authentication, PreAuthorizedActionAuthenticator, authentication
 from giftless.util import add_query_params, get_callable
 from giftless.view import ViewProvider
 

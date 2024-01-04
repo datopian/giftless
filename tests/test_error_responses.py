@@ -1,7 +1,8 @@
 """Tests for schema definitions
 """
-from .helpers import batch_request_payload
 from flask.testing import FlaskClient
+
+from .helpers import batch_request_payload
 
 
 def test_error_response_422(test_client:FlaskClient) -> None:

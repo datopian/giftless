@@ -1,11 +1,12 @@
 """Unit tests for auth module
 """
+from typing import Any
+
 import pytest
 
 from giftless.auth import allow_anon
 from giftless.auth.identity import DefaultIdentity, Permission
 
-from typing import Any
 
 def test_default_identity_properties() -> None:
     """Test the basic properties of the default identity object"""

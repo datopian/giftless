@@ -2,7 +2,6 @@
 """
 import os
 from collections.abc import Generator
-
 from typing import Any
 
 import pytest

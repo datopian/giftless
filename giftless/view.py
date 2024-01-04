@@ -2,7 +2,7 @@
 """
 from typing import Any
 
-from flask import Response, Flask
+from flask import Flask, Response
 from flask_classful import FlaskView
 from webargs.flaskparser import parser
 

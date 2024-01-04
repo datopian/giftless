@@ -8,10 +8,9 @@ See http://flask-classful.teracy.org/#adding-resource-representations-get-real-c
 import json
 from datetime import datetime
 from functools import partial
-
-from flask import make_response, Response
-
 from typing import Any
+
+from flask import Response, make_response
 
 GIT_LFS_MIME_TYPE = "application/vnd.git-lfs+json"
 

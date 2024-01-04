@@ -18,9 +18,9 @@ from flask import Flask
 
 from giftless.storage import ExternalStorage, exc
 from giftless.transfer import PreAuthorizingTransferAdapter
-from giftless.view import ViewProvider
 from giftless.transfer.basic_streaming import VerifyView
 from giftless.util import get_callable
+from giftless.view import ViewProvider
 
 
 class BasicExternalBackendTransferAdapter(

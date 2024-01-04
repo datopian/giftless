@@ -3,6 +3,7 @@
 import os
 from typing import Any
 
+
 def batch_request_payload(delete_keys:list[str] = [], **kwargs:Any) -> dict[str,Any]:
     """Generate sample batch request payload"""
     payload = {

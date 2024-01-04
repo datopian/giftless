@@ -1,8 +1,10 @@
 """Tests for schema definitions
 """
-import pytest
 from typing import cast
+
+import pytest
 from flask.testing import FlaskClient
+
 from .helpers import batch_request_payload, create_file_in_storage
 
 

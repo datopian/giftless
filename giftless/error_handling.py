@@ -2,8 +2,8 @@
 
 See https://github.com/git-lfs/git-lfs/blob/master/docs/api/batch.md#response-errors
 """
-from werkzeug.exceptions import default_exceptions
 from flask import Flask, Response
+from werkzeug.exceptions import default_exceptions
 
 from .representation import output_git_lfs_json
 

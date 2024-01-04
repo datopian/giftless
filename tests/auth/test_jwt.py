@@ -1,13 +1,12 @@
 import base64
 import os
 from datetime import datetime, timedelta
+from typing import Any
 
 import flask
 import jwt
 import pytest
 import pytz
-
-from typing import Any
 
 from giftless.auth import Unauthorized
 from giftless.auth.identity import DefaultIdentity, Permission

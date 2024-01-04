@@ -2,11 +2,10 @@
 """
 import logging
 import os
+from typing import Any
 
 from flask import Flask
 from flask_marshmallow import Marshmallow
-
-from typing import Any
 
 from giftless import config, transfer, view
 from giftless.auth import authentication

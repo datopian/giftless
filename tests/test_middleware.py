@@ -1,9 +1,9 @@
 """Tests for using middleware and some specific middleware
 """
 import pytest
-
 from flask import Flask
 from flask.testing import FlaskClient
+
 from giftless.app import init_app
 
 from .helpers import batch_request_payload

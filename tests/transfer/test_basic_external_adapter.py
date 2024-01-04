@@ -3,9 +3,10 @@ from urllib.parse import urlencode
 
 import pytest
 
+from giftless.storage import ExternalStorage
 from giftless.storage.exc import ObjectNotFound
 from giftless.transfer import basic_external
-from giftless.storage import ExternalStorage
+
 
 def test_factory_returns_object() -> None:
     """Test that the basic_external factory returns the right object(s)"""

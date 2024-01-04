@@ -1,11 +1,12 @@
-import flask
-import shutil
-
 import pathlib
+import shutil
+from typing import Generator, cast
+
+import flask
 import pytest
 from flask.ctx import AppContext
 from flask.testing import FlaskClient
-from typing import Generator, cast
+
 from giftless.app import init_app
 from giftless.auth import allow_anon, authentication
 
