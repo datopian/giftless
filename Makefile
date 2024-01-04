@@ -39,7 +39,7 @@ test: $(SENTINELS)/dev-setup
 	$(PYTEST) $(PYTEST_EXTRA_ARGS) $(PACKAGE_DIRS) $(TESTS_DIR)
 
 ## Build a local Docker image
-docker: requirements.txt
+docker: requirements/main.txt
 	$(DOCKER) build --cache-from "$(DOCKER_CACHE_FROM)" -t $(DOCKER_HOST)/$(DOCKER_REPO)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
 
 ## Tag and push a release
@@ -80,10 +80,10 @@ $(SENTINELS)/dist-setup: | $(SENTINELS)
 $(SENTINELS)/dist: $(SENTINELS)/dist-setup $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl | $(SENTINELS)
 	@touch $@
 
-$(SENTINELS)/dev-setup: requirements.txt dev-requirements.txt | $(SENTINELS)
-	$(PIP) install -r requirements.txt
+$(SENTINELS)/dev-setup: requirements/main.txt requirements/dev.txt | $(SENTINELS)
+	$(PIP) install -r requirements/main.txt
 	$(PIP) install -e .
-	$(PIP) install -r dev-requirements.txt
+	$(PIP) install -r requirements/dev.txt
 	@touch $@
 
 # Help related variables and targets
