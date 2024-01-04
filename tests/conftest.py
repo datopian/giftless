@@ -65,8 +65,8 @@ def authz_full_access(
     """
     try:
         authentication.push_authenticator(
-            allow_anon.read_write
-        )  # type:ignore[arg-type]
+            allow_anon.read_write  # type:ignore[arg-type]
+        )
         yield
     finally:
         authentication.init_authenticators(reload=True)

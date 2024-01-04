@@ -8,6 +8,8 @@ from giftless.app import init_app
 
 from .helpers import batch_request_payload
 
+from typing import Any, cast
+
 
 @pytest.fixture
 def app(storage_path: str) -> Flask:
@@ -46,9 +48,9 @@ def test_upload_request_with_x_forwarded_middleware(
     )
 
     assert response.status_code == 200
-    href = response.json["objects"][0]["actions"]["upload"][
-        "href"
-    ]  # type:ignore[index]
+    json = cast(dict[str, Any], response.json)
+    upload_action = json["objects"][0]["actions"]["upload"]
+    href = upload_action["href"]
     assert href == "http://localhost/myorg/myrepo/objects/storage/12345678"
 
     response = test_client.post(
@@ -63,9 +65,9 @@ def test_upload_request_with_x_forwarded_middleware(
     )
 
     assert response.status_code == 200
-    href = response.json["objects"][0]["actions"]["upload"][
-        "href"
-    ]  # type:ignore[index]
+    json = cast(dict[str, Any], response.json)
+    upload_action = json["objects"][0]["actions"]["upload"]
+    href = upload_action["href"]
     assert (
         href
         == "https://mycompany.xyz:1234/lfs/myorg/myrepo/objects/storage/12345678"
