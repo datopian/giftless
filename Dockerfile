@@ -22,7 +22,7 @@ RUN pip wheel -w /wheels -r /requirements.txt
 FROM python:3.10-slim
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
-    && apt-get install -y libpcre3 libxml2 tini \
+    && apt-get install -y libpcre3 libxml2 tini git \
     && apt-get clean \
     && apt -y autoremove
 
