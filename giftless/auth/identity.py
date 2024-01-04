@@ -42,7 +42,7 @@ class Identity(ABC):
     ) -> bool:
         """Tell if user is authorized to perform an operation on an object / repo"""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<{self.__class__.__name__} id:{self.id} name:{self.name}>"
 
 
@@ -66,7 +66,7 @@ class DefaultIdentity(Identity):
         repo: Optional[str] = None,
         permissions: Optional[set[Permission]] = None,
         oid: Optional[str] = None,
-    ):
+    ) -> None:
         if permissions is None:
             self._allowed[organization][repo][oid] = set()
         else:

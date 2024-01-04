@@ -1,9 +1,10 @@
 """Configuration handling helper functions and default configuration
 """
 import os
-from typing import Optional
 
-import figcan
+from flask import Flask
+from figcan import Extensible, Configuration  # type:ignore
+from typing import Any
 import yaml
 from dotenv import load_dotenv
 
@@ -11,13 +12,13 @@ ENV_PREFIX = "GIFTLESS_"
 ENV_FILE = ".env"
 
 default_transfer_config = {
-    "basic": figcan.Extensible(
+    "basic": Extensible(
         {
             "factory": "giftless.transfer.basic_streaming:factory",
-            "options": figcan.Extensible(
+            "options": Extensible(
                 {
                     "storage_class": "giftless.storage.local_storage:LocalStorage",
-                    "storage_options": figcan.Extensible(
+                    "storage_options": Extensible(
                         {"path": "lfs-storage"}
                     ),
                     "action_lifetime": 900,
@@ -28,7 +29,7 @@ default_transfer_config = {
 }
 
 default_config = {
-    "TRANSFER_ADAPTERS": figcan.Extensible(default_transfer_config),
+    "TRANSFER_ADAPTERS": Extensible(default_transfer_config),
     "TESTING": False,
     "DEBUG": False,
     "AUTH_PROVIDERS": ["giftless.auth.allow_anon:read_only"],
@@ -50,7 +51,7 @@ default_config = {
 load_dotenv()
 
 
-def configure(app, additional_config: Optional[dict] = None):
+def configure(app: Flask, additional_config: dict|None = None) -> Flask:
     """Configure a Flask app using Figcan managed configuration object"""
     config = _compose_config(additional_config)
     app.config.update(config)
@@ -58,10 +59,10 @@ def configure(app, additional_config: Optional[dict] = None):
 
 
 def _compose_config(
-    additional_config: Optional[dict] = None,
-) -> figcan.Configuration:
+    additional_config: dict[str, Any]|None = None,
+) -> Configuration:
     """Compose configuration object from all available sources"""
-    config = figcan.Configuration(default_config)
+    config = Configuration(default_config)
     environ = dict(
         os.environ
     )  # Copy the environment as we're going to change it
@@ -77,7 +78,7 @@ def _compose_config(
         config.apply(config_from_file)
         environ.pop(f"{ENV_PREFIX}CONFIG_STR")
 
-    config.apply_flat(environ, prefix=ENV_PREFIX)  # type: ignore
+    config.apply_flat(environ, prefix=ENV_PREFIX)
 
     if additional_config:
         config.apply(additional_config)

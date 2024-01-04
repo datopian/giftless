@@ -2,7 +2,7 @@ import base64
 import binascii
 import posixpath
 from collections.abc import Iterable
-from typing import Any, BinaryIO, Optional
+from typing import Any, BinaryIO
 
 import boto3
 import botocore
@@ -18,10 +18,10 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
     def __init__(
         self,
         bucket_name: str,
-        path_prefix: Optional[str] = None,
-        endpoint: Optional[str] = None,
-        **_,
-    ):
+        path_prefix: str|None = None,
+        endpoint: str|None = None,
+        **_: Any,
+    )->None:
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
         self.s3 = boto3.resource("s3", endpoint_url=endpoint)
@@ -34,9 +34,9 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
         return result
 
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
-        completed = []
+        completed: list[int] = []
 
-        def upload_callback(size):
+        def upload_callback(size: int)->None:
             completed.append(size)
 
         bucket = self.s3.Bucket(self.bucket_name)
@@ -70,7 +70,7 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         base64_oid = base64.b64encode(binascii.a2b_hex(oid)).decode("ascii")
         params = {
@@ -101,7 +101,7 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, str]] = None,
+        extra: dict[str, str]|None = None,
     ) -> dict[str, Any]:
         params = {
             "Bucket": self.bucket_name,
@@ -144,7 +144,7 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
             storage_prefix = self.path_prefix
         return posixpath.join(storage_prefix, prefix, oid)
 
-    def _s3_object(self, prefix, oid):
+    def _s3_object(self, prefix:str, oid:str)->Any:
         return self.s3.Object(
             self.bucket_name, self._get_blob_path(prefix, oid)
         )

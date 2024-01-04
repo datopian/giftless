@@ -4,7 +4,9 @@ import logging
 import os
 
 from flask import Flask
-from flask_marshmallow import Marshmallow  # type: ignore
+from flask_marshmallow import Marshmallow
+
+from typing import Any
 
 from giftless import config, transfer, view
 from giftless.auth import authentication
@@ -12,7 +14,7 @@ from giftless.error_handling import ApiErrorHandler
 from giftless.util import get_callable
 
 
-def init_app(app=None, additional_config=None):
+def init_app(app:Flask|None=None, additional_config:Any=None) -> Flask:
     """Flask app initialization"""
     if app is None:
         app = Flask(__name__)

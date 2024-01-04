@@ -4,9 +4,9 @@ import abc
 import logging
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Optional, Union
+from typing import Any, Union
 
-from flask import Request, current_app, g
+from flask import Flask, Request, current_app, g
 from flask import request as flask_request
 from typing_extensions import Protocol
 from werkzeug.exceptions import Unauthorized as BaseUnauthorized
@@ -27,7 +27,7 @@ class Authenticator(Protocol):
     a request and provide an identity object
     """
 
-    def __call__(self, request: Request) -> Optional[Identity]:
+    def __call__(self, request: Request) -> Identity|None:
         raise NotImplementedError(
             "This is a protocol definition and should not be called directly"
         )
@@ -46,9 +46,9 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
         identity: Identity,
         org: str,
         repo: str,
-        actions: Optional[set[str]] = None,
-        oid: Optional[str] = None,
-        lifetime: Optional[int] = None,
+        actions: set[str]|None = None,
+        oid: str|None = None,
+        lifetime: int|None = None,
     ) -> dict[str, str]:
         """Authorize an action by adding credientaisl to the query string"""
         return {}
@@ -58,9 +58,9 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
         identity: Identity,
         org: str,
         repo: str,
-        actions: Optional[set[str]] = None,
-        oid: Optional[str] = None,
-        lifetime: Optional[int] = None,
+        actions: set[str]|None = None,
+        oid: str|None = None,
+        lifetime: int|None = None,
     ) -> dict[str, str]:
         """Authorize an action by adding credentials to the request headers"""
         return {}
@@ -68,22 +68,22 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
 
 class Authentication:
     def __init__(
-        self, app=None, default_identity: Optional[Identity] = None
+        self, app: Flask|None=None, default_identity: Identity|None = None
     ) -> None:
         self._default_identity = default_identity
-        self._authenticators: list[Authenticator] = []
-        self._unauthorized_handler: Optional[Callable] = None
-        self.preauth_handler: Optional[PreAuthorizedActionAuthenticator] = None
+        self._authenticators: list[Authenticator]|None = None
+        self._unauthorized_handler: Callable|None = None
+        self.preauth_handler: Authenticator|None = None
 
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app):
+    def init_app(self, app: Flask) -> None:
         """Initialize the Flask app"""
         app.config.setdefault("AUTH_PROVIDERS", [])
         app.config.setdefault("PRE_AUTHORIZED_ACTION_PROVIDER", None)
 
-    def get_identity(self) -> Optional[Identity]:
+    def get_identity(self) -> Identity|None:
         if hasattr(g, "user") and isinstance(g.user, Identity):
             return g.user
 
@@ -96,11 +96,11 @@ class Authentication:
         log.debug("No authenticated identity could be found")
         return None
 
-    def login_required(self, f):
+    def login_required(self, f: Callable) -> Callable:
         """A typical Flask "login_required" view decorator"""
 
         @wraps(f)
-        def decorated_function(*args, **kwargs):
+        def decorated_function(*args: Any, **kwargs: Any) -> Any:
             user = self.get_identity()
             if not user:
                 return self.auth_failure()
@@ -108,7 +108,7 @@ class Authentication:
 
         return decorated_function
 
-    def no_identity_handler(self, f):
+    def no_identity_handler(self, f: Callable) -> Callable:
         """Marker decorator for "unauthorized handler" function
 
         This function will be called automatically if no authenticated identity was found
@@ -117,19 +117,19 @@ class Authentication:
         self._unauthorized_handler = f
 
         @wraps(f)
-        def decorated_func(*args, **kwargs):
+        def decorated_func(*args: Any, **kwargs: Any) -> Any:
             return f(*args, **kwargs)
 
         return decorated_func
 
-    def auth_failure(self):
+    def auth_failure(self) -> Any:
         """Trigger an authentication failure"""
         if self._unauthorized_handler:
             return self._unauthorized_handler()
         else:
             raise Unauthorized("User identity is required")
 
-    def init_authenticators(self, reload=False):
+    def init_authenticators(self, reload:bool=False) -> None:
         """Register an authenticator function"""
         if reload:
             self._authenticators = None
@@ -155,13 +155,18 @@ class Authentication:
             )
             self.push_authenticator(self.preauth_handler)
 
-    def push_authenticator(self, authenticator):
+    def push_authenticator(self, authenticator: Authenticator) -> None:
         """Push an authenticator at the top of the stack"""
+        if self._authenticators is None:
+            self._authenticators = [ authenticator ]
+            return
         self._authenticators.insert(0, authenticator)
 
-    def _authenticate(self) -> Optional[Identity]:
+    def _authenticate(self) -> Identity|None:
         """Call all registered authenticators until we find an identity"""
         self.init_authenticators()
+        if self._authenticators is None:
+            return self._default_identity
         for authn in self._authenticators:
             try:
                 current_identity = authn(flask_request)

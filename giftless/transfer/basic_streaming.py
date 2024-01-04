@@ -7,20 +7,20 @@ interface through which additional streaming backends can be implemented.
 """
 
 import posixpath
-from typing import Any, Optional
+from typing import Any, BinaryIO, Optional, cast
 
 import marshmallow
-from flask import Response, request, url_for
+from flask import Flask, Response, request, url_for
 from flask_classful import route
-from webargs.flaskparser import parser  # type: ignore
+from webargs.flaskparser import parser
 
 from giftless.auth.identity import Permission
 from giftless.exc import InvalidPayload, NotFound
 from giftless.schema import ObjectSchema
 from giftless.storage import StreamingStorage, VerifiableStorage
-from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
+from giftless.transfer import PreAuthorizingTransferAdapter
 from giftless.util import add_query_params, get_callable, safe_filename
-from giftless.view import BaseView
+from giftless.view import BaseView, ViewProvider
 
 
 class VerifyView(BaseView):
@@ -36,7 +36,7 @@ class VerifyView(BaseView):
         self.storage = storage
 
     @route("/verify", methods=["POST"])
-    def verify(self, organization, repo):
+    def verify(self, organization: str, repo: str) -> Response:
         schema = ObjectSchema(unknown=marshmallow.EXCLUDE)
         payload = parser.parse(schema)
 
@@ -75,7 +75,7 @@ class ObjectsView(BaseView):
     def __init__(self, storage: StreamingStorage):
         self.storage = storage
 
-    def put(self, organization, repo, oid):
+    def put(self, organization: str, repo: str, oid: str) -> Response:
         """Upload a file to local storage
 
         For now, I am not sure this actually streams chunked uploads without reading the entire
@@ -88,11 +88,12 @@ class ObjectsView(BaseView):
         )
         stream = request.stream
         self.storage.put(
-            prefix=f"{organization}/{repo}", oid=oid, data_stream=stream
+            prefix=f"{organization}/{repo}", oid=oid,
+            data_stream=cast(BinaryIO,stream)
         )
         return Response(status=200)
 
-    def get(self, organization, repo, oid):
+    def get(self, organization: str, repo:str , oid:str) -> Response:
         """Get an file open file stream from local storage"""
         self._check_authorization(organization, repo, Permission.READ, oid=oid)
         path = posixpath.join(organization, repo)
@@ -143,6 +144,7 @@ class BasicStreamingTransferAdapter(
     PreAuthorizingTransferAdapter, ViewProvider
 ):
     def __init__(self, storage: StreamingStorage, action_lifetime: int):
+        super().__init__()
         self.storage = storage
         self.action_lifetime = action_lifetime
 
@@ -233,12 +235,12 @@ class BasicStreamingTransferAdapter(
 
         return response
 
-    def register_views(self, app):
+    def register_views(self, app:Flask) -> None:
         ObjectsView.register(app, init_argument=self.storage)
         VerifyView.register(app, init_argument=self.storage)
 
 
-def factory(storage_class, storage_options, action_lifetime):
+def factory(storage_class: Any, storage_options: Any, action_lifetime: int) -> BasicStreamingTransferAdapter:
     """Factory for basic transfer adapter with local storage"""
     storage = get_callable(storage_class, __name__)
     return BasicStreamingTransferAdapter(

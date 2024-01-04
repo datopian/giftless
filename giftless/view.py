@@ -1,9 +1,10 @@
 """Flask-Classful View Classes
 """
-from typing import Any, Optional
+from typing import Any
 
+from flask import Response, Flask
 from flask_classful import FlaskView
-from webargs.flaskparser import parser  # type: ignore
+from webargs.flaskparser import parser
 
 from giftless import exc, representation, schema, transfer
 from giftless.auth import authentication as authn
@@ -26,13 +27,13 @@ class BaseView(FlaskView):
     trailing_slash = False
 
     @classmethod
-    def register(cls, *args, **kwargs):
+    def register(cls, *args: Any, **kwargs: Any) -> Any:
         if kwargs.get("base_class") is None:
             kwargs["base_class"] = BaseView
         return super().register(*args, **kwargs)
 
     @classmethod
-    def _check_authorization(cls, organization, repo, permission, oid=None):
+    def _check_authorization(cls, organization: str, repo: str, permission: Permission, oid:str|None =None) -> None:
         """Check the current user is authorized to perform an action and raise an exception otherwise"""
         if not cls._is_authorized(organization, repo, permission, oid):
             raise exc.Forbidden(
@@ -40,10 +41,10 @@ class BaseView(FlaskView):
             )
 
     @staticmethod
-    def _is_authorized(organization, repo, permission, oid=None):
+    def _is_authorized(organization: str, repo: str, permission: Permission, oid: str|None=None) -> bool:
         """Check the current user is authorized to perform an action"""
         identity = authn.get_identity()
-        return identity and identity.is_authorized(
+        return identity is not None and identity.is_authorized(
             organization, repo, permission, oid
         )
 
@@ -53,7 +54,7 @@ class BatchView(BaseView):
 
     route_base = "<organization>/<repo>/objects/batch"
 
-    def post(self, organization, repo):
+    def post(self, organization: str, repo: str) -> dict[str,Any]:
         """Batch operations"""
         payload = parser.parse(schema.batch_request_schema)
 
@@ -62,7 +63,7 @@ class BatchView(BaseView):
                 payload["transfers"]
             )
         except ValueError as e:
-            raise exc.InvalidPayload(e)
+            raise exc.InvalidPayload(str(e))
 
         permission = (
             Permission.WRITE
@@ -79,11 +80,11 @@ class BatchView(BaseView):
             ):
                 raise
 
-        response = {"transfer": transfer_type}
+        response: dict[str,Any] = {"transfer": transfer_type}
         action = adapter.get_action(
             payload["operation"].value, organization, repo
         )
-        response["objects"] = [action(**o) for o in payload["objects"]]
+        response["objects"] = [action(**o) for o in payload["objects"]]  # type: ignore[call-arg]
 
         if all(self._is_error(o, 404) for o in response["objects"]):
             raise exc.NotFound("Cannot find any of the requested objects")
@@ -99,7 +100,7 @@ class BatchView(BaseView):
         return response
 
     @staticmethod
-    def _is_error(obj: dict[str, Any], code: Optional[int] = None):
+    def _is_error(obj: dict[str, Any], code: int|None = None) -> bool:
         try:
             return obj["error"]["code"] == code or code is None
         except KeyError:
@@ -113,5 +114,5 @@ class ViewProvider:
     directly from the Giftless HTTP server.
     """
 
-    def register_views(self, app):
+    def register_views(self, app: Flask)-> None:
         pass

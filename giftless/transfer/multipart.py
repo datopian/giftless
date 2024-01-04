@@ -4,8 +4,11 @@
 import posixpath
 from typing import Any, Optional
 
+from flask import Flask
+
 from giftless.storage import MultipartStorage, exc
-from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
+from giftless.transfer import PreAuthorizingTransferAdapter
+from giftless.view import ViewProvider
 from giftless.transfer.basic_streaming import VerifyView
 from giftless.util import get_callable
 
@@ -20,6 +23,7 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
         default_action_lifetime: int,
         max_part_size: int = DEFAULT_PART_SIZE,
     ):
+        super().__init__()
         self.storage = storage
         self.max_part_size = max_part_size
         self.action_lifetime = default_action_lifetime
@@ -86,13 +90,13 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
 
         return response
 
-    def register_views(self, app):
+    def register_views(self, app: Flask) -> None:
         # FIXME: this is broken. Need to find a smarter way for multiple transfer adapters to provide the same view
         # VerifyView.register(app, init_argument=self.storage)
         if isinstance(self.storage, ViewProvider):
             self.storage.register_views(app)
 
-    def _check_object(self, prefix: str, oid: str, size: int):
+    def _check_object(self, prefix: str, oid: str, size: int) -> None:
         """Raise specific domain error if object is not valid
 
         NOTE: this does not use storage.verify_object directly because
@@ -103,11 +107,11 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
 
 
 def factory(
-    storage_class,
-    storage_options,
+    storage_class: Any,
+    storage_options: Any,
     action_lifetime: int = DEFAULT_ACTION_LIFETIME,
     max_part_size: int = DEFAULT_PART_SIZE,
-):
+) -> MultipartTransferAdapter:
     """Factory for multipart transfer adapter with storage"""
     try:
         storage = get_callable(storage_class, __name__)
