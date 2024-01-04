@@ -33,7 +33,9 @@ class ObjectSchema(ma.Schema):  # type: ignore
     extra = fields.Dict(required=False, missing=dict)
 
     @pre_load
-    def set_extra_fields(self, data: dict[str,Any], **_: Any) -> dict[str,Any]:
+    def set_extra_fields(
+        self, data: dict[str, Any], **_: Any
+    ) -> dict[str, Any]:
         extra = {}
         rest = {}
         for k, v in data.items():

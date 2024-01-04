@@ -5,7 +5,7 @@ from flask.testing import FlaskClient
 from .helpers import batch_request_payload
 
 
-def test_error_response_422(test_client:FlaskClient) -> None:
+def test_error_response_422(test_client: FlaskClient) -> None:
     """Test an invalid payload error"""
     response = test_client.post(
         "/myorg/myrepo/objects/batch",
@@ -17,7 +17,7 @@ def test_error_response_422(test_client:FlaskClient) -> None:
     assert "message" in response.json  # type:ignore[operator]
 
 
-def test_error_response_404(test_client:FlaskClient) -> None:
+def test_error_response_404(test_client: FlaskClient) -> None:
     """Test a bad route error"""
     response = test_client.get("/now/for/something/completely/different")
 
@@ -26,7 +26,7 @@ def test_error_response_404(test_client:FlaskClient) -> None:
     assert "message" in response.json  # type:ignore[operator]
 
 
-def test_error_response_403(test_client:FlaskClient) -> None:
+def test_error_response_403(test_client: FlaskClient) -> None:
     """Test that we get Forbidden when trying to upload with the default read-only setup"""
     response = test_client.post(
         "/myorg/myrepo/objects/batch",

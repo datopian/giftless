@@ -17,7 +17,7 @@ from .helpers import batch_request_payload
         (batch_request_payload(delete_keys=["ref", "transfers"])),
     ],
 )
-def test_batch_request_schema_valid(input:str) -> None:
+def test_batch_request_schema_valid(input: str) -> None:
     parsed = schema.BatchRequest().load(input)
     assert parsed
 
@@ -36,7 +36,7 @@ def test_batch_request_schema_valid(input:str) -> None:
         (batch_request_payload(objects=[{"oid": "123abc", "size": -12}])),
     ],
 )
-def test_batch_request_schema_invalid(input:str) -> None:
+def test_batch_request_schema_invalid(input: str) -> None:
     with pytest.raises(ValidationError):
         schema.BatchRequest().load(input)
 

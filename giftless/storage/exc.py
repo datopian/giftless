@@ -5,9 +5,9 @@
 class StorageError(RuntimeError):
     """Base class for storage errors"""
 
-    code: int|None = None
+    code: int | None = None
 
-    def as_dict(self) -> dict[str,str|int|None]:
+    def as_dict(self) -> dict[str, str | int | None]:
         return {"message": str(self), "code": self.code}
 
 

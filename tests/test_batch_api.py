@@ -9,7 +9,7 @@ from .helpers import batch_request_payload, create_file_in_storage
 
 
 @pytest.mark.usefixtures("authz_full_access")
-def test_upload_batch_request(test_client:FlaskClient) -> None:
+def test_upload_batch_request(test_client: FlaskClient) -> None:
     """Test basic batch API with a basic successful upload request"""
     request_payload = batch_request_payload(operation="upload")
     response = test_client.post(
@@ -19,7 +19,7 @@ def test_upload_batch_request(test_client:FlaskClient) -> None:
     assert response.status_code == 200
     assert response.content_type == "application/vnd.git-lfs+json"
 
-    payload = cast(dict,response.json)
+    payload = cast(dict, response.json)
     assert "message" not in payload
     assert payload["transfer"] == "basic"
     assert len(payload["objects"]) == 1
@@ -32,7 +32,9 @@ def test_upload_batch_request(test_client:FlaskClient) -> None:
     assert "verify" in object["actions"]
 
 
-def test_download_batch_request(test_client:FlaskClient, storage_path:str) -> None:
+def test_download_batch_request(
+    test_client: FlaskClient, storage_path: str
+) -> None:
     """Test basic batch API with a basic successful upload request"""
     request_payload = batch_request_payload(operation="download")
     oid = request_payload["objects"][0]["oid"]
@@ -45,7 +47,7 @@ def test_download_batch_request(test_client:FlaskClient, storage_path:str) -> No
     assert response.status_code == 200
     assert response.content_type == "application/vnd.git-lfs+json"
 
-    payload = cast(dict,response.json)
+    payload = cast(dict, response.json)
     assert "message" not in payload
     assert payload["transfer"] == "basic"
     assert len(payload["objects"]) == 1
@@ -58,7 +60,7 @@ def test_download_batch_request(test_client:FlaskClient, storage_path:str) -> No
 
 
 def test_download_batch_request_two_files_one_missing(
-    test_client:FlaskClient, storage_path:str
+    test_client: FlaskClient, storage_path: str
 ) -> None:
     """Test batch API with a two object download request where one file 404"""
     request_payload = batch_request_payload(operation="download")
@@ -75,7 +77,7 @@ def test_download_batch_request_two_files_one_missing(
     assert response.status_code == 200
     assert response.content_type == "application/vnd.git-lfs+json"
 
-    payload = cast(dict,response.json)
+    payload = cast(dict, response.json)
     assert "message" not in payload
     assert payload["transfer"] == "basic"
     assert len(payload["objects"]) == 2
@@ -93,7 +95,9 @@ def test_download_batch_request_two_files_one_missing(
     assert object["error"]["code"] == 404
 
 
-def test_download_batch_request_two_files_missing(test_client: FlaskClient) -> None:
+def test_download_batch_request_two_files_missing(
+    test_client: FlaskClient,
+) -> None:
     """Test batch API with a two object download request where one file 404"""
     request_payload = batch_request_payload(operation="download")
     request_payload["objects"].append({"oid": "12345679", "size": 5555})
@@ -105,15 +109,15 @@ def test_download_batch_request_two_files_missing(test_client: FlaskClient) -> N
     assert response.status_code == 404
     assert response.content_type == "application/vnd.git-lfs+json"
 
-    payload = cast(dict,response.json)
+    payload = cast(dict, response.json)
     assert "message" in payload
     assert "objects" not in payload
     assert "transfer" not in payload
 
 
 def test_download_batch_request_two_files_one_mismatch(
-    test_client: FlaskClient, storage_path:str
-) ->None:
+    test_client: FlaskClient, storage_path: str
+) -> None:
     """Test batch API with a two object download request where one file 422"""
     request_payload = batch_request_payload(operation="download")
     request_payload["objects"].append({"oid": "12345679", "size": 8})
@@ -140,7 +144,7 @@ def test_download_batch_request_two_files_one_mismatch(
     assert response.status_code == 200
     assert response.content_type == "application/vnd.git-lfs+json"
 
-    payload = cast(dict,response.json)
+    payload = cast(dict, response.json)
     assert "message" not in payload
     assert payload["transfer"] == "basic"
     assert len(payload["objects"]) == 2
@@ -158,7 +162,9 @@ def test_download_batch_request_two_files_one_mismatch(
     assert object["error"]["code"] == 422
 
 
-def test_download_batch_request_one_file_mismatch(test_client:FlaskClient, storage_path:str) -> None:
+def test_download_batch_request_one_file_mismatch(
+    test_client: FlaskClient, storage_path: str
+) -> None:
     """Test batch API with a two object download request where one file 422"""
     request_payload = batch_request_payload(operation="download")
     create_file_in_storage(
@@ -176,14 +182,14 @@ def test_download_batch_request_one_file_mismatch(test_client:FlaskClient, stora
     assert response.status_code == 422
     assert response.content_type == "application/vnd.git-lfs+json"
 
-    payload = cast(dict,response.json)
+    payload = cast(dict, response.json)
     assert "message" in payload
     assert "objects" not in payload
     assert "transfer" not in payload
 
 
 def test_download_batch_request_two_files_different_errors(
-    test_client:FlaskClient, storage_path:str
+    test_client: FlaskClient, storage_path: str
 ) -> None:
     """Test batch API with a two object download request where one file is missing and one is mismatch"""
     request_payload = batch_request_payload(operation="download")
@@ -203,7 +209,7 @@ def test_download_batch_request_two_files_different_errors(
     assert response.status_code == 422
     assert response.content_type == "application/vnd.git-lfs+json"
 
-    payload = cast(dict,response.json)
+    payload = cast(dict, response.json)
     assert "message" in payload
     assert "objects" not in payload
     assert "transfer" not in payload

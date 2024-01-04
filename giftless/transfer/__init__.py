@@ -10,7 +10,11 @@ from typing import Any, Optional, cast
 
 from flask import Flask
 
-from giftless.auth import Authentication, PreAuthorizedActionAuthenticator, authentication
+from giftless.auth import (
+    Authentication,
+    PreAuthorizedActionAuthenticator,
+    authentication,
+)
 from giftless.util import add_query_params, get_callable
 from giftless.view import ViewProvider
 
@@ -26,7 +30,7 @@ class TransferAdapter(ABC):
         repo: str,
         oid: str,
         size: int,
-        extra: dict[str, Any]|None = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         raise NotImplementedError(
             "This transfer adapter is not fully implemented"
@@ -38,7 +42,7 @@ class TransferAdapter(ABC):
         repo: str,
         oid: str,
         size: int,
-        extra: dict[str, Any]|None = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         raise NotImplementedError(
             "This transfer adapter is not fully implemented"
@@ -64,8 +68,8 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         #
         self.VERIFY_LIFETIME = 12 * 60 * 60  # Can be quite a while
         if not hasattr(self, "_auth_module"):
-            self._auth_module: Authentication|None = None
-    
+            self._auth_module: Authentication | None = None
+
     def set_auth_module(self, auth_module: Authentication) -> None:
         self._auth_module = auth_module
 
@@ -74,16 +78,18 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         original_url: str,
         org: str,
         repo: str,
-        actions: set[str]|None = None,
-        oid: str|None = None,
-        lifetime: int|None = None,
+        actions: set[str] | None = None,
+        oid: str | None = None,
+        lifetime: int | None = None,
     ) -> str:
         if self._auth_module is None:
             return original_url
         if self._auth_module.preauth_handler is None:
             return original_url
 
-        handler = cast(PreAuthorizedActionAuthenticator,self._auth_module.preauth_handler)
+        handler = cast(
+            PreAuthorizedActionAuthenticator, self._auth_module.preauth_handler
+        )
         identity = self._auth_module.get_identity()
         if identity is None:
             return original_url
@@ -98,17 +104,19 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         self,
         org: str,
         repo: str,
-        actions: set[str]|None = None,
-        oid: str|None = None,
-        lifetime: int|None = None,
+        actions: set[str] | None = None,
+        oid: str | None = None,
+        lifetime: int | None = None,
     ) -> dict[str, str]:
         if self._auth_module is None:
             return {}
         if self._auth_module.preauth_handler is None:
             return {}
 
-        handler = cast(PreAuthorizedActionAuthenticator,self._auth_module.preauth_handler)
-        
+        handler = cast(
+            PreAuthorizedActionAuthenticator, self._auth_module.preauth_handler
+        )
+
         identity = self._auth_module.get_identity()
         if identity is None:
             return {}
@@ -117,7 +125,7 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         )
 
 
-def init_flask_app(app:Flask) -> None:
+def init_flask_app(app: Flask) -> None:
     """Initialize a flask app instance with transfer adapters.
 
     This will:

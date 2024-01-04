@@ -26,13 +26,15 @@ def storage_dir(tmp_path: pathlib.Path) -> Generator[pathlib.Path, None, None]:
 
 
 @pytest.fixture
-def storage_backend(storage_dir:str) -> LocalStorage:
+def storage_backend(storage_dir: str) -> LocalStorage:
     """Provide a local storage backend for all local tests"""
     return LocalStorage(path=storage_dir)
 
 
 class TestLocalStorageBackend(StreamingStorageAbstractTests):
-    def test_local_path_created_on_init(self, storage_dir: pathlib.Path) -> None:
+    def test_local_path_created_on_init(
+        self, storage_dir: pathlib.Path
+    ) -> None:
         """Test that the local storage path is created on module init"""
         storage_path = str(storage_dir / "here")
         assert not os.path.exists(storage_path)

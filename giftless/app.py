@@ -13,7 +13,7 @@ from giftless.error_handling import ApiErrorHandler
 from giftless.util import get_callable
 
 
-def init_app(app:Flask|None=None, additional_config:Any=None) -> Flask:
+def init_app(app: Flask | None = None, additional_config: Any = None) -> Flask:
     """Flask app initialization"""
     if app is None:
         app = Flask(__name__)

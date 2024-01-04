@@ -16,7 +16,7 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
     want to use a more scalable solution such as one of the cloud storage backends.
     """
 
-    def __init__(self, path: Optional[str] = None, **_:Any ) -> None:
+    def __init__(self, path: Optional[str] = None, **_: Any) -> None:
         if path is None:
             path = "lfs-storage"
         self.path = path
@@ -71,7 +71,7 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
     ) -> dict[str, Any]:
         return {}
 
-    def register_views(self, app:Flask)->None:
+    def register_views(self, app: Flask) -> None:
         super().register_views(app)
 
     def _get_path(self, prefix: str, oid: str) -> str:

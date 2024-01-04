@@ -33,7 +33,13 @@ class BaseView(FlaskView):
         return super().register(*args, **kwargs)
 
     @classmethod
-    def _check_authorization(cls, organization: str, repo: str, permission: Permission, oid:str|None =None) -> None:
+    def _check_authorization(
+        cls,
+        organization: str,
+        repo: str,
+        permission: Permission,
+        oid: str | None = None,
+    ) -> None:
         """Check the current user is authorized to perform an action and raise an exception otherwise"""
         if not cls._is_authorized(organization, repo, permission, oid):
             raise exc.Forbidden(
@@ -41,7 +47,12 @@ class BaseView(FlaskView):
             )
 
     @staticmethod
-    def _is_authorized(organization: str, repo: str, permission: Permission, oid: str|None=None) -> bool:
+    def _is_authorized(
+        organization: str,
+        repo: str,
+        permission: Permission,
+        oid: str | None = None,
+    ) -> bool:
         """Check the current user is authorized to perform an action"""
         identity = authn.get_identity()
         return identity is not None and identity.is_authorized(
@@ -54,7 +65,7 @@ class BatchView(BaseView):
 
     route_base = "<organization>/<repo>/objects/batch"
 
-    def post(self, organization: str, repo: str) -> dict[str,Any]:
+    def post(self, organization: str, repo: str) -> dict[str, Any]:
         """Batch operations"""
         payload = parser.parse(schema.batch_request_schema)
 
@@ -80,7 +91,7 @@ class BatchView(BaseView):
             ):
                 raise
 
-        response: dict[str,Any] = {"transfer": transfer_type}
+        response: dict[str, Any] = {"transfer": transfer_type}
         action = adapter.get_action(
             payload["operation"].value, organization, repo
         )
@@ -100,7 +111,7 @@ class BatchView(BaseView):
         return response
 
     @staticmethod
-    def _is_error(obj: dict[str, Any], code: int|None = None) -> bool:
+    def _is_error(obj: dict[str, Any], code: int | None = None) -> bool:
         try:
             return obj["error"]["code"] == code or code is None
         except KeyError:
@@ -114,5 +125,5 @@ class ViewProvider:
     directly from the Giftless HTTP server.
     """
 
-    def register_views(self, app: Flask)-> None:
+    def register_views(self, app: Flask) -> None:
         pass

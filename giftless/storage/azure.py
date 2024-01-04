@@ -9,9 +9,19 @@ from urllib.parse import urlencode
 from xml.sax.saxutils import escape as xml_escape
 
 from azure.core.exceptions import ResourceNotFoundError
-from azure.storage.blob import BlobClient, BlobSasPermissions, BlobServiceClient, generate_blob_sas
+from azure.storage.blob import (
+    BlobClient,
+    BlobSasPermissions,
+    BlobServiceClient,
+    generate_blob_sas,
+)
 
-from giftless.storage import ExternalStorage, MultipartStorage, StreamingStorage, guess_mime_type_from_filename
+from giftless.storage import (
+    ExternalStorage,
+    MultipartStorage,
+    StreamingStorage,
+    guess_mime_type_from_filename,
+)
 
 from .exc import ObjectNotFound
 
@@ -34,7 +44,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         path_prefix: Optional[str] = None,
         enable_content_digest: bool = True,
         **_: Any,
-    )->None:
+    ) -> None:
         self.container_name = container_name
         self.path_prefix = path_prefix
         self.blob_svc_client: BlobServiceClient = (

@@ -24,19 +24,19 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         self,
         project_name: str,
         bucket_name: str,
-        account_key_file: str|None = None,
-        account_key_base64: str|None = None,
-        path_prefix: str|None = None,
-        serviceaccount_email: str|None = None,
+        account_key_file: str | None = None,
+        account_key_base64: str | None = None,
+        path_prefix: str | None = None,
+        serviceaccount_email: str | None = None,
         **_: Any,
     ) -> None:
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
         self.credentials: Union[
-                service_account.Credentials,
-                impersonated_credentials.Credentials,
-                None
-            ] = self._load_credentials(account_key_file, account_key_base64)
+            service_account.Credentials,
+            impersonated_credentials.Credentials,
+            None,
+        ] = self._load_credentials(account_key_file, account_key_base64)
         self.storage_client = storage.Client(
             project=project_name, credentials=self.credentials
         )
@@ -82,7 +82,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: dict[str, Any]|None = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return {
             "actions": {
@@ -102,7 +102,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: dict[str, Any]|None = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         filename = extra.get("filename") if extra else None
         disposition = (
@@ -141,8 +141,8 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         oid: str,
         expires_in: int,
         http_method: str = "GET",
-        filename: str|None = None,
-        disposition: str|None = None,
+        filename: str | None = None,
+        disposition: str | None = None,
     ) -> str:
         creds = self.credentials
         if creds is None:
@@ -164,8 +164,8 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
 
     @staticmethod
     def _load_credentials(
-        account_key_file: str|None, account_key_base64: str|None
-    ) -> service_account.Credentials|None:
+        account_key_file: str | None, account_key_base64: str | None
+    ) -> service_account.Credentials | None:
         """Load Google Cloud credentials from passed configuration"""
         if account_key_file and account_key_base64:
             raise ValueError(

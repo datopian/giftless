@@ -126,7 +126,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         self._verification_key: Union[str, bytes, None] = None  # lazy loaded
         self._log = logging.getLogger(__name__)
 
-    def __call__(self, request: Request) -> Identity|None:
+    def __call__(self, request: Request) -> Identity | None:
         token_payload = self._authenticate(request)
         if token_payload is None:
             return None
@@ -136,7 +136,9 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         token = self._generate_token_for_action(*args, **kwargs)
         return {"Authorization": f"Bearer {token}"}
 
-    def get_authz_query_params(self, *args: Any, **kwargs: Any) -> dict[str, str]:
+    def get_authz_query_params(
+        self, *args: Any, **kwargs: Any
+    ) -> dict[str, str]:
         return {"jwt": self._generate_token_for_action(*args, **kwargs)}
 
     def _generate_token_for_action(
@@ -224,7 +226,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
             return token  # type: ignore[unreachable]
         return token.decode("ascii")
 
-    def _authenticate(self, request: Request) -> dict[str,Any]|None:
+    def _authenticate(self, request: Request) -> dict[str, Any] | None:
         """Authenticate a request"""
         token = self._get_token_from_headers(request)
         if token is None:
@@ -253,7 +255,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
                 f"Expired or otherwise invalid JWT token ({e!s})"
             )
 
-    def _get_token_from_headers(self, request: Request) -> str|None:
+    def _get_token_from_headers(self, request: Request) -> str | None:
         """Extract JWT token from HTTP Authorization header
 
         This will first try to obtain a Bearer token. If none is found but we have a 'Basic' Authorization header,
@@ -378,9 +380,9 @@ class Scope:
     def __init__(
         self,
         entity_type: str,
-        entity_id: str|None = None,
-        actions: set[str]|None = None,
-        subscope: str|None = None,
+        entity_id: str | None = None,
+        actions: set[str] | None = None,
+        subscope: str | None = None,
     ) -> None:
         self.entity_type = entity_type
         self.entity_ref = entity_id
@@ -417,7 +419,7 @@ class Scope:
         return ":".join(parts)
 
     @classmethod
-    def from_string(cls, scope_str:str) -> 'Scope':
+    def from_string(cls, scope_str: str) -> "Scope":
         """Create a scope object from string"""
         parts = scope_str.split(":")
         if len(parts) < 1:
@@ -442,7 +444,7 @@ class Scope:
         return set(actions_str.split(","))
 
 
-def factory(**options:Any) -> JWTAuthenticator:
+def factory(**options: Any) -> JWTAuthenticator:
     for key_type in ("private_key", "public_key"):
         file_opt = f"{key_type}_file"
         try:

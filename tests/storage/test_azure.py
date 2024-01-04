@@ -56,7 +56,7 @@ def storage_backend() -> Generator[AzureBlobsStorage, None, None]:
 
 
 @pytest.fixture(scope="module")
-def vcr_config() -> dict[str,Any]:
+def vcr_config() -> dict[str, Any]:
     live_tests = bool(
         os.environ.get("AZURE_CONNECTION_STRING")
         and os.environ.get("AZURE_CONTAINER")

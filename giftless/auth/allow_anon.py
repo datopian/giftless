@@ -27,14 +27,14 @@ class AnonymousUser(DefaultIdentity):
             self.name = "anonymous"
 
 
-def read_only(_:Any) -> AnonymousUser:
+def read_only(_: Any) -> AnonymousUser:
     """Dummy authenticator that gives read-only permissions to everyone"""
     user = AnonymousUser()
     user.allow(permissions={Permission.READ, Permission.READ_META})
     return user
 
 
-def read_write(_:Any) -> AnonymousUser:
+def read_write(_: Any) -> AnonymousUser:
     """Dummy authenticator that gives full permissions to everyone"""
     user = AnonymousUser()
     user.allow(permissions=Permission.all())

@@ -88,12 +88,13 @@ class ObjectsView(BaseView):
         )
         stream = request.stream
         self.storage.put(
-            prefix=f"{organization}/{repo}", oid=oid,
-            data_stream=cast(BinaryIO,stream)
+            prefix=f"{organization}/{repo}",
+            oid=oid,
+            data_stream=cast(BinaryIO, stream),
         )
         return Response(status=200)
 
-    def get(self, organization: str, repo:str , oid:str) -> Response:
+    def get(self, organization: str, repo: str, oid: str) -> Response:
         """Get an file open file stream from local storage"""
         self._check_authorization(organization, repo, Permission.READ, oid=oid)
         path = posixpath.join(organization, repo)
@@ -235,12 +236,14 @@ class BasicStreamingTransferAdapter(
 
         return response
 
-    def register_views(self, app:Flask) -> None:
+    def register_views(self, app: Flask) -> None:
         ObjectsView.register(app, init_argument=self.storage)
         VerifyView.register(app, init_argument=self.storage)
 
 
-def factory(storage_class: Any, storage_options: Any, action_lifetime: int) -> BasicStreamingTransferAdapter:
+def factory(
+    storage_class: Any, storage_options: Any, action_lifetime: int
+) -> BasicStreamingTransferAdapter:
     """Factory for basic transfer adapter with local storage"""
     storage = get_callable(storage_class, __name__)
     return BasicStreamingTransferAdapter(

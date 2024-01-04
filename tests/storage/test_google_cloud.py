@@ -101,7 +101,7 @@ def storage_backend() -> Generator[GoogleCloudStorage, None, None]:
 
 
 @pytest.fixture(scope="module")
-def vcr_config() -> dict[str,Any]:
+def vcr_config() -> dict[str, Any]:
     live_tests = bool(
         os.environ.get("GCP_ACCOUNT_KEY_FILE")
         and os.environ.get("GCP_PROJECT_NAME")

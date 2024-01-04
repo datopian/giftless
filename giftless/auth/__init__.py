@@ -27,7 +27,7 @@ class Authenticator(Protocol):
     a request and provide an identity object
     """
 
-    def __call__(self, request: Request) -> Identity|None:
+    def __call__(self, request: Request) -> Identity | None:
         raise NotImplementedError(
             "This is a protocol definition and should not be called directly"
         )
@@ -46,9 +46,9 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
         identity: Identity,
         org: str,
         repo: str,
-        actions: set[str]|None = None,
-        oid: str|None = None,
-        lifetime: int|None = None,
+        actions: set[str] | None = None,
+        oid: str | None = None,
+        lifetime: int | None = None,
     ) -> dict[str, str]:
         """Authorize an action by adding credientaisl to the query string"""
         return {}
@@ -58,9 +58,9 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
         identity: Identity,
         org: str,
         repo: str,
-        actions: set[str]|None = None,
-        oid: str|None = None,
-        lifetime: int|None = None,
+        actions: set[str] | None = None,
+        oid: str | None = None,
+        lifetime: int | None = None,
     ) -> dict[str, str]:
         """Authorize an action by adding credentials to the request headers"""
         return {}
@@ -68,12 +68,14 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
 
 class Authentication:
     def __init__(
-        self, app: Flask|None=None, default_identity: Identity|None = None
+        self,
+        app: Flask | None = None,
+        default_identity: Identity | None = None,
     ) -> None:
         self._default_identity = default_identity
-        self._authenticators: list[Authenticator]|None = None
-        self._unauthorized_handler: Callable|None = None
-        self.preauth_handler: Authenticator|None = None
+        self._authenticators: list[Authenticator] | None = None
+        self._unauthorized_handler: Callable | None = None
+        self.preauth_handler: Authenticator | None = None
 
         if app is not None:
             self.init_app(app)
@@ -83,7 +85,7 @@ class Authentication:
         app.config.setdefault("AUTH_PROVIDERS", [])
         app.config.setdefault("PRE_AUTHORIZED_ACTION_PROVIDER", None)
 
-    def get_identity(self) -> Identity|None:
+    def get_identity(self) -> Identity | None:
         if hasattr(g, "user") and isinstance(g.user, Identity):
             return g.user
 
@@ -129,7 +131,7 @@ class Authentication:
         else:
             raise Unauthorized("User identity is required")
 
-    def init_authenticators(self, reload:bool=False) -> None:
+    def init_authenticators(self, reload: bool = False) -> None:
         """Register an authenticator function"""
         if reload:
             self._authenticators = None
@@ -158,11 +160,11 @@ class Authentication:
     def push_authenticator(self, authenticator: Authenticator) -> None:
         """Push an authenticator at the top of the stack"""
         if self._authenticators is None:
-            self._authenticators = [ authenticator ]
+            self._authenticators = [authenticator]
             return
         self._authenticators.insert(0, authenticator)
 
-    def _authenticate(self) -> Identity|None:
+    def _authenticate(self) -> Identity | None:
         """Call all registered authenticators until we find an identity"""
         self.init_authenticators()
         if self._authenticators is None:

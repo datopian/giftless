@@ -11,7 +11,11 @@ import pytest
 from giftless.storage import ExternalStorage
 from giftless.storage.amazon_s3 import AmazonS3Storage
 
-from . import ARBITRARY_OID, ExternalStorageAbstractTests, StreamingStorageAbstractTests
+from . import (
+    ARBITRARY_OID,
+    ExternalStorageAbstractTests,
+    StreamingStorageAbstractTests,
+)
 
 TEST_AWS_S3_BUCKET_NAME = "test-giftless"
 
@@ -47,7 +51,7 @@ def storage_backend() -> Generator[AmazonS3Storage, None, None]:
 
 
 @pytest.fixture(scope="module")
-def vcr_config() -> dict[str,Any]:
+def vcr_config() -> dict[str, Any]:
     live_tests = bool(
         os.environ.get("AWS_ACCESS_KEY_ID")
         and os.environ.get("AWS_SECRET_ACCESS_KEY")
@@ -72,7 +76,9 @@ class TestAmazonS3StorageBackend(
     # This is gross.  Because we're extending the classes, it has to return
     # the same thing, and upload uses the test method and returns a value
     # which is not how tests usually work, and ugh.
-    def test_get_upload_action(self, storage_backend: ExternalStorage) -> dict[str,Any]:
+    def test_get_upload_action(
+        self, storage_backend: ExternalStorage
+    ) -> dict[str, Any]:
         upload = super().test_get_upload_action(storage_backend)
 
         assert upload["header"]["Content-Type"] == "application/octet-stream"

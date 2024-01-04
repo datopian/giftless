@@ -36,7 +36,9 @@ def app(storage_path: str) -> Flask:
 
 
 @pytest.mark.usefixtures("authz_full_access")
-def test_upload_request_with_x_forwarded_middleware(test_client: FlaskClient) -> None:
+def test_upload_request_with_x_forwarded_middleware(
+    test_client: FlaskClient,
+) -> None:
     """Test the ProxyFix middleware generates correct URLs if X-Forwarded headers are set"""
     request_payload = batch_request_payload(operation="upload")
     response = test_client.post(
@@ -44,7 +46,9 @@ def test_upload_request_with_x_forwarded_middleware(test_client: FlaskClient) ->
     )
 
     assert response.status_code == 200
-    href = response.json["objects"][0]["actions"]["upload"]["href"]  # type:ignore[index]
+    href = response.json["objects"][0]["actions"]["upload"][
+        "href"
+    ]  # type:ignore[index]
     assert href == "http://localhost/myorg/myrepo/objects/storage/12345678"
 
     response = test_client.post(
@@ -59,7 +63,9 @@ def test_upload_request_with_x_forwarded_middleware(test_client: FlaskClient) ->
     )
 
     assert response.status_code == 200
-    href = response.json["objects"][0]["actions"]["upload"]["href"]  # type:ignore[index]
+    href = response.json["objects"][0]["actions"]["upload"][
+        "href"
+    ]  # type:ignore[index]
     assert (
         href
         == "https://mycompany.xyz:1234/lfs/myorg/myrepo/objects/storage/12345678"

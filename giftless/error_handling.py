@@ -9,16 +9,16 @@ from .representation import output_git_lfs_json
 
 
 class ApiErrorHandler:
-    def __init__(self, app: Flask|None=None) -> None:
+    def __init__(self, app: Flask | None = None) -> None:
         if app:
             self.init_app(app)
 
-    def init_app(self, app:Flask) -> None:
+    def init_app(self, app: Flask) -> None:
         for code in default_exceptions:
             app.errorhandler(code)(self.error_as_json)
 
     @classmethod
-    def error_as_json(cls, ex:Exception) -> Response:
+    def error_as_json(cls, ex: Exception) -> Response:
         """Handle errors by returning a JSON response"""
         code = ex.code if hasattr(ex, "code") else 500
         data = {"message": str(ex)}

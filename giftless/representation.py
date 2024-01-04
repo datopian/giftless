@@ -24,7 +24,12 @@ class CustomJsonEncoder(json.JSONEncoder):
         return super().default(o)
 
 
-def output_json(data: Any, code: int|None, headers: dict[str,str]|None=None, content_type:str="application/json") -> Response:
+def output_json(
+    data: Any,
+    code: int | None,
+    headers: dict[str, str] | None = None,
+    content_type: str = "application/json",
+) -> Response:
     dumped = json.dumps(data, cls=CustomJsonEncoder)
     if headers:
         headers.update({"Content-Type": content_type})

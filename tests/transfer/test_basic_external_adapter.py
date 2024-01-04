@@ -185,7 +185,9 @@ class MockExternalStorageBackend(ExternalStorage):
     accessing an actual cloud provider.
     """
 
-    def __init__(self, base_url: str = "https://cloudstorage.example.com/") -> None:
+    def __init__(
+        self, base_url: str = "https://cloudstorage.example.com/"
+    ) -> None:
         self.existing_objects: dict[tuple[str, str], int] = {}
         self.base_url = base_url
 

@@ -60,7 +60,7 @@ class ExternalStorage(VerifiableStorage, ABC):
         oid: str,
         size: int,
         expires_in: int,
-        extra: dict[str, Any]|None = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         pass
 
@@ -71,7 +71,7 @@ class ExternalStorage(VerifiableStorage, ABC):
         oid: str,
         size: int,
         expires_in: int,
-        extra: dict[str, Any]|None = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         pass
 
@@ -99,7 +99,7 @@ class MultipartStorage(VerifiableStorage, ABC):
         size: int,
         part_size: int,
         expires_in: int,
-        extra: dict[str, Any]|None = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         pass
 
@@ -110,7 +110,7 @@ class MultipartStorage(VerifiableStorage, ABC):
         oid: str,
         size: int,
         expires_in: int,
-        extra: dict[str, Any]|None = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         pass
 
@@ -129,5 +129,5 @@ class MultipartStorage(VerifiableStorage, ABC):
             return False
 
 
-def guess_mime_type_from_filename(filename: str) -> str|None:
+def guess_mime_type_from_filename(filename: str) -> str | None:
     return mimetypes.guess_type(filename)[0]

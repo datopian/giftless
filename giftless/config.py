@@ -18,9 +18,7 @@ default_transfer_config = {
             "options": Extensible(
                 {
                     "storage_class": "giftless.storage.local_storage:LocalStorage",
-                    "storage_options": Extensible(
-                        {"path": "lfs-storage"}
-                    ),
+                    "storage_options": Extensible({"path": "lfs-storage"}),
                     "action_lifetime": 900,
                 }
             ),
@@ -51,7 +49,7 @@ default_config = {
 load_dotenv()
 
 
-def configure(app: Flask, additional_config: dict|None = None) -> Flask:
+def configure(app: Flask, additional_config: dict | None = None) -> Flask:
     """Configure a Flask app using Figcan managed configuration object"""
     config = _compose_config(additional_config)
     app.config.update(config)
@@ -59,7 +57,7 @@ def configure(app: Flask, additional_config: dict|None = None) -> Flask:
 
 
 def _compose_config(
-    additional_config: dict[str, Any]|None = None,
+    additional_config: dict[str, Any] | None = None,
 ) -> Configuration:
     """Compose configuration object from all available sources"""
     config = Configuration(default_config)

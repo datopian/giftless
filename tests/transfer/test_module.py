@@ -17,7 +17,9 @@ from giftless import transfer
     ],
 )
 @pytest.mark.usefixtures("reset_registered_transfers")
-def test_transfer_adapter_matching(register: list[str], requested:list[str], expected:str) -> None:
+def test_transfer_adapter_matching(
+    register: list[str], requested: list[str], expected: str
+) -> None:
     for adapter in register:
         transfer.register_adapter(adapter, transfer.TransferAdapter())
     actual = transfer.match_transfer_adapter(requested)

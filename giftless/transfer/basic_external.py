@@ -94,7 +94,7 @@ class BasicExternalBackendTransferAdapter(
 
         return response
 
-    def register_views(self, app:Flask) -> None:
+    def register_views(self, app: Flask) -> None:
         VerifyView.register(app, init_argument=self.storage)
 
     def _check_object(self, prefix: str, oid: str, size: int) -> None:
@@ -107,7 +107,9 @@ class BasicExternalBackendTransferAdapter(
             raise exc.InvalidObject("Object size does not match")
 
 
-def factory(storage_class: Any, storage_options: Any, action_lifetime:int) -> BasicExternalBackendTransferAdapter:
+def factory(
+    storage_class: Any, storage_options: Any, action_lifetime: int
+) -> BasicExternalBackendTransferAdapter:
     """Factory for basic transfer adapter with external storage"""
     storage = get_callable(storage_class, __name__)
     return BasicExternalBackendTransferAdapter(

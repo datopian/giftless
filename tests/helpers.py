@@ -4,7 +4,9 @@ import os
 from typing import Any
 
 
-def batch_request_payload(delete_keys:list[str] = [], **kwargs:Any) -> dict[str,Any]:
+def batch_request_payload(
+    delete_keys: list[str] = [], **kwargs: Any
+) -> dict[str, Any]:
     """Generate sample batch request payload"""
     payload = {
         "operation": "download",
@@ -20,7 +22,9 @@ def batch_request_payload(delete_keys:list[str] = [], **kwargs:Any) -> dict[str,
     return payload
 
 
-def create_file_in_storage(storage_path:str, org:str, repo:str, filename:str, size:int=1) -> None:
+def create_file_in_storage(
+    storage_path: str, org: str, repo: str, filename: str, size: int = 1
+) -> None:
     """Put a dummy file in the storage path for a specific org / repo / oid combination
 
     This is useful where we want to test download / verify actions without relying on
