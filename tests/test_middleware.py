@@ -1,5 +1,7 @@
 """Tests for using middleware and some specific middleware
 """
+from typing import Any, cast
+
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
@@ -7,8 +9,6 @@ from flask.testing import FlaskClient
 from giftless.app import init_app
 
 from .helpers import batch_request_payload
-
-from typing import Any, cast
 
 
 @pytest.fixture
