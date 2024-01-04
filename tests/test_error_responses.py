@@ -1,9 +1,10 @@
 """Tests for schema definitions
 """
 from .helpers import batch_request_payload
+from flask.testing import FlaskClient
 
 
-def test_error_response_422(test_client):
+def test_error_response_422(test_client:FlaskClient) -> None:
     """Test an invalid payload error"""
     response = test_client.post(
         "/myorg/myrepo/objects/batch",
@@ -12,19 +13,19 @@ def test_error_response_422(test_client):
 
     assert response.status_code == 422
     assert response.content_type == "application/vnd.git-lfs+json"
-    assert "message" in response.json
+    assert "message" in response.json  # type:ignore[operator]
 
 
-def test_error_response_404(test_client):
+def test_error_response_404(test_client:FlaskClient) -> None:
     """Test a bad route error"""
     response = test_client.get("/now/for/something/completely/different")
 
     assert response.status_code == 404
     assert response.content_type == "application/vnd.git-lfs+json"
-    assert "message" in response.json
+    assert "message" in response.json  # type:ignore[operator]
 
 
-def test_error_response_403(test_client):
+def test_error_response_403(test_client:FlaskClient) -> None:
     """Test that we get Forbidden when trying to upload with the default read-only setup"""
     response = test_client.post(
         "/myorg/myrepo/objects/batch",
@@ -33,4 +34,4 @@ def test_error_response_403(test_client):
 
     assert response.status_code == 403
     assert response.content_type == "application/vnd.git-lfs+json"
-    assert "message" in response.json
+    assert "message" in response.json  # type:ignore[operator]

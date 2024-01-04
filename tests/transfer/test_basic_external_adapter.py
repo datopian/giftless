@@ -5,9 +5,9 @@ import pytest
 
 from giftless.storage.exc import ObjectNotFound
 from giftless.transfer import basic_external
+from giftless.storage import ExternalStorage
 
-
-def test_factory_returns_object():
+def test_factory_returns_object() -> None:
     """Test that the basic_external factory returns the right object(s)"""
     base_url = "https://s4.example.com/"
     lifetime = 300
@@ -24,7 +24,7 @@ def test_factory_returns_object():
 
 
 @pytest.mark.usefixtures("app_context")
-def test_upload_action_new_file():
+def test_upload_action_new_file() -> None:
     adapter = basic_external.factory(
         f"{__name__}:MockExternalStorageBackend",
         {},
@@ -52,7 +52,7 @@ def test_upload_action_new_file():
 
 
 @pytest.mark.usefixtures("app_context")
-def test_upload_action_extras_are_passed():
+def test_upload_action_extras_are_passed() -> None:
     adapter = basic_external.factory(
         f"{__name__}:MockExternalStorageBackend", {}, 900
     )
@@ -80,7 +80,7 @@ def test_upload_action_extras_are_passed():
 
 
 @pytest.mark.usefixtures("app_context")
-def test_upload_action_existing_file():
+def test_upload_action_existing_file() -> None:
     storage = MockExternalStorageBackend()
     adapter = basic_external.BasicExternalBackendTransferAdapter(storage, 900)
 
@@ -97,7 +97,7 @@ def test_upload_action_existing_file():
 
 
 @pytest.mark.usefixtures("app_context")
-def test_download_action_existing_file():
+def test_download_action_existing_file() -> None:
     storage = MockExternalStorageBackend()
     adapter = basic_external.BasicExternalBackendTransferAdapter(storage, 900)
 
@@ -120,7 +120,7 @@ def test_download_action_existing_file():
 
 
 @pytest.mark.usefixtures("app_context")
-def test_download_action_non_existing_file():
+def test_download_action_non_existing_file() -> None:
     storage = MockExternalStorageBackend()
     adapter = basic_external.BasicExternalBackendTransferAdapter(storage, 900)
 
@@ -136,7 +136,7 @@ def test_download_action_non_existing_file():
 
 
 @pytest.mark.usefixtures("app_context")
-def test_download_action_size_mismatch():
+def test_download_action_size_mismatch() -> None:
     storage = MockExternalStorageBackend()
     adapter = basic_external.BasicExternalBackendTransferAdapter(storage, 900)
 
@@ -152,7 +152,7 @@ def test_download_action_size_mismatch():
 
 
 @pytest.mark.usefixtures("app_context")
-def test_download_action_extras_are_passed():
+def test_download_action_extras_are_passed() -> None:
     storage = MockExternalStorageBackend()
     adapter = basic_external.BasicExternalBackendTransferAdapter(storage, 900)
 
@@ -176,7 +176,7 @@ def test_download_action_extras_are_passed():
     }
 
 
-class MockExternalStorageBackend(basic_external.ExternalStorage):
+class MockExternalStorageBackend(ExternalStorage):
     """A mock adapter for the basic external transfer adapter
 
     Typically, "external" backends are cloud providers - so this backend can
@@ -184,7 +184,7 @@ class MockExternalStorageBackend(basic_external.ExternalStorage):
     accessing an actual cloud provider.
     """
 
-    def __init__(self, base_url: str = "https://cloudstorage.example.com/"):
+    def __init__(self, base_url: str = "https://cloudstorage.example.com/") -> None:
         self.existing_objects: dict[tuple[str, str], int] = {}
         self.base_url = base_url
 
@@ -243,7 +243,7 @@ class MockExternalStorageBackend(basic_external.ExternalStorage):
         oid: str,
         expires_in: int,
         extra: Optional[dict[str, Any]] = None,
-    ):
+    ) -> str:
         url = f"{self.base_url}{prefix}/{oid}?expires_in={expires_in}"
         if extra:
             url = f"{url}&{urlencode(extra, doseq=False)}"

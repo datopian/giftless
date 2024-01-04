@@ -8,7 +8,7 @@ As long as external services support HTTP PUT / GET to do direct uploads /
 downloads, this transfer adapter can work with them.
 
 Different storage backends can be used with this adapter, as long as they
-implement the `ExternalStorage` interface defined here.
+implement the `ExternalStorage` interface defined in giftless.storage.
 """
 
 import posixpath

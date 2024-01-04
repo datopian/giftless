@@ -4,6 +4,7 @@ import pytest
 
 from giftless import transfer
 
+from typing import Any
 
 @pytest.mark.parametrize(
     "register,requested,expected",
@@ -15,7 +16,7 @@ from giftless import transfer
     ],
 )
 @pytest.mark.usefixtures("reset_registered_transfers")
-def test_transfer_adapter_matching(register, requested, expected):
+def test_transfer_adapter_matching(register: list[str], requested:list[str], expected:str) -> None:
     for adapter in register:
         transfer.register_adapter(adapter, transfer.TransferAdapter())
     actual = transfer.match_transfer_adapter(requested)
@@ -23,7 +24,7 @@ def test_transfer_adapter_matching(register, requested, expected):
     assert isinstance(actual[1], transfer.TransferAdapter)
 
 
-def test_transfer_adapter_matching_nomatch():
+def test_transfer_adapter_matching_nomatch() -> None:
     for adapter in ["foobar", "basic", "bizbaz"]:
         transfer.register_adapter(adapter, transfer.TransferAdapter())
     with pytest.raises(ValueError):

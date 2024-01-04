@@ -4,9 +4,11 @@ import os
 from collections.abc import Generator
 
 import pytest
-from google.api_core.exceptions import GoogleAPIError  # type: ignore
+from google.api_core.exceptions import GoogleAPIError
 
 from giftless.storage.google_cloud import GoogleCloudStorage
+
+from typing import Any
 
 MOCK_GCP_PROJECT_NAME = "giftless-tests"
 MOCK_GCP_BUCKET_NAME = "giftless-tests-20200818"
@@ -100,7 +102,7 @@ def storage_backend() -> Generator[GoogleCloudStorage, None, None]:
 
 
 @pytest.fixture(scope="module")
-def vcr_config():
+def vcr_config() -> dict[str,Any]:
     live_tests = bool(
         os.environ.get("GCP_ACCOUNT_KEY_FILE")
         and os.environ.get("GCP_PROJECT_NAME")
