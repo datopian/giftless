@@ -1,11 +1,11 @@
+"""Objects to support Giftless's concept of users and permissions."""
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from enum import Enum
-from typing import Optional
 
 
 class Permission(Enum):
-    """System wide permissions"""
+    """System wide permissions."""
 
     READ = "read"
     READ_META = "read-meta"
@@ -17,20 +17,21 @@ class Permission(Enum):
 
 
 PermissionTree = dict[
-    Optional[str], dict[Optional[str], dict[Optional[str], set[Permission]]]
+    str | None, dict[str | None], dict[str | None, set[Permission]]
 ]
 
 
 class Identity(ABC):
-    """Base user identity object
+    """Base user identity object.
 
-    The goal of user objects is to contain some information about the user, and also
-    to allow checking if the user is authorized to perform some actions.
+    The goal of user objects is to contain some information about the
+    user, and also to allow checking if the user is authorized to
+    perform some actions.
     """
 
-    name: Optional[str] = None
-    id: Optional[str] = None
-    email: Optional[str] = None
+    name: str | None = None
+    id: str | None = None
+    email: str | None = None
 
     @abstractmethod
     def is_authorized(
@@ -38,21 +39,25 @@ class Identity(ABC):
         organization: str,
         repo: str,
         permission: Permission,
-        oid: Optional[str] = None,
+        oid: str | None = None,
     ) -> bool:
-        """Tell if user is authorized to perform an operation on an object / repo"""
+        """Determine whether user is authorized to perform an operation
+        on an object or repo.
+        """
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} id:{self.id} name:{self.name}>"
 
 
 class DefaultIdentity(Identity):
+    """Default instantiable user identity class."""
+
     def __init__(
         self,
-        name: Optional[str] = None,
-        id: Optional[str] = None,
-        email: Optional[str] = None,
-    ):
+        name: str | None = None,
+        id: str | None = None,
+        email: str | None = None,
+    ) -> None:
         self.name = name
         self.id = id
         self.email = email
@@ -62,10 +67,10 @@ class DefaultIdentity(Identity):
 
     def allow(
         self,
-        organization: Optional[str] = None,
-        repo: Optional[str] = None,
-        permissions: Optional[set[Permission]] = None,
-        oid: Optional[str] = None,
+        organization: str | None = None,
+        repo: str | None = None,
+        permissions: set[Permission] | None = None,
+        oid: str | None = None,
     ) -> None:
         if permissions is None:
             self._allowed[organization][repo][oid] = set()
@@ -77,7 +82,7 @@ class DefaultIdentity(Identity):
         organization: str,
         repo: str,
         permission: Permission,
-        oid: Optional[str] = None,
+        oid: str | None = None,
     ) -> bool:
         if organization in self._allowed:
             if repo in self._allowed[organization]:

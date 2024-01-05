@@ -1,3 +1,4 @@
+"""Amazon S3 backend."""
 import base64
 import binascii
 import posixpath
@@ -8,7 +9,7 @@ import boto3
 import botocore
 
 from giftless.storage import ExternalStorage, StreamingStorage
-from giftless.storage.exc import ObjectNotFound
+from giftless.storage.exc import ObjectNotFoundError
 from giftless.util import safe_filename
 
 
@@ -29,7 +30,7 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
 
     def get(self, prefix: str, oid: str) -> Iterable[bytes]:
         if not self.exists(prefix, oid):
-            raise ObjectNotFound()
+            raise ObjectNotFoundError
         result: Iterable[bytes] = self._s3_object(prefix, oid).get()["Body"]
         return result
 
@@ -50,7 +51,7 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
     def exists(self, prefix: str, oid: str) -> bool:
         try:
             self.get_size(prefix, oid)
-        except ObjectNotFound:
+        except ObjectNotFoundError:
             return False
         return True
 
@@ -59,9 +60,8 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
             result: int = self._s3_object(prefix, oid).content_length
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "404":
-                raise ObjectNotFound()
-            else:
-                raise e
+                raise ObjectNotFoundError from None
+            raise
         return result
 
     def get_upload_action(
@@ -135,7 +135,7 @@ class AmazonS3Storage(StreamingStorage, ExternalStorage):
         }
 
     def _get_blob_path(self, prefix: str, oid: str) -> str:
-        """Get the path to a blob in storage"""
+        """Get the path to a blob in storage."""
         if not self.path_prefix:
             storage_prefix = ""
         elif self.path_prefix[0] == "/":

@@ -1,11 +1,11 @@
-"""Configuration handling helper functions and default configuration
-"""
+"""Configuration handling helper functions and default configuration."""
 import os
+from pathlib import Path
 from typing import Any
 
 import yaml
 from dotenv import load_dotenv
-from figcan import Configuration, Extensible  # type:ignore
+from figcan import Configuration, Extensible
 from flask import Flask
 
 ENV_PREFIX = "GIFTLESS_"
@@ -17,7 +17,9 @@ default_transfer_config = {
             "factory": "giftless.transfer.basic_streaming:factory",
             "options": Extensible(
                 {
-                    "storage_class": "giftless.storage.local_storage:LocalStorage",
+                    "storage_class": (
+                        "giftless.storage.local_storage:LocalStorage"
+                    ),
                     "storage_options": Extensible({"path": "lfs-storage"}),
                     "action_lifetime": 900,
                 }
@@ -50,7 +52,7 @@ load_dotenv()
 
 
 def configure(app: Flask, additional_config: dict | None = None) -> Flask:
-    """Configure a Flask app using Figcan managed configuration object"""
+    """Configure a Flask app using Figcan managed configuration object."""
     config = _compose_config(additional_config)
     app.config.update(config)
     return app
@@ -59,14 +61,14 @@ def configure(app: Flask, additional_config: dict | None = None) -> Flask:
 def _compose_config(
     additional_config: dict[str, Any] | None = None,
 ) -> Configuration:
-    """Compose configuration object from all available sources"""
+    """Compose configuration object from all available sources."""
     config = Configuration(default_config)
     environ = dict(
         os.environ
     )  # Copy the environment as we're going to change it
 
     if environ.get(f"{ENV_PREFIX}CONFIG_FILE"):
-        with open(environ[f"{ENV_PREFIX}CONFIG_FILE"]) as f:
+        with Path(environ[f"{ENV_PREFIX}CONFIG_FILE"]).open() as f:
             config_from_file = yaml.safe_load(f)
         config.apply(config_from_file)
         environ.pop(f"{ENV_PREFIX}CONFIG_FILE")

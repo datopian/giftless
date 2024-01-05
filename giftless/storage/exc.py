@@ -1,9 +1,8 @@
-"""Storage related errors
-"""
+"""Storage related errors."""
 
 
 class StorageError(RuntimeError):
-    """Base class for storage errors"""
+    """Base class for storage errors."""
 
     code: int | None = None
 
@@ -11,9 +10,13 @@ class StorageError(RuntimeError):
         return {"message": str(self), "code": self.code}
 
 
-class ObjectNotFound(StorageError):
+class ObjectNotFoundError(StorageError):
+    """No such object exists."""
+
     code = 404
 
 
-class InvalidObject(StorageError):
+class InvalidObjectError(StorageError):
+    """Request is syntactically OK, but invalid (wrong fields, usually)."""
+
     code = 422

@@ -1,6 +1,7 @@
+"""Fixtures for giftless testing."""
 import pathlib
 import shutil
-from typing import Generator, cast
+from collections.abc import Generator
 
 import flask
 import pytest
@@ -16,14 +17,14 @@ def storage_path(tmp_path: pathlib.Path) -> Generator:
     path = tmp_path / "lfs-tests"
     path.mkdir()
     try:
-        yield str(tmp_path)
+        yield str(path)
     finally:
         shutil.rmtree(path)
 
 
 @pytest.fixture
 def app(storage_path: str) -> flask.Flask:
-    """Session fixture to configure the Flask app"""
+    """Session fixture to configure the Flask app."""
     app = init_app(
         additional_config={
             "TESTING": True,
@@ -55,13 +56,12 @@ def test_client(app_context: AppContext) -> FlaskClient:
 
 
 @pytest.fixture
-def authz_full_access(
+def _authz_full_access(
     app_context: AppContext,
-) -> (
-    Generator
-):  # needed to ensure we call init_authenticators before app context is destroyed
-    """Fixture that enables full anonymous access to all actions for tests that
-    use it
+) -> Generator:
+    """Fixture that enables full anonymous access to all actions for
+    tests that use it.  Try block needed to ensure we call
+    init_authenticators before app context is destroyed.
     """
     try:
         authentication.push_authenticator(

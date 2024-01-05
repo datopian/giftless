@@ -1,9 +1,7 @@
-"""Tests for the local storage backend
-"""
-import os
-import pathlib
+"""Tests for the local storage backend."""
 import shutil
 from collections.abc import Generator
+from pathlib import Path
 
 import pytest
 
@@ -13,30 +11,28 @@ from . import StreamingStorageAbstractTests
 
 
 @pytest.fixture
-def storage_dir(tmp_path: pathlib.Path) -> Generator[pathlib.Path, None, None]:
-    """Create a unique temp dir for testing storage"""
-    dir = None
+def storage_dir(tmp_path: Path) -> Generator[Path, None, None]:
+    """Create a unique temp dir for testing storage."""
+    tdir = None
     try:
-        dir = tmp_path / "giftless_tests"
-        dir.mkdir(parents=True)
-        yield dir
+        tdir = tmp_path / "giftless_tests"
+        tdir.mkdir(parents=True)
+        yield tdir
     finally:
-        if dir and os.path.isdir(dir):
-            shutil.rmtree(dir)
+        if tdir and tdir.is_dir():
+            shutil.rmtree(tdir)
 
 
 @pytest.fixture
 def storage_backend(storage_dir: str) -> LocalStorage:
-    """Provide a local storage backend for all local tests"""
+    """Provide a local storage backend for all local tests."""
     return LocalStorage(path=storage_dir)
 
 
 class TestLocalStorageBackend(StreamingStorageAbstractTests):
-    def test_local_path_created_on_init(
-        self, storage_dir: pathlib.Path
-    ) -> None:
-        """Test that the local storage path is created on module init"""
-        storage_path = str(storage_dir / "here")
-        assert not os.path.exists(storage_path)
-        LocalStorage(path=storage_path)
-        assert os.path.exists(storage_path)
+    def test_local_path_created_on_init(self, storage_dir: Path) -> None:
+        """Test that the local storage path is created on module init."""
+        storage_path = storage_dir / "here"
+        assert not storage_path.exists()
+        LocalStorage(path=str(storage_path))
+        assert storage_path.exists()

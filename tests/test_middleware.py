@@ -1,5 +1,4 @@
-"""Tests for using middleware and some specific middleware
-"""
+"""Tests for using middleware and some specific middleware."""
 from typing import Any, cast
 
 import pytest
@@ -13,8 +12,8 @@ from .helpers import batch_request_payload
 
 @pytest.fixture
 def app(storage_path: str) -> Flask:
-    """Session fixture to configure the Flask app"""
-    app = init_app(
+    """Session fixture to configure the Flask app."""
+    return init_app(
         additional_config={
             "TESTING": True,
             "TRANSFER_ADAPTERS": {
@@ -34,14 +33,15 @@ def app(storage_path: str) -> Flask:
             ],
         }
     )
-    return app
 
 
-@pytest.mark.usefixtures("authz_full_access")
+@pytest.mark.usefixtures("_authz_full_access")
 def test_upload_request_with_x_forwarded_middleware(
     test_client: FlaskClient,
 ) -> None:
-    """Test the ProxyFix middleware generates correct URLs if X-Forwarded headers are set"""
+    """Test the ProxyFix middleware generates correct URLs if
+    X-Forwarded headers are set.
+    """
     request_payload = batch_request_payload(operation="upload")
     response = test_client.post(
         "/myorg/myrepo/objects/batch", json=request_payload

@@ -1,5 +1,4 @@
-"""Schema for Git LFS APIs
-"""
+"""Schema for Git LFS APIs."""
 from enum import Enum
 from typing import Any
 
@@ -10,22 +9,25 @@ from marshmallow_enum import EnumField
 
 ma = Marshmallow()
 
+# TODO @athornton: probably a big job but it feels like this is what Pydantic
+# is for.
+
 
 class Operation(Enum):
-    """Batch operations"""
+    """Batch operations."""
 
     upload = "upload"
     download = "download"
 
 
-class RefSchema(ma.Schema):  # type: ignore
-    """ref field schema"""
+class RefSchema(ma.Schema):
+    """ref field schema."""
 
     name = fields.String(required=True)
 
 
-class ObjectSchema(ma.Schema):  # type: ignore
-    """object field schema"""
+class ObjectSchema(ma.Schema):
+    """object field schema."""
 
     oid = fields.String(required=True)
     size = fields.Integer(required=True, validate=validate.Range(min=0))
@@ -46,7 +48,9 @@ class ObjectSchema(ma.Schema):  # type: ignore
         return {"extra": extra, **rest}
 
 
-class BatchRequest(ma.Schema):  # type: ignore
+class BatchRequest(ma.Schema):
+    """batch request schema."""
+
     operation = EnumField(Operation, required=True)
     transfers = fields.List(fields.String, required=False, missing=["basic"])
     ref = fields.Nested(RefSchema, required=False)

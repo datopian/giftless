@@ -1,6 +1,8 @@
+"""Objects for JWT-based authentication."""
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Optional, Union
+from pathlib import Path
+from typing import Any
 
 import jwt
 from dateutil.tz import UTC
@@ -13,12 +15,13 @@ from giftless.util import to_iterable
 
 
 class JWTAuthenticator(PreAuthorizedActionAuthenticator):
-    """Default JWT based authenticator
+    """Default JWT based authenticator.
 
-    This authenticator authenticates users by accepting a well-formed JWT token
-    (in the Authorization header as a Bearer type token). Tokens must be signed
-    by the right key, and also match in terms of audience, issuer and key ID if
-    configured, and of course have valid course expiry / not before times.
+    This authenticator authenticates users by accepting a well-formed
+    JWT token (in the Authorization header as a Bearer type
+    token). Tokens must be signed by the right key, and also match in
+    terms of audience, issuer and key ID if configured, and of course
+    have valid course expiry / not before times.
 
     Beyond authentication, JWT tokens may also include authorization payload
     in the "scopes" claim.
@@ -44,13 +47,13 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
               are granting access to all objects in the repository
 
         {subscope} can be 'metadata' or omitted entirely. If 'metadata' is
-                   specified, the scope does not grant access to actual files,
-                   but to metadata only - e.g. objects can be verified to exist
-                   but not downloaded.
+                   specified, the scope does not grant access to actual
+                   files, but to metadata only - e.g. objects can be
+                   verified to exist but not downloaded.
 
-        {actions} is a comma separated list of allowed actions. Actions can be
-                  'read', 'write' or 'verify'. If omitted or replaced with a
-                  '*', all actions are permitted.
+        {actions} is a comma separated list of allowed actions. Actions
+                  can be 'read', 'write' or 'verify'. If omitted or
+                  replaced with a '*', all actions are permitted.
 
     Some examples of decoded tokens (added comments are not valid JSON):
 
@@ -63,10 +66,12 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
           "email": "user@example.com", // Optional, user's email
           "scopes": [
             // read a specific object
-            "obj:datopian/somerepo/6adada03e86b154be00e25f288fcadc27aef06c47f12f88e3e1985c502803d1b:read",
+            "obj:datopian/somerepo/6adada03e86b154be00e25f288f"
+            "cadc27aef06c47f12f88e3e1985c502803d1b:read",
 
             // read the same object, but do not limit to a specific prefix
-            "obj:6adada03e86b154be00e25f288fcadc27aef06c47f12f88e3e1985c502803d1b:read",
+            "obj:6adada03e86b154be00e25f288f"
+            "cadc27aef06c47f12f88e3e1985c502803d1b:read",
 
             // full access to all objects in a repo
             "obj:datopian/my-repo/*",
@@ -82,15 +87,17 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
     Typically a token will include a single scope - but multiple scopes are
     allowed.
 
-    This authenticator will pass on the attempt to authenticate if no token was
-    provided, or it is not a JWT token, or if a key ID is configured and a
-    provided JWT token does not have the matching "kid" head claim (this allows
-    chaining multiple JWT authenticators if needed).
+    This authenticator will pass on the attempt to authenticate if no
+    token was provided, or it is not a JWT token, or if a key ID is
+    configured and a provided JWT token does not have the matching
+    "kid" head claim (this allows chaining multiple JWT authenticators
+    if needed).
 
-    However, if a matching but invalid token was provided, a 401 Unauthorized
-    response will be returned. "Invalid" means a token with audience or issuer
-    mismatch (if configured), an expiry time in the past or an "not before"
-    time in the future, or, of course, an invalid signature.
+    However, if a matching but invalid token was provided, a 401
+    Unauthorized response will be returned. "Invalid" means a token
+    with audience or issuer mismatch (if configured), an expiry time
+    in the past or an "not before" time in the future, or, of course,
+    an invalid signature.
 
     The "leeway" parameter allows for providing a leeway / grace time to be
     considered when checking expiry times, to cover for clock skew between
@@ -104,16 +111,16 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
     def __init__(
         self,
-        private_key: Optional[Union[str, bytes]] = None,
+        private_key: str | bytes | None = None,
         default_lifetime: int = DEFAULT_LIFETIME,
         algorithm: str = DEFAULT_ALGORITHM,
-        public_key: Optional[str] = None,
-        issuer: Optional[str] = None,
-        audience: Optional[str] = None,
+        public_key: str | None = None,
+        issuer: str | None = None,
+        audience: str | None = None,
         leeway: int = DEFAULT_LEEWAY,
-        key_id: Optional[str] = None,
-        basic_auth_user: Optional[str] = DEFAULT_BASIC_AUTH_USER,
-    ):
+        key_id: str | None = None,
+        basic_auth_user: str | None = DEFAULT_BASIC_AUTH_USER,
+    ) -> None:
         self.algorithm = algorithm
         self.default_lifetime = default_lifetime
         self.leeway = leeway
@@ -123,7 +130,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         self.audience = audience
         self.key_id = key_id
         self.basic_auth_user = basic_auth_user
-        self._verification_key: Union[str, bytes, None] = None  # lazy loaded
+        self._verification_key: str | bytes | None = None  # lazy loaded
         self._log = logging.getLogger(__name__)
 
     def __call__(self, request: Request) -> Identity | None:
@@ -146,11 +153,11 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         identity: Identity,
         org: str,
         repo: str,
-        actions: Optional[set[str]] = None,
-        oid: Optional[str] = None,
-        lifetime: Optional[int] = None,
+        actions: set[str] | None = None,
+        oid: str | None = None,
+        lifetime: int | None = None,
     ) -> str:
-        """Generate a JWT token authorizing the specific requested action"""
+        """Generate a JWT token authorizing the specific requested action."""
         token_payload: dict[str, Any] = {"sub": identity.id}
         if self.issuer:
             token_payload["iss"] = self.issuer
@@ -178,20 +185,23 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
     def _generate_action_scopes(
         org: str,
         repo: str,
-        actions: Optional[set[str]] = None,
-        oid: Optional[str] = None,
+        actions: set[str] | None = None,
+        oid: str | None = None,
     ) -> str:
-        """Generate token scopes based on target object and actions"""
+        """Generate token scopes based on target object and actions."""
         if oid is None:
             oid = "*"
         obj_id = f"{org}/{repo}/{oid}"
         return str(Scope("obj", obj_id, actions))
 
     def _generate_token(self, **kwargs: Any) -> str:
-        """Generate a JWT token that can be used later to authenticate a request"""
+        """Generate a JWT token that can be used later to authenticate
+        a request.
+        """
         if not self.private_key:
             raise ValueError(
-                "This authenticator is not configured to generate tokens; Set private_key to fix"
+                "This authenticator is not configured to generate tokens;"
+                " set private_key to fix"
             )
 
         payload: dict[str, Any] = {
@@ -227,7 +237,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         return token.decode("ascii")
 
     def _authenticate(self, request: Request) -> dict[str, Any] | None:
-        """Authenticate a request"""
+        """Authenticate a request."""
         token = self._get_token_from_headers(request)
         if token is None:
             token = self._get_token_from_qs(request)
@@ -253,14 +263,16 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         except jwt.PyJWTError as e:
             raise Unauthorized(
                 f"Expired or otherwise invalid JWT token ({e!s})"
-            )
+            ) from None
 
     def _get_token_from_headers(self, request: Request) -> str | None:
-        """Extract JWT token from HTTP Authorization header
+        """Extract JWT token from HTTP Authorization header.
 
-        This will first try to obtain a Bearer token. If none is found but we have a 'Basic' Authorization header,
-        and basic auth JWT payload has not been disabled, and the provided username matches the configured JWT token
-        username, we will try to use the provided password as if it was a JWT token.
+        This will first try to obtain a Bearer token. If none is found
+        but we have a 'Basic' Authorization header, and basic auth JWT
+        payload has not been disabled, and the provided username
+        matches the configured JWT token username, we will try to use
+        the provided password as if it were a JWT token.
         """
         header = request.headers.get("Authorization")
         if not header:
@@ -288,8 +300,8 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         return None
 
     @staticmethod
-    def _get_token_from_qs(request: Request) -> Optional[str]:
-        """Get JWT token from the query string"""
+    def _get_token_from_qs(request: Request) -> str | None:
+        """Get JWT token from the query string."""
         return request.args.get("jwt")
 
     def _get_identity(self, jwt_payload: dict[str, Any]) -> Identity:
@@ -307,7 +319,9 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         return identity
 
     def _parse_scope(self, scope_str: str) -> dict[str, Any]:
-        """Parse a scope string and convert it into arguments for Identity.allow()"""
+        """Parse a scope string and convert it into arguments for
+        Identity.allow().
+        """
         scope = Scope.from_string(scope_str)
         if scope.entity_type != "obj":
             return {}
@@ -339,7 +353,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
     @staticmethod
     def _parse_scope_permissions(scope: "Scope") -> set[Permission]:
-        """Extract granted permissions from scope object"""
+        """Extract granted permissions from scope object."""
         permissions_map = {
             "read": {Permission.READ, Permission.READ_META},
             "write": {Permission.WRITE},
@@ -358,8 +372,8 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
         return permissions
 
-    def _get_verification_key(self) -> Union[str, bytes]:
-        """Get the key used for token verification, based on algorithm"""
+    def _get_verification_key(self) -> str | bytes:
+        """Get the key used for token verification, based on algorithm."""
         if self._verification_key is None:
             if self.algorithm[0:2] == "HS":
                 self._verification_key = self.private_key
@@ -368,14 +382,14 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 
         if self._verification_key is None:
             raise ValueError(
-                "No private or public key have been set, can't verify requests"
+                "No private or public key is set; cannot verify requests"
             )
 
         return self._verification_key
 
 
 class Scope:
-    """Scope object"""
+    """Scope object."""
 
     def __init__(
         self,
@@ -393,7 +407,7 @@ class Scope:
         return f"<Scope {self!s}>"
 
     def __str__(self) -> str:
-        """Convert scope to a string"""
+        """Convert scope to a string."""
         parts = [self.entity_type]
         entity_ref = self.entity_ref if self.entity_ref != "*" else None
         subscobe = self.subscope if self.subscope != "*" else None
@@ -420,7 +434,7 @@ class Scope:
 
     @classmethod
     def from_string(cls, scope_str: str) -> "Scope":
-        """Create a scope object from string"""
+        """Create a scope object from string."""
         parts = scope_str.split(":")
         if len(parts) < 1:
             raise ValueError("Scope string should have at least 1 part")
@@ -445,11 +459,12 @@ class Scope:
 
 
 def factory(**options: Any) -> JWTAuthenticator:
+    """Build a JWT Authenticator from supplied options."""
     for key_type in ("private_key", "public_key"):
         file_opt = f"{key_type}_file"
         try:
             if options[file_opt]:
-                with open(options[file_opt]) as f:
+                with Path(options[file_opt]).open() as f:
                     options[key_type] = f.read()
             options.pop(file_opt)
         except KeyError:

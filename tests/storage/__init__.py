@@ -4,7 +4,7 @@ from typing import Any, cast
 import pytest
 
 from giftless.storage import ExternalStorage, StreamingStorage
-from giftless.storage.exc import ObjectNotFound
+from giftless.storage.exc import ObjectNotFoundError
 
 ARBITRARY_OID = (
     "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
@@ -15,13 +15,16 @@ ARBITRARY_OID = (
 
 
 class _CommonStorageAbstractTests:
-    """Common tests for all storage backend types and interfaces
+    """Common tests for all storage backend types and interfaces.
 
-    This should not be used directly, because it is inherited by other AbstractTest test suites.
+    This should not be used directly, because it is inherited by other
+    AbstractTest test suites.
+
+    Perhaps that means that we should make this an ABC?
     """
 
     def test_get_size(self, storage_backend: StreamingStorage) -> None:
-        """Test getting the size of a stored object"""
+        """Test getting the size of a stored object."""
         content = b"The contents of a file-like object"
         storage_backend.put("org/repo", ARBITRARY_OID, io.BytesIO(content))
         assert len(content) == storage_backend.get_size(
@@ -31,12 +34,14 @@ class _CommonStorageAbstractTests:
     def test_get_size_not_existing(
         self, storage_backend: StreamingStorage
     ) -> None:
-        """Test getting the size of a non-existing object raises an exception"""
-        with pytest.raises(ObjectNotFound):
+        """Test getting the size of a non-existing object raises an
+        exception.
+        """
+        with pytest.raises(ObjectNotFoundError):
             storage_backend.get_size("org/repo", ARBITRARY_OID)
 
     def test_exists_exists(self, storage_backend: StreamingStorage) -> None:
-        """Test that calling exists on an existing object returns True"""
+        """Test that calling exists on an existing object returns True."""
         content = b"The contents of a file-like object"
         storage_backend.put("org/repo", ARBITRARY_OID, io.BytesIO(content))
         assert storage_backend.exists("org/repo", ARBITRARY_OID)
@@ -44,14 +49,18 @@ class _CommonStorageAbstractTests:
     def test_exists_not_exists(
         self, storage_backend: StreamingStorage
     ) -> None:
-        """Test that calling exists on a non-existing object returns False"""
+        """Test that calling exists on a non-existing object returns False."""
         assert not storage_backend.exists("org/repo", ARBITRARY_OID)
 
 
 class _VerifiableStorageAbstractTests:
-    """Mixin class for other base storage adapter test classes that implement VerifyableStorage
+    """Mixin class for other base storage adapter test classes that implement
+    VerifiableStorage.
 
-    This should not be used directly, because it is inherited by other AbstractTest test suites.
+    This should not be used directly, because it is inherited by other
+    AbstractTest test suites.
+
+    Perhaps that means this should be an ABC?
     """
 
     def test_verify_object_ok(self, storage_backend: StreamingStorage) -> None:
@@ -81,14 +90,18 @@ class _VerifiableStorageAbstractTests:
 class StreamingStorageAbstractTests(
     _CommonStorageAbstractTests, _VerifiableStorageAbstractTests
 ):
-    """Mixin for testing the StreamingStorage methods of a backend that implements StreamingStorage
+    """Mixin for testing the StreamingStorage methods of a backend
+    that implements StreamingStorage.
 
-    To use, create a concrete test class mixing this class in, and define a fixture named
-    ``storage_backend`` that returns an appropriate storage backend object.
+    To use, create a concrete test class mixing this class in, and
+    define a fixture named ``storage_backend`` that returns an
+    appropriate storage backend object.
+
+    Again, perhaps this should be defined as an ABC?
     """
 
     def test_put_get_object(self, storage_backend: StreamingStorage) -> None:
-        """Test a full put-then-get cycle"""
+        """Test a full put-then-get cycle."""
         content = b"The contents of a file-like object"
         written = storage_backend.put(
             "org/repo", ARBITRARY_OID, io.BytesIO(content)
@@ -103,18 +116,23 @@ class StreamingStorageAbstractTests(
     def test_get_raises_if_not_found(
         self, storage_backend: StreamingStorage
     ) -> None:
-        """Test that calling get for a non-existing object raises"""
-        with pytest.raises(ObjectNotFound):
+        """Test that calling get for a non-existing object raises."""
+        with pytest.raises(ObjectNotFoundError):
             storage_backend.get("org/repo", ARBITRARY_OID)
 
 
 class ExternalStorageAbstractTests(
     _CommonStorageAbstractTests, _VerifiableStorageAbstractTests
 ):
-    """Mixin for testing the ExternalStorage methods of a backend that implements ExternalStorage
+    """Mixin for testing the ExternalStorage methods of a backend that
+    implements ExternalStorage.
 
-    To use, create a concrete test class mixing this class in, and define a fixture named
-    ``storage_backend`` that returns an appropriate storage backend object.
+    To use, create a concrete test class mixing this class in, and
+    define a fixture named ``storage_backend`` that returns an
+    appropriate storage backend object.
+
+
+    Again, perhaps this should be defined as an ABC?
     """
 
     def test_get_upload_action(

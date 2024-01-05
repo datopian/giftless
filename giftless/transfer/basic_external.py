@@ -1,4 +1,4 @@
-"""External Backend Transfer Adapter
+"""External Backend Transfer Adapter.
 
 This transfer adapter offers 'basic' transfers by directing clients to upload
 and download objects from an external storage service, such as AWS S3 or Azure
@@ -12,7 +12,7 @@ implement the `ExternalStorage` interface defined in giftless.storage.
 """
 
 import posixpath
-from typing import Any, Optional
+from typing import Any
 
 from flask import Flask
 
@@ -26,7 +26,15 @@ from giftless.view import ViewProvider
 class BasicExternalBackendTransferAdapter(
     PreAuthorizingTransferAdapter, ViewProvider
 ):
-    def __init__(self, storage: ExternalStorage, default_action_lifetime: int):
+    """Provides External Transfer Adapter.
+
+    TODO @athornton: inherently PreAuthorizing feels weird.  Investigate
+    whether there's refactoring/mixin work we can do here.
+    """
+
+    def __init__(
+        self, storage: ExternalStorage, default_action_lifetime: int
+    ) -> None:
         super().__init__()
         self.storage = storage
         self.action_lifetime = default_action_lifetime
@@ -37,7 +45,7 @@ class BasicExternalBackendTransferAdapter(
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         prefix = posixpath.join(organization, repo)
         response = {"oid": oid, "size": size}
@@ -51,7 +59,7 @@ class BasicExternalBackendTransferAdapter(
                 prefix, oid, size, self.action_lifetime, extra
             )
         )
-        if response.get("actions", {}).get("upload"):  # type: ignore
+        if response.get("actions", {}).get("upload"):
             response["authenticated"] = True
             headers = self._preauth_headers(
                 organization,
@@ -60,7 +68,7 @@ class BasicExternalBackendTransferAdapter(
                 oid=oid,
                 lifetime=self.VERIFY_LIFETIME,
             )
-            response["actions"]["verify"] = {  # type: ignore
+            response["actions"]["verify"] = {
                 "href": VerifyView.get_verify_url(organization, repo),
                 "header": headers,
                 "expires_in": self.VERIFY_LIFETIME,
@@ -74,7 +82,7 @@ class BasicExternalBackendTransferAdapter(
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         prefix = posixpath.join(organization, repo)
         response = {"oid": oid, "size": size}
@@ -89,7 +97,7 @@ class BasicExternalBackendTransferAdapter(
         except exc.StorageError as e:
             response["error"] = e.as_dict()
 
-        if response.get("actions", {}).get("download"):  # type: ignore
+        if response.get("actions", {}).get("download"):
             response["authenticated"] = True
 
         return response
@@ -98,19 +106,19 @@ class BasicExternalBackendTransferAdapter(
         VerifyView.register(app, init_argument=self.storage)
 
     def _check_object(self, prefix: str, oid: str, size: int) -> None:
-        """Raise specific domain error if object is not valid
+        """Raise specific domain error if object is not valid.
 
         NOTE: this does not use storage.verify_object directly because
-        we want ObjectNotFound errors to be propagated if raised
+        we want ObjectNotFoundError errors to be propagated if raised
         """
         if self.storage.get_size(prefix, oid) != size:
-            raise exc.InvalidObject("Object size does not match")
+            raise exc.InvalidObjectError("Object size does not match")
 
 
 def factory(
     storage_class: Any, storage_options: Any, action_lifetime: int
 ) -> BasicExternalBackendTransferAdapter:
-    """Factory for basic transfer adapter with external storage"""
+    """Build a basic transfer adapter with external storage."""
     storage = get_callable(storage_class, __name__)
     return BasicExternalBackendTransferAdapter(
         storage(**storage_options), action_lifetime
