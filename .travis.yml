@@ -9,7 +9,7 @@ env:
     - CC_TEST_REPORTER_ID=cca5a6743728de037cb47d4a845e35c682b4469c0f9c52851f4f3824dd471f87
 
 install:
-  - pip install -r requirements.txt
+  - pip install -r requirements/main.txt
 
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
