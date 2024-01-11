@@ -69,7 +69,7 @@ def add_query_params(url: str, params: dict[str, Any]) -> str:
 
     >>> add_query_params('https://example.org?param1=value1', {'param2': 'value2'})
     'https://example.org?param1=value1&param2=value2'
-    """
+    """  # noqa: E501
     urlencoded_params = urlencode(params)
     separator = "&" if "?" in url else "?"
     return f"{url}{separator}{urlencoded_params}"

@@ -387,7 +387,7 @@ def _calculate_blocks(file_size: int, part_size: int) -> list[Block]:
 
     >>> _calculate_blocks(0, 10)
     []
-    """
+    """  # noqa: E501
     full_blocks = file_size // part_size
     last_block_size = file_size % part_size
     blocks = [

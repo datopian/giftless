@@ -28,6 +28,10 @@ VERSION := $(shell $(PYTHON) -c "from importlib.metadata import version;print(ve
 
 default: help
 
+## Install packages necessary for make to work
+init:
+	pip install --upgrade pip pre-commit pip-tools tox
+
 ## Regenerate requirements files
 requirements: requirements/dev.txt requirements/dev.in requirements/main.txt requirements/main.in
 
@@ -42,10 +46,9 @@ test: $(SENTINELS)/dev-setup
 docker: requirements/main.txt
 	$(DOCKER) build --cache-from "$(DOCKER_CACHE_FROM)" -t $(DOCKER_HOST)/$(DOCKER_REPO)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
 
-## Tag and push a release
+## Tag and push a release (disabled)
 release:
-	@echo
-	@echo "Package $(PACKAGE_NAME) releases are managed via GitHub"
+	@echo "Package '$(PACKAGE_NAME)' releases are managed via GitHub"
 
 ## Clean all generated files
 distclean:
@@ -59,7 +62,7 @@ dist: $(SENTINELS)/dist
 docs-html:
 	@cd docs && $(MAKE) html
 
-.PHONY: test docker release dist distclean requirements docs-html
+.PHONY: test docker release dist distclean requirements docs-html init
 
 requirements/main.txt: requirements/main.in
 	$(PIP_COMPILE) --no-emit-index-url -o requirements/main.txt requirements/main.in

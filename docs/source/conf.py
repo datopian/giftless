@@ -11,6 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import importlib
 
 from recommonmark.transform import AutoStructify
 
@@ -25,9 +26,7 @@ copyright = "2020, Datopian / Viderum Inc."
 author = "Shahar Evron"
 
 # The full version, including alpha/beta/rc tags
-with open(os.path.join(os.path.dirname(__file__), "..", "..", "VERSION")) as f:
-    release = f.read().strip()
-
+release = importlib.metadata.version(project)
 
 # -- General configuration ---------------------------------------------------
 
