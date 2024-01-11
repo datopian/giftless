@@ -59,6 +59,7 @@ ARG PORT=5000
 EXPOSE $PORT
 
 ENTRYPOINT ["tini", "uwsgi", "--"]
+# TODO remove this STOPSIGNAL override after uwsgi>=2.1
 STOPSIGNAL SIGQUIT
 
 CMD ["-s", "127.0.0.1:${PORT}", "-M", "-T", "--threads", "2", "-p", "2", \
