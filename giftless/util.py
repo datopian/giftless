@@ -63,12 +63,10 @@ def add_query_params(url: str, params: dict[str, Any]) -> str:
     """Safely add query params to a url that may or may not already contain
     query params.
 
-    >>> add_query_params(
-            'https://example.org', {'param1': 'value1', 'param2': 'value2'})
+    >>> add_query_params('https://example.org', {'param1': 'value1', 'param2': 'value2'})
     'https://example.org?param1=value1&param2=value2'
 
-    >>> add_query_params(
-        'https://example.org?param1=value1', {'param2': 'value2'})
+    >>> add_query_params('https://example.org?param1=value1', {'param2': 'value2'})  # noqa[E501]
     'https://example.org?param1=value1&param2=value2'
     """  # noqa: E501
     urlencoded_params = urlencode(params)

@@ -393,14 +393,10 @@ def _calculate_blocks(file_size: int, part_size: int) -> list[Block]:
     """Calculate the list of blocks in a blob.
 
     >>> _calculate_blocks(30, 10)
-    [Block(id=0, start=0, size=10),
-     Block(id=1, start=10, size=10),
-     Block(id=2, start=20, size=10)]
+    [Block(id=0, start=0, size=10), Block(id=1, start=10, size=10), Block(id=2, start=20, size=10)]
 
     >>> _calculate_blocks(28, 10)
-    [Block(id=0, start=0, size=10),
-    Block(id=1, start=10, size=10),
-    Block(id=2, start=20, size=8)]
+    [Block(id=0, start=0, size=10), Block(id=1, start=10, size=10), Block(id=2, start=20, size=8)]
 
     >>> _calculate_blocks(7, 10)
     [Block(id=0, start=0, size=7)]
