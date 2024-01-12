@@ -2,10 +2,11 @@
 """
 import os
 from collections.abc import Generator
+from typing import Any
 
 import pytest
-from azure.core.exceptions import AzureError  # type: ignore
-from azure.storage.blob import BlobServiceClient  # type: ignore
+from azure.core.exceptions import AzureError
+from azure.storage.blob import BlobServiceClient
 
 from giftless.storage.azure import AzureBlobsStorage
 
@@ -55,7 +56,7 @@ def storage_backend() -> Generator[AzureBlobsStorage, None, None]:
 
 
 @pytest.fixture(scope="module")
-def vcr_config():
+def vcr_config() -> dict[str, Any]:
     live_tests = bool(
         os.environ.get("AZURE_CONNECTION_STRING")
         and os.environ.get("AZURE_CONTAINER")

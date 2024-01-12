@@ -1,9 +1,10 @@
 """Schema for Git LFS APIs
 """
 from enum import Enum
+from typing import Any
 
 import marshmallow
-from flask_marshmallow import Marshmallow  # type: ignore
+from flask_marshmallow import Marshmallow
 from marshmallow import fields, pre_load, validate
 from marshmallow_enum import EnumField
 
@@ -32,7 +33,9 @@ class ObjectSchema(ma.Schema):  # type: ignore
     extra = fields.Dict(required=False, missing=dict)
 
     @pre_load
-    def set_extra_fields(self, data, **_):
+    def set_extra_fields(
+        self, data: dict[str, Any], **_: Any
+    ) -> dict[str, Any]:
         extra = {}
         rest = {}
         for k, v in data.items():

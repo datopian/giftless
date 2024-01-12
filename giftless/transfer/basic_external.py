@@ -8,22 +8,26 @@ As long as external services support HTTP PUT / GET to do direct uploads /
 downloads, this transfer adapter can work with them.
 
 Different storage backends can be used with this adapter, as long as they
-implement the `ExternalStorage` interface defined here.
+implement the `ExternalStorage` interface defined in giftless.storage.
 """
 
 import posixpath
 from typing import Any, Optional
 
+from flask import Flask
+
 from giftless.storage import ExternalStorage, exc
-from giftless.transfer import PreAuthorizingTransferAdapter, ViewProvider
+from giftless.transfer import PreAuthorizingTransferAdapter
 from giftless.transfer.basic_streaming import VerifyView
 from giftless.util import get_callable
+from giftless.view import ViewProvider
 
 
 class BasicExternalBackendTransferAdapter(
     PreAuthorizingTransferAdapter, ViewProvider
 ):
     def __init__(self, storage: ExternalStorage, default_action_lifetime: int):
+        super().__init__()
         self.storage = storage
         self.action_lifetime = default_action_lifetime
 
@@ -90,10 +94,10 @@ class BasicExternalBackendTransferAdapter(
 
         return response
 
-    def register_views(self, app):
+    def register_views(self, app: Flask) -> None:
         VerifyView.register(app, init_argument=self.storage)
 
-    def _check_object(self, prefix: str, oid: str, size: int):
+    def _check_object(self, prefix: str, oid: str, size: int) -> None:
         """Raise specific domain error if object is not valid
 
         NOTE: this does not use storage.verify_object directly because
@@ -103,7 +107,9 @@ class BasicExternalBackendTransferAdapter(
             raise exc.InvalidObject("Object size does not match")
 
 
-def factory(storage_class, storage_options, action_lifetime):
+def factory(
+    storage_class: Any, storage_options: Any, action_lifetime: int
+) -> BasicExternalBackendTransferAdapter:
     """Factory for basic transfer adapter with external storage"""
     storage = get_callable(storage_class, __name__)
     return BasicExternalBackendTransferAdapter(

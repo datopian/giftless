@@ -126,17 +126,19 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         self._verification_key: Union[str, bytes, None] = None  # lazy loaded
         self._log = logging.getLogger(__name__)
 
-    def __call__(self, request: Request) -> Optional[Identity]:
+    def __call__(self, request: Request) -> Identity | None:
         token_payload = self._authenticate(request)
         if token_payload is None:
             return None
         return self._get_identity(token_payload)
 
-    def get_authz_header(self, *args, **kwargs) -> dict[str, str]:
+    def get_authz_header(self, *args: Any, **kwargs: Any) -> dict[str, str]:
         token = self._generate_token_for_action(*args, **kwargs)
         return {"Authorization": f"Bearer {token}"}
 
-    def get_authz_query_params(self, *args, **kwargs) -> dict[str, str]:
+    def get_authz_query_params(
+        self, *args: Any, **kwargs: Any
+    ) -> dict[str, str]:
         return {"jwt": self._generate_token_for_action(*args, **kwargs)}
 
     def _generate_token_for_action(
@@ -185,7 +187,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         obj_id = f"{org}/{repo}/{oid}"
         return str(Scope("obj", obj_id, actions))
 
-    def _generate_token(self, **kwargs) -> str:
+    def _generate_token(self, **kwargs: Any) -> str:
         """Generate a JWT token that can be used later to authenticate a request"""
         if not self.private_key:
             raise ValueError(
@@ -220,11 +222,11 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
         # Type of jwt.encode() went from bytes to str in jwt 2.x, but the
         # typing hints somehow aren't keeping up.  This lets us do the
         # right thing with jwt 2.x.
-        if isinstance(token, str):
-            return token  # type: ignore
+        if isinstance(token, str):  # type: ignore[unreachable]
+            return token  # type: ignore[unreachable]
         return token.decode("ascii")
 
-    def _authenticate(self, request: Request):
+    def _authenticate(self, request: Request) -> dict[str, Any] | None:
         """Authenticate a request"""
         token = self._get_token_from_headers(request)
         if token is None:
@@ -253,7 +255,7 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
                 f"Expired or otherwise invalid JWT token ({e!s})"
             )
 
-    def _get_token_from_headers(self, request: Request) -> Optional[str]:
+    def _get_token_from_headers(self, request: Request) -> str | None:
         """Extract JWT token from HTTP Authorization header
 
         This will first try to obtain a Bearer token. If none is found but we have a 'Basic' Authorization header,
@@ -375,34 +377,29 @@ class JWTAuthenticator(PreAuthorizedActionAuthenticator):
 class Scope:
     """Scope object"""
 
-    entity_type = None
-    subscope = None
-    entity_ref = None
-    actions = None
-
     def __init__(
         self,
         entity_type: str,
-        entity_id: Optional[str] = None,
-        actions: Optional[set[str]] = None,
-        subscope: Optional[str] = None,
-    ):
+        entity_id: str | None = None,
+        actions: set[str] | None = None,
+        subscope: str | None = None,
+    ) -> None:
         self.entity_type = entity_type
         self.entity_ref = entity_id
         self.actions = actions
         self.subscope = subscope
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Scope {self!s}>"
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Convert scope to a string"""
         parts = [self.entity_type]
         entity_ref = self.entity_ref if self.entity_ref != "*" else None
         subscobe = self.subscope if self.subscope != "*" else None
         actions = (
             ",".join(sorted(self.actions))
-            if self.actions and self.actions != "*"
+            if self.actions and self.actions != set("*")
             else None
         )
 
@@ -422,7 +419,7 @@ class Scope:
         return ":".join(parts)
 
     @classmethod
-    def from_string(cls, scope_str):
+    def from_string(cls, scope_str: str) -> "Scope":
         """Create a scope object from string"""
         parts = scope_str.split(":")
         if len(parts) < 1:
@@ -447,7 +444,7 @@ class Scope:
         return set(actions_str.split(","))
 
 
-def factory(**options):
+def factory(**options: Any) -> JWTAuthenticator:
     for key_type in ("private_key", "public_key"):
         file_opt = f"{key_type}_file"
         try:

@@ -8,8 +8,9 @@ See http://flask-classful.teracy.org/#adding-resource-representations-get-real-c
 import json
 from datetime import datetime
 from functools import partial
+from typing import Any
 
-from flask import make_response
+from flask import Response, make_response
 
 GIT_LFS_MIME_TYPE = "application/vnd.git-lfs+json"
 
@@ -17,13 +18,18 @@ GIT_LFS_MIME_TYPE = "application/vnd.git-lfs+json"
 class CustomJsonEncoder(json.JSONEncoder):
     """Custom JSON encoder that can support some additional required types"""
 
-    def default(self, o):
+    def default(self, o: Any) -> Any:
         if isinstance(o, datetime):
             return o.isoformat()
         return super().default(o)
 
 
-def output_json(data, code, headers=None, content_type="application/json"):
+def output_json(
+    data: Any,
+    code: int | None,
+    headers: dict[str, str] | None = None,
+    content_type: str = "application/json",
+) -> Response:
     dumped = json.dumps(data, cls=CustomJsonEncoder)
     if headers:
         headers.update({"Content-Type": content_type})

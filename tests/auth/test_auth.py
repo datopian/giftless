@@ -1,12 +1,14 @@
 """Unit tests for auth module
 """
+from typing import Any
+
 import pytest
 
 from giftless.auth import allow_anon
 from giftless.auth.identity import DefaultIdentity, Permission
 
 
-def test_default_identity_properties():
+def test_default_identity_properties() -> None:
     """Test the basic properties of the default identity object"""
     user = DefaultIdentity(
         "arthur", "kingofthebritons", "arthur@camelot.gov.uk"
@@ -50,7 +52,7 @@ def test_default_identity_properties():
         ),
     ],
 )
-def test_default_identity_denied_by_default(requested):
+def test_default_identity_denied_by_default(requested: dict[str, Any]) -> None:
     user = DefaultIdentity(
         "arthur", "kingofthebritons", "arthur@camelot.gov.uk"
     )
@@ -103,7 +105,9 @@ def test_default_identity_denied_by_default(requested):
         ),
     ],
 )
-def test_default_identity_allow_specific_repo(requested, expected):
+def test_default_identity_allow_specific_repo(
+    requested: dict[str, Any], expected: bool
+) -> None:
     user = DefaultIdentity(
         "arthur", "kingofthebritons", "arthur@camelot.gov.uk"
     )
@@ -166,7 +170,9 @@ def test_default_identity_allow_specific_repo(requested, expected):
         ),
     ],
 )
-def test_default_identity_allow_specific_org_permissions(requested, expected):
+def test_default_identity_allow_specific_org_permissions(
+    requested: dict[str, Any], expected: bool
+) -> None:
     user = DefaultIdentity(
         "arthur", "kingofthebritons", "arthur@camelot.gov.uk"
     )
@@ -222,7 +228,9 @@ def test_default_identity_allow_specific_org_permissions(requested, expected):
         ),
     ],
 )
-def test_allow_anon_read_only(requested, expected):
+def test_allow_anon_read_only(
+    requested: dict[str, Any], expected: bool
+) -> None:
     """Test that an anon user with read only permissions works as expected"""
     user = allow_anon.read_only(None)
     assert expected is user.is_authorized(**requested)
@@ -273,13 +281,15 @@ def test_allow_anon_read_only(requested, expected):
         ),
     ],
 )
-def test_allow_anon_read_write(requested, expected):
+def test_allow_anon_read_write(
+    requested: dict[str, Any], expected: bool
+) -> None:
     """Test that an anon user with read only permissions works as expected"""
     user = allow_anon.read_write(None)
     assert expected is user.is_authorized(**requested)
 
 
-def test_anon_user_interface():
+def test_anon_user_interface() -> None:
     """Test that an anonymous user has the right interface"""
     user = allow_anon.read_only(None)
     assert isinstance(user, allow_anon.AnonymousUser)

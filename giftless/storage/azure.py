@@ -16,7 +16,6 @@ from azure.storage.blob import (
     generate_blob_sas,
 )
 
-# type: ignore
 from giftless.storage import (
     ExternalStorage,
     MultipartStorage,
@@ -44,8 +43,8 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         container_name: str,
         path_prefix: Optional[str] = None,
         enable_content_digest: bool = True,
-        **_,
-    ):
+        **_: Any,
+    ) -> None:
         self.container_name = container_name
         self.path_prefix = path_prefix
         self.blob_svc_client: BlobServiceClient = (
@@ -59,7 +58,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             blob=self._get_blob_path(prefix, oid),
         )
         try:
-            return blob_client.download_blob().chunks()  # type: ignore
+            return blob_client.download_blob().chunks()
         except ResourceNotFoundError:
             raise ObjectNotFound("Object does not exist")
 
@@ -68,7 +67,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             container=self.container_name,
             blob=self._get_blob_path(prefix, oid),
         )
-        blob_client.upload_blob(data_stream)  # type: ignore
+        blob_client.upload_blob(data_stream)
         return data_stream.tell()
 
     def exists(self, prefix: str, oid: str) -> bool:
@@ -85,11 +84,11 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
                 blob=self._get_blob_path(prefix, oid),
             )
             props = blob_client.get_blob_properties()
-            return props.size  # type: ignore
+            return props.size
         except ResourceNotFoundError:
             raise ObjectNotFound("Object does not exist")
 
-    def get_mime_type(self, prefix: str, oid: str) -> Optional[str]:
+    def get_mime_type(self, prefix: str, oid: str) -> str:
         try:
             blob_client = self.blob_svc_client.get_blob_client(
                 container=self.container_name,
@@ -99,7 +98,9 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             mime_type = props.content_settings.get(
                 "content_type", "application/octet-stream"
             )
-            return mime_type  # type: ignore
+            if mime_type is None:
+                return "application/octet-stream"
+            return str(mime_type)
         except ResourceNotFoundError:
             raise ObjectNotFound("Object does not exist")
 
@@ -386,7 +387,7 @@ def _calculate_blocks(file_size: int, part_size: int) -> list[Block]:
 
     >>> _calculate_blocks(0, 10)
     []
-    """
+    """  # noqa: E501
     full_blocks = file_size // part_size
     last_block_size = file_size % part_size
     blocks = [

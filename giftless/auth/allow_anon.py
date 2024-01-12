@@ -13,26 +13,28 @@ If for some reason you want to allow anonymous users as a fall back (e.g. you
 want to allow read-only access to anyone), be sure to load this authenticator
 last.
 """
+from typing import Any
+
 from .identity import DefaultIdentity, Permission
 
 
 class AnonymousUser(DefaultIdentity):
     """An anonymous user object"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         if self.name is None:
             self.name = "anonymous"
 
 
-def read_only(_):
+def read_only(_: Any) -> AnonymousUser:
     """Dummy authenticator that gives read-only permissions to everyone"""
     user = AnonymousUser()
     user.allow(permissions={Permission.READ, Permission.READ_META})
     return user
 
 
-def read_write(_):
+def read_write(_: Any) -> AnonymousUser:
     """Dummy authenticator that gives full permissions to everyone"""
     user = AnonymousUser()
     user.allow(permissions=Permission.all())

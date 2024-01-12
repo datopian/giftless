@@ -1,4 +1,4 @@
--c requirements.txt
+-c main.txt
 
 pip-tools
 tox
@@ -23,6 +23,7 @@ google-auth-stubs
 # Documentation Requirements
 recommonmark
 furo
-# https://github.com/PyCQA/flake8/pull/1438 - see requirements.in
-sphinx<4.4.0
-sphinx-autodoc-typehints[type_comments]<1.18.0
+sphinx
+sphinx-autodoc-typehints
+
+

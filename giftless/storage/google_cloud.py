@@ -3,12 +3,12 @@ import io
 import json
 import posixpath
 from datetime import timedelta
-from typing import Any, BinaryIO, Optional, Union
+from typing import Any, BinaryIO, Union
 
 import google.auth
 from google.auth import impersonated_credentials
-from google.cloud import storage  # type: ignore
-from google.oauth2 import service_account  # type: ignore
+from google.cloud import storage
+from google.oauth2 import service_account
 
 from giftless.storage import ExternalStorage, StreamingStorage
 
@@ -24,19 +24,18 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         self,
         project_name: str,
         bucket_name: str,
-        account_key_file: Optional[str] = None,
-        account_key_base64: Optional[str] = None,
-        path_prefix: Optional[str] = None,
-        serviceaccount_email: Optional[str] = None,
-        **_,
-    ):
+        account_key_file: str | None = None,
+        account_key_base64: str | None = None,
+        path_prefix: str | None = None,
+        serviceaccount_email: str | None = None,
+        **_: Any,
+    ) -> None:
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
-        self.credentials: Optional[
-            Union[
-                service_account.Credentials,
-                impersonated_credentials.Credentials,
-            ]
+        self.credentials: Union[
+            service_account.Credentials,
+            impersonated_credentials.Credentials,
+            None,
         ] = self._load_credentials(account_key_file, account_key_base64)
         self.storage_client = storage.Client(
             project=project_name, credentials=self.credentials
@@ -83,7 +82,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return {
             "actions": {
@@ -103,7 +102,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         filename = extra.get("filename") if extra else None
         disposition = (
@@ -142,8 +141,8 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         oid: str,
         expires_in: int,
         http_method: str = "GET",
-        filename: Optional[str] = None,
-        disposition: Optional[str] = None,
+        filename: str | None = None,
+        disposition: str | None = None,
     ) -> str:
         creds = self.credentials
         if creds is None:
@@ -165,8 +164,8 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
 
     @staticmethod
     def _load_credentials(
-        account_key_file: Optional[str], account_key_base64: Optional[str]
-    ) -> Optional[service_account.Credentials]:
+        account_key_file: str | None, account_key_base64: str | None
+    ) -> service_account.Credentials | None:
         """Load Google Cloud credentials from passed configuration"""
         if account_key_file and account_key_base64:
             raise ValueError(

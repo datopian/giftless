@@ -14,7 +14,7 @@ RUN mkdir /wheels
 ARG UWSGI_VERSION=2.0.23
 RUN pip wheel -w /wheels uwsgi==$UWSGI_VERSION
 
-COPY requirements.txt /
+COPY requirements/main.txt /requirements.txt
 RUN pip wheel -w /wheels -r /requirements.txt
 
 ### --- Build Final Image ---
@@ -22,7 +22,7 @@ RUN pip wheel -w /wheels -r /requirements.txt
 FROM python:3.10-slim
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
-    && apt-get install -y libpcre3 libxml2 tini \
+    && apt-get install -y libpcre3 libxml2 tini git \
     && apt-get clean \
     && apt -y autoremove
 

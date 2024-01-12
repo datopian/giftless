@@ -4,6 +4,7 @@ import os
 from base64 import b64decode
 from binascii import unhexlify
 from collections.abc import Generator
+from typing import Any
 
 import pytest
 
@@ -50,7 +51,7 @@ def storage_backend() -> Generator[AmazonS3Storage, None, None]:
 
 
 @pytest.fixture(scope="module")
-def vcr_config():
+def vcr_config() -> dict[str, Any]:
     live_tests = bool(
         os.environ.get("AWS_ACCESS_KEY_ID")
         and os.environ.get("AWS_SECRET_ACCESS_KEY")
@@ -72,10 +73,16 @@ def vcr_config():
 class TestAmazonS3StorageBackend(
     StreamingStorageAbstractTests, ExternalStorageAbstractTests
 ):
-    def test_get_upload_action(self, storage_backend: ExternalStorage):
+    # This is gross.  Because we're extending the classes, it has to return
+    # the same thing, and upload uses the test method and returns a value
+    # which is not how tests usually work, and ugh.
+    def test_get_upload_action(
+        self, storage_backend: ExternalStorage
+    ) -> dict[str, Any]:
         upload = super().test_get_upload_action(storage_backend)
 
         assert upload["header"]["Content-Type"] == "application/octet-stream"
 
         b64_oid = upload["header"]["x-amz-checksum-sha256"]
         assert b64decode(b64_oid) == unhexlify(ARBITRARY_OID)
+        return upload  # yuck

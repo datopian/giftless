@@ -2,7 +2,6 @@
 PACKAGE_NAME := giftless
 PACKAGE_DIRS := giftless
 TESTS_DIR := tests
-VERSION_FILE := VERSION
 
 SHELL := bash
 PYTHON := python
@@ -12,24 +11,29 @@ PYTEST := pytest
 DOCKER := docker
 GIT := git
 
+DOCKER_HOST := docker.io
 DOCKER_REPO := datopian
 DOCKER_IMAGE_NAME := giftless
 DOCKER_IMAGE_TAG := latest
-DOCKER_CACHE_FROM := datopian/giftless:latest
+DOCKER_CACHE_FROM := docker.io/datopian/giftless:latest
 
 PYTEST_EXTRA_ARGS :=
 
-VERSION := $(shell cat $(VERSION_FILE))
 SOURCE_FILES := $(shell find $(PACKAGE_DIRS) $(TESTS_DIR) -type f -name "*.py")
 SENTINELS := .make-cache
 DIST_DIR := dist
 
 PYVER := $(shell $(PYTHON) -c "import sys;print(f'{sys.version_info[0]}{sys.version_info[1]}')")
+VERSION := $(shell $(PYTHON) -c "from importlib.metadata import version;print(version('$(PACKAGE_NAME)'))")
 
 default: help
 
+## Install packages necessary for make to work
+init:
+	pip install --upgrade pip pre-commit pip-tools tox
+
 ## Regenerate requirements files
-requirements: dev-requirements.txt dev-requirements.in
+requirements: requirements/dev.txt requirements/dev.in requirements/main.txt requirements/main.in
 
 ## Set up the development environment
 dev-setup: $(SENTINELS)/dev-setup
@@ -39,22 +43,12 @@ test: $(SENTINELS)/dev-setup
 	$(PYTEST) $(PYTEST_EXTRA_ARGS) $(PACKAGE_DIRS) $(TESTS_DIR)
 
 ## Build a local Docker image
-docker: requirements.txt
-	$(DOCKER) build --cache-from "$(DOCKER_CACHE_FROM)" -t $(DOCKER_REPO)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
+docker: requirements/main.txt
+	$(DOCKER) build --cache-from "$(DOCKER_CACHE_FROM)" -t $(DOCKER_HOST)/$(DOCKER_REPO)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
 
-## Tag and push a release
-release: $(SENTINELS)/dist
-	@echo
-	@echo "You are about to release $(PACKAGE_NAME) version $(VERSION)"
-	@echo "This will:"
-	@echo " - Create and push a git tag v$(VERSION)"
-	@echo " - Create a release package and upload it to pypi"
-	@echo
-	@echo "Continue? (hit Enter or Ctrl+C to stop"
-	@read
-	$(GIT) tag v$(VERSION)
-	$(GIT) push --tags
-	$(PYTHON) -m twine upload dist/*
+## Tag and push a release (disabled)
+release:
+	@echo "Package '$(PACKAGE_NAME)' releases are managed via GitHub"
 
 ## Clean all generated files
 distclean:
@@ -68,16 +62,16 @@ dist: $(SENTINELS)/dist
 docs-html:
 	@cd docs && $(MAKE) html
 
-.PHONY: test docker release dist distclean requirements docs-html
+.PHONY: test docker release dist distclean requirements docs-html init
 
-requirements.txt: requirements.in
-	$(PIP_COMPILE) --no-emit-index-url -o requirements.txt requirements.in
+requirements/main.txt: requirements/main.in
+	$(PIP_COMPILE) --no-emit-index-url -o requirements/main.txt requirements/main.in
 
-dev-requirements.txt: dev-requirements.in requirements.txt
-	$(PIP_COMPILE) --no-emit-index-url -o dev-requirements.txt dev-requirements.in
+requirements/dev.txt: requirements/dev.in requirements/main.txt
+	$(PIP_COMPILE) --no-emit-index-url -o requirements/dev.txt requirements/dev.in
 
-$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl: $(SOURCE_FILES) setup.py VERSION README.md | $(SENTINELS)/dist-setup
-	$(PYTHON) setup.py sdist bdist_wheel
+$(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl: $(SOURCE_FILES) README.md | $(SENTINELS)/dist-setup
+	$(PYTHON) -m build
 
 $(SENTINELS):
 	mkdir $@
@@ -89,10 +83,10 @@ $(SENTINELS)/dist-setup: | $(SENTINELS)
 $(SENTINELS)/dist: $(SENTINELS)/dist-setup $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl | $(SENTINELS)
 	@touch $@
 
-$(SENTINELS)/dev-setup: requirements.txt dev-requirements.txt | $(SENTINELS)
-	$(PIP) install -r requirements.txt
+$(SENTINELS)/dev-setup: requirements/main.txt requirements/dev.txt | $(SENTINELS)
+	$(PIP) install -r requirements/main.txt
 	$(PIP) install -e .
-	$(PIP) install -r dev-requirements.txt
+	$(PIP) install -r requirements/dev.txt
 	@touch $@
 
 # Help related variables and targets

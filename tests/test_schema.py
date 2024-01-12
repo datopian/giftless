@@ -17,7 +17,7 @@ from .helpers import batch_request_payload
         (batch_request_payload(delete_keys=["ref", "transfers"])),
     ],
 )
-def test_batch_request_schema_valid(input):
+def test_batch_request_schema_valid(input: str) -> None:
     parsed = schema.BatchRequest().load(input)
     assert parsed
 
@@ -36,18 +36,18 @@ def test_batch_request_schema_valid(input):
         (batch_request_payload(objects=[{"oid": "123abc", "size": -12}])),
     ],
 )
-def test_batch_request_schema_invalid(input):
+def test_batch_request_schema_invalid(input: str) -> None:
     with pytest.raises(ValidationError):
         schema.BatchRequest().load(input)
 
 
-def test_batch_request_default_transfer():
+def test_batch_request_default_transfer() -> None:
     input = batch_request_payload(delete_keys=["transfers"])
     parsed = schema.BatchRequest().load(input)
     assert ["basic"] == parsed["transfers"]
 
 
-def test_object_schema_accepts_x_fields():
+def test_object_schema_accepts_x_fields() -> None:
     payload = {
         "oid": "123abc",
         "size": 1212,
@@ -62,7 +62,7 @@ def test_object_schema_accepts_x_fields():
     assert parsed["extra"]["disposition"] == "inline"
 
 
-def test_object_schema_rejects_unknown_fields():
+def test_object_schema_rejects_unknown_fields() -> None:
     payload = {
         "oid": "123abc",
         "size": 1212,

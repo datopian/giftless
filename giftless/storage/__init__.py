@@ -39,10 +39,10 @@ class StreamingStorage(VerifiableStorage, ABC):
     def get_size(self, prefix: str, oid: str) -> int:
         pass
 
-    def get_mime_type(self, prefix: str, oid: str) -> Optional[str]:
+    def get_mime_type(self, prefix: str, oid: str) -> str:
         return "application/octet-stream"
 
-    def verify_object(self, prefix: str, oid: str, size: int):
+    def verify_object(self, prefix: str, oid: str, size: int) -> bool:
         """Verify that an object exists"""
         try:
             return self.get_size(prefix, oid) == size
@@ -60,7 +60,7 @@ class ExternalStorage(VerifiableStorage, ABC):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         pass
 
@@ -71,7 +71,7 @@ class ExternalStorage(VerifiableStorage, ABC):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         pass
 
@@ -99,7 +99,7 @@ class MultipartStorage(VerifiableStorage, ABC):
         size: int,
         part_size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         pass
 
@@ -110,7 +110,7 @@ class MultipartStorage(VerifiableStorage, ABC):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         pass
 
@@ -129,5 +129,5 @@ class MultipartStorage(VerifiableStorage, ABC):
             return False
 
 
-def guess_mime_type_from_filename(filename: str) -> Optional[str]:
+def guess_mime_type_from_filename(filename: str) -> str | None:
     return mimetypes.guess_type(filename)[0]

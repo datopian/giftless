@@ -3,12 +3,18 @@
 See https://github.com/git-lfs/git-lfs/blob/master/docs/api/basic-transfers.md
 for more information about what transfer APIs do in Git LFS.
 """
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from functools import partial
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
-from giftless.auth import Authentication, authentication
+from flask import Flask
+
+from giftless.auth import (
+    Authentication,
+    PreAuthorizedActionAuthenticator,
+    authentication,
+)
 from giftless.util import add_query_params, get_callable
 from giftless.view import ViewProvider
 
@@ -24,7 +30,7 @@ class TransferAdapter(ABC):
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         raise NotImplementedError(
             "This transfer adapter is not fully implemented"
@@ -36,7 +42,7 @@ class TransferAdapter(ABC):
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         raise NotImplementedError(
             "This transfer adapter is not fully implemented"
@@ -52,14 +58,19 @@ class TransferAdapter(ABC):
 
 
 class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
-    """A transfer adapter that can pre-authohrize one or more of the actions it supports"""
+    """A transfer adapter that can pre-authorize one or more of the actions it supports"""
 
-    # Lifetime of verify tokens can be very long
-    VERIFY_LIFETIME = 3600 * 12
+    @abstractmethod
+    def __init__(self) -> None:
+        #
+        # These were class attributes, but at least _auth_module ought to
+        # be an instance attribute instead.
+        #
+        self.VERIFY_LIFETIME = 12 * 60 * 60  # Can be quite a while
+        if not hasattr(self, "_auth_module"):
+            self._auth_module: Authentication | None = None
 
-    _auth_module: Optional[Authentication] = None
-
-    def set_auth_module(self, auth_module: Authentication):
+    def set_auth_module(self, auth_module: Authentication) -> None:
         self._auth_module = auth_module
 
     def _preauth_url(
@@ -67,18 +78,23 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         original_url: str,
         org: str,
         repo: str,
-        actions: Optional[set[str]] = None,
-        oid: Optional[str] = None,
-        lifetime: Optional[int] = None,
+        actions: set[str] | None = None,
+        oid: str | None = None,
+        lifetime: int | None = None,
     ) -> str:
-        if not (self._auth_module and self._auth_module.preauth_handler):
+        if self._auth_module is None:
+            return original_url
+        if self._auth_module.preauth_handler is None:
             return original_url
 
+        handler = cast(
+            PreAuthorizedActionAuthenticator, self._auth_module.preauth_handler
+        )
         identity = self._auth_module.get_identity()
         if identity is None:
             return original_url
 
-        params = self._auth_module.preauth_handler.get_authz_query_params(
+        params = handler.get_authz_query_params(
             identity, org, repo, actions, oid, lifetime=lifetime
         )
 
@@ -88,23 +104,28 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         self,
         org: str,
         repo: str,
-        actions: Optional[set[str]] = None,
-        oid: Optional[str] = None,
-        lifetime: Optional[int] = None,
+        actions: set[str] | None = None,
+        oid: str | None = None,
+        lifetime: int | None = None,
     ) -> dict[str, str]:
-        if not (self._auth_module and self._auth_module.preauth_handler):
+        if self._auth_module is None:
             return {}
+        if self._auth_module.preauth_handler is None:
+            return {}
+
+        handler = cast(
+            PreAuthorizedActionAuthenticator, self._auth_module.preauth_handler
+        )
 
         identity = self._auth_module.get_identity()
         if identity is None:
             return {}
-
-        return self._auth_module.preauth_handler.get_authz_header(
+        return handler.get_authz_header(
             identity, org, repo, actions, oid, lifetime=lifetime
         )
 
 
-def init_flask_app(app):
+def init_flask_app(app: Flask) -> None:
     """Initialize a flask app instance with transfer adapters.
 
     This will:
@@ -122,7 +143,7 @@ def init_flask_app(app):
         adapter.register_views(app)
 
 
-def register_adapter(key: str, adapter: TransferAdapter):
+def register_adapter(key: str, adapter: TransferAdapter) -> None:
     """Register a transfer adapter"""
     _registered_adapters[key] = adapter
 

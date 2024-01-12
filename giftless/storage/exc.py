@@ -1,14 +1,13 @@
 """Storage related errors
 """
-from typing import Optional
 
 
 class StorageError(RuntimeError):
     """Base class for storage errors"""
 
-    code: Optional[int] = None
+    code: int | None = None
 
-    def as_dict(self):
+    def as_dict(self) -> dict[str, str | int | None]:
         return {"message": str(self), "code": self.code}
 
 

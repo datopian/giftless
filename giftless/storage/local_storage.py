@@ -2,6 +2,8 @@ import os
 import shutil
 from typing import Any, BinaryIO, Optional
 
+from flask import Flask
+
 from giftless.storage import MultipartStorage, StreamingStorage, exc
 from giftless.view import ViewProvider
 
@@ -14,7 +16,7 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
     want to use a more scalable solution such as one of the cloud storage backends.
     """
 
-    def __init__(self, path: Optional[str] = None, **_) -> None:
+    def __init__(self, path: Optional[str] = None, **_: Any) -> None:
         if path is None:
             path = "lfs-storage"
         self.path = path
@@ -69,13 +71,13 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
     ) -> dict[str, Any]:
         return {}
 
-    def register_views(self, app):
+    def register_views(self, app: Flask) -> None:
         super().register_views(app)
 
     def _get_path(self, prefix: str, oid: str) -> str:
         return os.path.join(self.path, prefix, oid)
 
     @staticmethod
-    def _create_path(path):
+    def _create_path(path: str) -> None:
         if not os.path.isdir(path):
             os.makedirs(path)
