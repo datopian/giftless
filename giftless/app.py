@@ -59,4 +59,4 @@ def _load_middleware(flask_app: Flask) -> None:
         wsgi_app = klass(wsgi_app, *args, **kwargs)
         log.debug(f"Loaded middleware: {klass}(*{args}, **{kwargs}")
 
-    flask_app.wsgi_app = wsgi_app
+    flask_app.wsgi_app = wsgi_app  # type:ignore[method-assign]

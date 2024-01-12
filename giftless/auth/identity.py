@@ -17,7 +17,7 @@ class Permission(Enum):
 
 
 PermissionTree = dict[
-    str | None, dict[str | None], dict[str | None, set[Permission]]
+    str | None, dict[str | None, dict[str | None, set[Permission]]]
 ]
 
 

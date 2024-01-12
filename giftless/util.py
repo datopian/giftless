@@ -1,7 +1,7 @@
 """Miscellanea."""
 import importlib
 from collections.abc import Callable, Iterable
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urlencode
 
 
@@ -28,7 +28,7 @@ def get_callable(
             "Expecting base_package to be set if only class name is provided"
         )
 
-    return getattr(module, callable_name)
+    return cast(Callable, getattr(module, callable_name))
 
 
 def to_iterable(val: Any) -> Iterable:

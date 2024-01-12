@@ -36,7 +36,7 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
     def put(self, prefix: str, oid: str, data_stream: BinaryIO) -> int:
         path = self._get_path(prefix, oid)
         directory = path.parent
-        self._create_path(directory)
+        self._create_path(str(directory))
         with path.open("bw") as dest:
             shutil.copyfileobj(data_stream, dest)
             return dest.tell()
@@ -84,7 +84,7 @@ class LocalStorage(StreamingStorage, MultipartStorage, ViewProvider):
         return Path(self.path) / prefix / oid
 
     @staticmethod
-    def _create_path(path: str) -> None:
-        path = Path(path)
+    def _create_path(spath: str) -> None:
+        path = Path(spath)
         if not path.is_dir():
             path.mkdir(parents=True)

@@ -3,7 +3,7 @@ import abc
 import logging
 from collections.abc import Callable
 from functools import wraps
-from typing import Any
+from typing import Any, cast
 
 from flask import Flask, Request, current_app, g
 from flask import request as flask_request
@@ -209,7 +209,7 @@ def _create_authenticator(spec: str | dict[str, Any]) -> Authenticator:
     log.debug(f"Creating authenticator using factory: {spec['factory']}")
     factory = get_callable(spec["factory"], __name__)
     options = spec.get("options", {})
-    return factory(**options)
+    return cast(Authenticator, factory(**options))
 
 
 authentication = Authentication()

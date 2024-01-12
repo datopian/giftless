@@ -59,7 +59,7 @@ class BasicExternalBackendTransferAdapter(
                 prefix, oid, size, self.action_lifetime, extra
             )
         )
-        if response.get("actions", {}).get("upload"):
+        if response.get("actions", {}).get("upload"):  # type:ignore[attr-defined]
             response["authenticated"] = True
             headers = self._preauth_headers(
                 organization,
@@ -68,7 +68,7 @@ class BasicExternalBackendTransferAdapter(
                 oid=oid,
                 lifetime=self.VERIFY_LIFETIME,
             )
-            response["actions"]["verify"] = {
+            response["actions"]["verify"] = {  # type:ignore[index]
                 "href": VerifyView.get_verify_url(organization, repo),
                 "header": headers,
                 "expires_in": self.VERIFY_LIFETIME,
@@ -97,7 +97,7 @@ class BasicExternalBackendTransferAdapter(
         except exc.StorageError as e:
             response["error"] = e.as_dict()
 
-        if response.get("actions", {}).get("download"):
+        if response.get("actions", {}).get("download"):  # type:ignore[attr-defined]
             response["authenticated"] = True
 
         return response

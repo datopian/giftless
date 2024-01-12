@@ -5,7 +5,7 @@ from typing import Any
 
 import yaml
 from dotenv import load_dotenv
-from figcan import Configuration, Extensible
+from figcan import Configuration, Extensible  # type:ignore[attr-defined]
 from flask import Flask
 
 ENV_PREFIX = "GIFTLESS_"

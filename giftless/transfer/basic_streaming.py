@@ -208,7 +208,7 @@ class BasicStreamingTransferAdapter(
         repo: str,
         oid: str,
         size: int,
-        extra: dict[str, Any] | None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         response = {"oid": oid, "size": size}
 

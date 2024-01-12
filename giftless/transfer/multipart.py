@@ -57,7 +57,7 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
                 oid=oid,
                 lifetime=self.VERIFY_LIFETIME,
             )
-            response["actions"]["verify"] = {
+            response["actions"]["verify"] = {  # type: ignore[index]
                 "href": VerifyView.get_verify_url(organization, repo),
                 "header": headers,
                 "expires_in": self.VERIFY_LIFETIME,
@@ -86,7 +86,7 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
         except exc.StorageError as e:
             response["error"] = e.as_dict()
 
-        if response.get("actions", {}).get("download"):
+        if response.get("actions", {}).get("download"):  # type:ignore[attr-defined]
             response["authenticated"] = True
 
         return response
