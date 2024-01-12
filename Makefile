@@ -46,7 +46,7 @@ test: $(SENTINELS)/dev-setup
 docker: requirements/main.txt
 	$(DOCKER) build --cache-from "$(DOCKER_CACHE_FROM)" -t $(DOCKER_HOST)/$(DOCKER_REPO)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
 
-## Tag and push a release (disabled)
+## Tag and push a release (disabled; done via GitHub Actions now)
 release:
 	@echo "Package '$(PACKAGE_NAME)' releases are managed via GitHub"
 
