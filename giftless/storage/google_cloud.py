@@ -6,7 +6,7 @@ import io
 import json
 import posixpath
 from datetime import timedelta
-from typing import Any, BinaryIO
+from typing import Any, BinaryIO, cast
 
 import google.auth
 from google.auth import impersonated_credentials
@@ -70,14 +70,14 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
     def exists(self, prefix: str, oid: str) -> bool:
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
-        return blob.exists()
+        return cast(bool, blob.exists())
 
     def get_size(self, prefix: str, oid: str) -> int:
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.get_blob(self._get_blob_path(prefix, oid))
         if blob is None:
             raise ObjectNotFoundError("Object does not exist")
-        return blob.size
+        return cast(int, blob.size)
 
     def get_upload_action(
         self,

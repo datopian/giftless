@@ -20,13 +20,13 @@ class Operation(Enum):
     download = "download"
 
 
-class RefSchema(ma.Schema):
+class RefSchema(ma.Schema):  # type:ignore[name-defined]
     """ref field schema."""
 
     name = fields.String(required=True)
 
 
-class ObjectSchema(ma.Schema):
+class ObjectSchema(ma.Schema):  # type:ignore[name-defined]
     """object field schema."""
 
     oid = fields.String(required=True)
@@ -48,7 +48,7 @@ class ObjectSchema(ma.Schema):
         return {"extra": extra, **rest}
 
 
-class BatchRequest(ma.Schema):
+class BatchRequest(ma.Schema):  # type:ignore[name-defined]
     """batch request schema."""
 
     operation = EnumField(Operation, required=True)

@@ -283,7 +283,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             blob_name=blob_name,
             credential=sas_token,
         )
-        return blob_client.url
+        return str(blob_client.url)
 
     def _get_uncommitted_blocks(
         self, prefix: str, oid: str, blocks: list[Block]
