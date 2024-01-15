@@ -9,8 +9,8 @@ from datetime import timedelta
 from typing import Any, BinaryIO, cast
 
 import google.auth
+import google.cloud
 from google.auth import impersonated_credentials
-from google.cloud import storage
 from google.oauth2 import service_account
 
 from giftless.storage import ExternalStorage, StreamingStorage
@@ -40,7 +40,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
             | impersonated_credentials.Credentials
             | None
         ) = self._load_credentials(account_key_file, account_key_base64)
-        self.storage_client = storage.Client(
+        self.storage_client = google.cloud.storage.Client(
             project=project_name, credentials=self.credentials
         )
         if not self.credentials:
