@@ -10,12 +10,11 @@ import pytest
 from giftless.storage import ExternalStorage
 from giftless.storage.amazon_s3 import AmazonS3Storage
 
-from . import (
-    ARBITRARY_OID,
-    ExternalStorageAbstractTests,
-    StreamingStorageAbstractTests,
-)
+from . import ExternalStorageAbstractTests, StreamingStorageAbstractTests
 
+ARBITRARY_OID = (
+    "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+)
 TEST_AWS_S3_BUCKET_NAME = "test-giftless"
 
 
@@ -75,16 +74,15 @@ def vcr_config() -> dict[str, Any]:
 class TestAmazonS3StorageBackend(
     StreamingStorageAbstractTests, ExternalStorageAbstractTests
 ):
-    # This is gross.  Because we're extending the classes, it has to return
-    # the same thing, and upload uses the test method and returns a value
-    # which is not how tests usually work, and ugh.
-    def test_get_upload_action(
-        self, storage_backend: ExternalStorage
-    ) -> dict[str, Any]:
-        upload = super().test_get_upload_action(storage_backend)
-
+    def test_get_upload_action(self, storage_backend: ExternalStorage) -> None:
+        # A little duplication is better than a test that returns a value.
+        action_spec = storage_backend.get_upload_action(
+            "org/repo", ARBITRARY_OID, 100, 3600
+        )
+        upload = action_spec["actions"]["upload"]
+        assert upload["href"][0:4] == "http"
+        assert upload["expires_in"] == 3600
         assert upload["header"]["Content-Type"] == "application/octet-stream"
 
         b64_oid = upload["header"]["x-amz-checksum-sha256"]
         assert b64decode(b64_oid) == unhexlify(ARBITRARY_OID)
-        return upload  # yuck
