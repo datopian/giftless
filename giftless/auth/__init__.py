@@ -1,10 +1,9 @@
-"""Abstract authentication and authorization layer
-"""
+"""Abstract authentication and authorization layer."""
 import abc
 import logging
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Union
+from typing import Any, cast
 
 from flask import Flask, Request, current_app, g
 from flask import request as flask_request
@@ -22,25 +21,29 @@ Unauthorized = BaseUnauthorized
 
 # Type for "Authenticator"
 # This can probably be made more specific once our protocol is more clear
+# TODO @athornton: can it?
 class Authenticator(Protocol):
-    """Authenticators are callables (an object or function) that can authenticate
-    a request and provide an identity object
+    """Authenticators are callables (an object or function) that can
+    authenticate a request and provide an identity object.
     """
 
     def __call__(self, request: Request) -> Identity | None:
         raise NotImplementedError(
-            "This is a protocol definition and should not be called directly"
+            "This is a protocol definition;"
+            " it should not be called directly."
         )
 
 
 class PreAuthorizedActionAuthenticator(abc.ABC):
     """Pre-authorized action authenticators are special authenticators
-    that can also pre-authorize a follow-up action to the Git LFS server
+    that can also pre-authorize a follow-up action to the Git LFS
+    server.
 
-    They serve to both pre-authorize Git LFS actions and check these actions
-    are authorized as they come in.
+    They serve to both pre-authorize Git LFS actions and check these
+    actions are authorized as they come in.
     """
 
+    @abc.abstractmethod
     def get_authz_query_params(
         self,
         identity: Identity,
@@ -50,9 +53,9 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
         oid: str | None = None,
         lifetime: int | None = None,
     ) -> dict[str, str]:
-        """Authorize an action by adding credientaisl to the query string"""
-        return {}
+        """Authorize an action by adding credientaisl to the query string."""
 
+    @abc.abstractmethod
     def get_authz_header(
         self,
         identity: Identity,
@@ -62,11 +65,14 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
         oid: str | None = None,
         lifetime: int | None = None,
     ) -> dict[str, str]:
-        """Authorize an action by adding credentials to the request headers"""
-        return {}
+        """Authorize an action by adding credentials to the request headers."""
 
 
 class Authentication:
+    """Wrap multiple Authenticators and default behaviors into an object to
+    manage authentication flow.
+    """
+
     def __init__(
         self,
         app: Flask | None = None,
@@ -81,7 +87,7 @@ class Authentication:
             self.init_app(app)
 
     def init_app(self, app: Flask) -> None:
-        """Initialize the Flask app"""
+        """Initialize the Flask app."""
         app.config.setdefault("AUTH_PROVIDERS", [])
         app.config.setdefault("PRE_AUTHORIZED_ACTION_PROVIDER", None)
 
@@ -99,7 +105,7 @@ class Authentication:
         return None
 
     def login_required(self, f: Callable) -> Callable:
-        """A typical Flask "login_required" view decorator"""
+        """Decorate the view; a typical Flask "login_required"."""
 
         @wraps(f)
         def decorated_function(*args: Any, **kwargs: Any) -> Any:
@@ -111,10 +117,10 @@ class Authentication:
         return decorated_function
 
     def no_identity_handler(self, f: Callable) -> Callable:
-        """Marker decorator for "unauthorized handler" function
+        """Marker decorator for "unauthorized handler" function.
 
-        This function will be called automatically if no authenticated identity was found
-        but is required.
+        This function will be called automatically if no authenticated
+        identity was found but is required.
         """
         self._unauthorized_handler = f
 
@@ -125,14 +131,14 @@ class Authentication:
         return decorated_func
 
     def auth_failure(self) -> Any:
-        """Trigger an authentication failure"""
+        """Trigger an authentication failure."""
         if self._unauthorized_handler:
             return self._unauthorized_handler()
         else:
             raise Unauthorized("User identity is required")
 
     def init_authenticators(self, reload: bool = False) -> None:
-        """Register an authenticator function"""
+        """Register an authenticator function."""
         if reload:
             self._authenticators = None
 
@@ -141,8 +147,9 @@ class Authentication:
 
         log = logging.getLogger(__name__)
         log.debug(
-            "Initializing authenticators, have %d authenticator(s) configured",
-            len(current_app.config["AUTH_PROVIDERS"]),
+            "Initializing authenticators,"
+            f" have {len(current_app.config['AUTH_PROVIDERS'])}"
+            " authenticator(s) configured"
         )
 
         self._authenticators = [
@@ -158,14 +165,14 @@ class Authentication:
             self.push_authenticator(self.preauth_handler)
 
     def push_authenticator(self, authenticator: Authenticator) -> None:
-        """Push an authenticator at the top of the stack"""
+        """Push an authenticator at the top of the stack."""
         if self._authenticators is None:
             self._authenticators = [authenticator]
             return
         self._authenticators.insert(0, authenticator)
 
     def _authenticate(self) -> Identity | None:
-        """Call all registered authenticators until we find an identity"""
+        """Call all registered authenticators until we find an identity."""
         self.init_authenticators()
         if self._authenticators is None:
             return self._default_identity
@@ -174,9 +181,9 @@ class Authentication:
                 current_identity = authn(flask_request)
                 if current_identity is not None:
                     return current_identity
-            except Unauthorized as e:
-                # An authenticator is telling us the provided identity is invalid
-                # We should stop looking and return "no identity"
+            except Unauthorized as e:  # noqa:PERF203
+                # An authenticator is telling us the provided identity is
+                # invalid, so we should stop looking and return "no identity"
                 log = logging.getLogger(__name__)
                 log.debug(e.description)
                 return None
@@ -184,26 +191,25 @@ class Authentication:
         return self._default_identity
 
 
-def _create_authenticator(spec: Union[str, dict[str, Any]]) -> Authenticator:
-    """Instantiate an authenticator from configuration spec
+def _create_authenticator(spec: str | dict[str, Any]) -> Authenticator:
+    """Instantiate an authenticator from configuration spec.
 
-    Configuration spec can be a string referencing a callable (e.g. mypackage.mymodule:callable)
-    in which case the callable will be returned as is; Or, a dict with 'factory' and 'options'
-    keys, in which case the factory callable is called with 'options' passed in as argument, and
-    the resulting callable is returned.
+    Configuration spec can be a string referencing a callable
+    (e.g. mypackage.mymodule:callable) in which case the callable will
+    be returned as is; Or, a dict with 'factory' and 'options' keys,
+    in which case the factory callable is called with 'options' passed
+    in as argument, and the resulting callable is returned.
     """
     log = logging.getLogger(__name__)
 
     if isinstance(spec, str):
-        log.debug("Creating authenticator: %s", spec)
+        log.debug(f"Creating authenticator: {spec}")
         return get_callable(spec, __name__)
 
-    log.debug("Creating authenticator using factory: %s", spec["factory"])
-    factory = get_callable(
-        spec["factory"], __name__
-    )  # type: Callable[..., Authenticator]
+    log.debug(f"Creating authenticator using factory: {spec['factory']}")
+    factory = get_callable(spec["factory"], __name__)
     options = spec.get("options", {})
-    return factory(**options)
+    return cast(Authenticator, factory(**options))
 
 
 authentication = Authentication()

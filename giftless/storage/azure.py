@@ -1,10 +1,10 @@
+"""Azure cloud storage backend."""
 import base64
 import logging
 import posixpath
-from collections import namedtuple
 from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone
-from typing import IO, Any, Optional
+from typing import IO, Any, NamedTuple
 from urllib.parse import urlencode
 from xml.sax.saxutils import escape as xml_escape
 
@@ -23,9 +23,16 @@ from giftless.storage import (
     guess_mime_type_from_filename,
 )
 
-from .exc import ObjectNotFound
+from .exc import ObjectNotFoundError
 
-Block = namedtuple("Block", ["id", "start", "size"])
+
+class Block(NamedTuple):
+    """Convenience wrapper for Azure block."""
+
+    id: int
+    start: int
+    size: int
+
 
 _log = logging.getLogger(__name__)
 
@@ -41,7 +48,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         self,
         connection_string: str,
         container_name: str,
-        path_prefix: Optional[str] = None,
+        path_prefix: str | None = None,
         enable_content_digest: bool = True,
         **_: Any,
     ) -> None:
@@ -60,7 +67,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         try:
             return blob_client.download_blob().chunks()
         except ResourceNotFoundError:
-            raise ObjectNotFound("Object does not exist")
+            raise ObjectNotFoundError("Object does not exist") from None
 
     def put(self, prefix: str, oid: str, data_stream: IO[bytes]) -> int:
         blob_client = self.blob_svc_client.get_blob_client(
@@ -73,9 +80,9 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
     def exists(self, prefix: str, oid: str) -> bool:
         try:
             self.get_size(prefix, oid)
-            return True
-        except ObjectNotFound:
+        except ObjectNotFoundError:
             return False
+        return True
 
     def get_size(self, prefix: str, oid: str) -> int:
         try:
@@ -84,9 +91,9 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
                 blob=self._get_blob_path(prefix, oid),
             )
             props = blob_client.get_blob_properties()
-            return props.size
         except ResourceNotFoundError:
-            raise ObjectNotFound("Object does not exist")
+            raise ObjectNotFoundError("Object does not exist") from None
+        return props.size
 
     def get_mime_type(self, prefix: str, oid: str) -> str:
         try:
@@ -100,9 +107,9 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             )
             if mime_type is None:
                 return "application/octet-stream"
-            return str(mime_type)
         except ResourceNotFoundError:
-            raise ObjectNotFound("Object does not exist")
+            raise ObjectNotFoundError("Object does not exist") from None
+        return str(mime_type)
 
     def get_upload_action(
         self,
@@ -110,7 +117,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         filename = extra.get("filename") if extra else None
         headers = {
@@ -142,7 +149,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         filename = extra.get("filename") if extra else None
         disposition = (
@@ -173,9 +180,9 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         size: int,
         part_size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """Get actions for a multipart upload"""
+        """Get actions for a multipart upload."""
         blocks = _calculate_blocks(size, part_size)
         uncommitted = self._get_uncommitted_blocks(prefix, oid, blocks)
 
@@ -195,9 +202,8 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             if b.id not in uncommitted
         ]
         _log.info(
-            "There are %d uncommitted blocks pre-uploaded; %d parts still need to be uploaded",
-            len(uncommitted),
-            len(parts),
+            f"There are {len(uncommitted)} uncommitted blocks pre-uploaded;"
+            f" {len(parts)} parts still need to be uploaded"
         )
         commit_body = self._create_commit_body(blocks)
         reply: dict[str, Any] = {
@@ -229,7 +235,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         return reply
 
     def _get_blob_path(self, prefix: str, oid: str) -> str:
-        """Get the path to a blob in storage"""
+        """Get the path to a blob in storage."""
         if not self.path_prefix:
             storage_prefix = ""
         elif self.path_prefix[0] == "/":
@@ -243,8 +249,8 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         prefix: str,
         oid: str,
         expires_in: int,
-        filename: Optional[str] = None,
-        disposition: Optional[str] = None,
+        filename: str | None = None,
+        disposition: str | None = None,
         **permissions: bool,
     ) -> str:
         blob_name = self._get_blob_path(prefix, oid)
@@ -277,44 +283,48 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
             blob_name=blob_name,
             credential=sas_token,
         )
-        return blob_client.url  # type: ignore
+        return str(blob_client.url)
 
     def _get_uncommitted_blocks(
         self, prefix: str, oid: str, blocks: list[Block]
     ) -> dict[int, int]:
-        """Get list of uncommitted blocks from the server"""
+        """Get list of uncommitted blocks from the server."""
         blob_client = self.blob_svc_client.get_blob_client(
             container=self.container_name,
             blob=self._get_blob_path(prefix, oid),
         )
         try:
-            committed_blocks, uncommitted_blocks = blob_client.get_block_list(
-                block_list_type="all"
-            )
+            (
+                committed_blocks,
+                uncommitted_blocks,
+            ) = blob_client.get_block_list(block_list_type="all")
         except ResourceNotFoundError:
             return {}
 
         if committed_blocks:
             _log.warning(
-                f"Committed blocks found for {oid}, this is unexpected state; restarting upload"
+                f"Unexpected state: Committed blocks found for {oid};"
+                " state; restarting upload"
             )
             blob_client.delete_blob()
             return {}
 
         try:
-            # NOTE: The Azure python library already does ID base64 decoding for us, so we only case to int here
+            # NOTE: The Azure python library already does ID base64
+            # decoding for us, so we only case to int here
             existing_blocks = {
                 int(b["id"]): b["size"] for b in uncommitted_blocks
             }
         except ValueError:
             _log.warning(
-                "Some uncommitted blocks have unexpected ID format; restarting upload"
+                "Some uncommitted blocks have unexpected ID format;"
+                " restarting upload"
             )
             return {}
 
         _log.debug(
-            "Found %d existing uncommitted blocks on server",
-            len(existing_blocks),
+            f"Found {len(existing_blocks)} existing uncommitted blocks"
+            " on server"
         )
 
         # Verify that existing blocks are the same as what we plan to upload
@@ -324,7 +334,8 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
                 and existing_blocks[block.id] != block.size
             ):
                 _log.warning(
-                    "Uncommitted block size does not match our plan, restating upload"
+                    "Uncommitted block size does not match our plan;"
+                    " restarting upload"
                 )
                 blob_client.delete_blob()
                 return {}
@@ -334,7 +345,7 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
     def _create_part_request(
         self, base_url: str, block: Block, expires_in: int
     ) -> dict[str, Any]:
-        """Create the part request object for a block"""
+        """Create the part request object for a block."""
         block_id = self._encode_block_id(block.id)
         part = {
             "href": f"{base_url}&comp=block&blockid={block_id}",
@@ -349,12 +360,17 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
         return part
 
     def _create_commit_body(self, blocks: list[Block]) -> str:
-        """Create the body for a 'Put Blocks' request we use in commit
+        """Create the body for a 'Put Blocks' request we use in commit.
 
-        NOTE: This is a simple XML construct, so we don't import / depend on XML construction API
-        here. If this ever gets complex, it may be a good idea to rely on lxml or similar.
+        NOTE: This is a simple XML construct, so we don't import /
+        depend on XML construction API here. If this ever gets
+        complex, it may be a good idea to rely on lxml or similar.
         """
-        return '<?xml version="1.0" encoding="utf-8"?><BlockList>{}</BlockList>'.format(
+        tpl = (
+            '<?xml version="1.0" encoding="utf-8"?><BlockList>{}'
+            "</BlockList>"
+        )
+        return tpl.format(
             "".join(
                 [
                     "<Uncommitted>{}</Uncommitted>".format(
@@ -367,14 +383,14 @@ class AzureBlobsStorage(StreamingStorage, ExternalStorage, MultipartStorage):
 
     @classmethod
     def _encode_block_id(cls, b_id: int) -> str:
-        """Encode a block ID in the manner expected by the Azure API"""
+        """Encode a block ID in the manner expected by the Azure API."""
         return base64.b64encode(
             str(b_id).zfill(cls._PART_ID_BYTE_SIZE).encode("ascii")
         ).decode("ascii")
 
 
 def _calculate_blocks(file_size: int, part_size: int) -> list[Block]:
-    """Calculate the list of blocks in a blob
+    """Calculate the list of blocks in a blob.
 
     >>> _calculate_blocks(30, 10)
     [Block(id=0, start=0, size=10), Block(id=1, start=10, size=10), Block(id=2, start=20, size=10)]

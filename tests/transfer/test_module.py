@@ -1,6 +1,4 @@
-"""Test common transfer module functionality
-"""
-from typing import Any
+"""Test common transfer module functionality."""
 
 import pytest
 
@@ -8,7 +6,7 @@ from giftless import transfer
 
 
 @pytest.mark.parametrize(
-    "register,requested,expected",
+    ("register", "requested", "expected"),
     [
         (["basic"], ["basic"], "basic"),
         (["foobar", "basic", "bizbaz"], ["basic"], "basic"),
@@ -16,7 +14,7 @@ from giftless import transfer
         (["foobar", "basic", "bizbaz"], ["bizbaz", "basic"], "bizbaz"),
     ],
 )
-@pytest.mark.usefixtures("reset_registered_transfers")
+@pytest.mark.usefixtures("_reset_registered_transfers")
 def test_transfer_adapter_matching(
     register: list[str], requested: list[str], expected: str
 ) -> None:
@@ -30,5 +28,5 @@ def test_transfer_adapter_matching(
 def test_transfer_adapter_matching_nomatch() -> None:
     for adapter in ["foobar", "basic", "bizbaz"]:
         transfer.register_adapter(adapter, transfer.TransferAdapter())
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unable to match"):
         transfer.match_transfer_adapter(["complex", "even-better"])

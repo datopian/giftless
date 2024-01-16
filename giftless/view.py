@@ -1,8 +1,7 @@
-"""Flask-Classful View Classes
-"""
-from typing import Any
+"""Flask-Classful View Classes."""
+from typing import Any, ClassVar
 
-from flask import Flask, Response
+from flask import Flask
 from flask_classful import FlaskView
 from webargs.flaskparser import parser
 
@@ -12,13 +11,13 @@ from giftless.auth.identity import Permission
 
 
 class BaseView(FlaskView):
-    """This extends on Flask-Classful's base view class to add some common custom
-    functionality
+    """Extends Flask-Classful's base view class to add some common
+    custom functionality.
     """
 
-    decorators = [authn.login_required]
+    decorators: ClassVar = [authn.login_required]
 
-    representations = {
+    representations: ClassVar = {
         "application/json": representation.output_json,
         representation.GIT_LFS_MIME_TYPE: representation.output_git_lfs_json,
         "flask-classful/default": representation.output_git_lfs_json,
@@ -40,10 +39,12 @@ class BaseView(FlaskView):
         permission: Permission,
         oid: str | None = None,
     ) -> None:
-        """Check the current user is authorized to perform an action and raise an exception otherwise"""
+        """Check the current user is authorized to perform an action
+        and raise an exception otherwise.
+        """
         if not cls._is_authorized(organization, repo, permission, oid):
             raise exc.Forbidden(
-                "Your are not authorized to perform this action"
+                "You are not authorized to perform this action"
             )
 
     @staticmethod
@@ -53,7 +54,7 @@ class BaseView(FlaskView):
         permission: Permission,
         oid: str | None = None,
     ) -> bool:
-        """Check the current user is authorized to perform an action"""
+        """Check the current user is authorized to perform an action."""
         identity = authn.get_identity()
         return identity is not None and identity.is_authorized(
             organization, repo, permission, oid
@@ -61,12 +62,12 @@ class BaseView(FlaskView):
 
 
 class BatchView(BaseView):
-    """Batch operations"""
+    """Batch operations."""
 
     route_base = "<organization>/<repo>/objects/batch"
 
     def post(self, organization: str, repo: str) -> dict[str, Any]:
-        """Batch operations"""
+        """Batch operations."""
         payload = parser.parse(schema.batch_request_schema)
 
         try:
@@ -74,7 +75,7 @@ class BatchView(BaseView):
                 payload["transfers"]
             )
         except ValueError as e:
-            raise exc.InvalidPayload(str(e))
+            raise exc.InvalidPayload(str(e)) from None
 
         permission = (
             Permission.WRITE
@@ -84,7 +85,8 @@ class BatchView(BaseView):
         try:
             self._check_authorization(organization, repo, permission)
         except exc.Forbidden:
-            # User doesn't have global permission to the entire namespace, but may be authorized for all objects
+            # User doesn't have global permission to the entire namespace,
+            # but may be authorized for all objects
             if not all(
                 self._is_authorized(organization, repo, permission, o["oid"])
                 for o in payload["objects"]
@@ -105,8 +107,9 @@ class BatchView(BaseView):
                 "Cannot validate any of the requested objects"
             )
 
-        # TODO: Check Accept header
-        # TODO: do we need an output schema?
+        # TODO @rufuspollock: Check Accept header
+        # TODO @athornton: do we need an output schema?  If so...should
+        # we just turn this into a Pydantic app?
 
         return response
 
@@ -119,10 +122,12 @@ class BatchView(BaseView):
 
 
 class ViewProvider:
-    """ViewProvider is a marker interface for storage and transfer adapters that can provide their own Flask views
+    """ViewProvider is a marker interface for storage and transfer
+    adapters that can provide their own Flask views.
 
-    This allows transfer and storage backends to register routes for accessing or verifying files, for example,
-    directly from the Giftless HTTP server.
+    This allows transfer and storage backends to register routes for
+    accessing or verifying files, for example, directly from the
+    Giftless HTTP server.
     """
 
     def register_views(self, app: Flask) -> None:

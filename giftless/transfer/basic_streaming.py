@@ -1,13 +1,13 @@
-"""Basic Streaming Transfer Adapter
+"""Basic Streaming Transfer Adapter.
 
-This transfer adapter offers 'basic' transfers by streaming uploads / downloads
-through the Git LFS HTTP server. It can use different storage backends (local,
-cloud, ...). This module defines an
-interface through which additional streaming backends can be implemented.
+This transfer adapter offers 'basic' transfers by streaming uploads /
+downloads through the Git LFS HTTP server. It can use different
+storage backends (local, cloud, ...). This module defines an interface
+through which additional streaming backends can be implemented.
 """
 
 import posixpath
-from typing import Any, BinaryIO, Optional, cast
+from typing import Any, BinaryIO, cast
 
 import marshmallow
 from flask import Flask, Response, request, url_for
@@ -24,15 +24,18 @@ from giftless.view import BaseView, ViewProvider
 
 
 class VerifyView(BaseView):
-    """Verify an object
+    """Verify an object.
 
     This view is actually not basic_streaming specific, and is used by other
     transfer adapters that need a 'verify' action as well.
+
+    TODO @athornton: then how about we make it a mixin, which will
+    make the test structures a little less weird?
     """
 
     route_base = "<organization>/<repo>/objects/storage"
 
-    def __init__(self, storage: VerifiableStorage):
+    def __init__(self, storage: VerifiableStorage) -> None:
         self.storage = storage
 
     @route("/verify", methods=["POST"])
@@ -55,9 +58,9 @@ class VerifyView(BaseView):
 
     @classmethod
     def get_verify_url(
-        cls, organization: str, repo: str, oid: Optional[str] = None
+        cls, organization: str, repo: str, oid: str | None = None
     ) -> str:
-        """Get the URL for upload / download requests for this object"""
+        """Get the URL for upload / download requests for this object."""
         op_name = f"{cls.__name__}:verify"
         url: str = url_for(
             op_name,
@@ -70,18 +73,23 @@ class VerifyView(BaseView):
 
 
 class ObjectsView(BaseView):
+    """Provides methods for object storage management."""
+
     route_base = "<organization>/<repo>/objects/storage"
 
-    def __init__(self, storage: StreamingStorage):
+    def __init__(self, storage: StreamingStorage) -> None:
         self.storage = storage
 
     def put(self, organization: str, repo: str, oid: str) -> Response:
-        """Upload a file to local storage
+        """Upload a file to local storage.
 
-        For now, I am not sure this actually streams chunked uploads without reading the entire
-        content into memory. It seems that in order to support this, we will need to dive deeper
-        into the WSGI Server -> Werkzeug -> Flask stack, and it may also depend on specific WSGI
-        server implementation and even how a proxy (e.g. nginx) is configured.
+        TODO @rufuspollock: For now, I am not sure this actually
+        streams chunked uploads without reading the entire content
+        into memory. It seems that in order to support this, we will
+        need to dive deeper into the WSGI Server -> Werkzeug -> Flask
+        stack, and it may also depend on specific WSGI server
+        implementation and even how a proxy (e.g. nginx) is
+        configured.
         """
         self._check_authorization(
             organization, repo, Permission.WRITE, oid=oid
@@ -95,7 +103,7 @@ class ObjectsView(BaseView):
         return Response(status=200)
 
     def get(self, organization: str, repo: str, oid: str) -> Response:
-        """Get an file open file stream from local storage"""
+        """Get an open file stream from local storage."""
         self._check_authorization(organization, repo, Permission.READ, oid=oid)
         path = posixpath.join(organization, repo)
 
@@ -127,9 +135,9 @@ class ObjectsView(BaseView):
         operation: str,
         organization: str,
         repo: str,
-        oid: Optional[str] = None,
+        oid: str | None = None,
     ) -> str:
-        """Get the URL for upload / download requests for this object"""
+        """Get the URL for upload / download requests for this object."""
         op_name = f"{cls.__name__}:{operation}"
         url: str = url_for(
             op_name,
@@ -144,7 +152,11 @@ class ObjectsView(BaseView):
 class BasicStreamingTransferAdapter(
     PreAuthorizingTransferAdapter, ViewProvider
 ):
-    def __init__(self, storage: StreamingStorage, action_lifetime: int):
+    """Provides Streaming Transfers."""
+
+    def __init__(
+        self, storage: StreamingStorage, action_lifetime: int
+    ) -> None:
         super().__init__()
         self.storage = storage
         self.action_lifetime = action_lifetime
@@ -155,7 +167,7 @@ class BasicStreamingTransferAdapter(
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         response = {"oid": oid, "size": size}
 
@@ -196,7 +208,7 @@ class BasicStreamingTransferAdapter(
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         response = {"oid": oid, "size": size}
 
@@ -244,7 +256,7 @@ class BasicStreamingTransferAdapter(
 def factory(
     storage_class: Any, storage_options: Any, action_lifetime: int
 ) -> BasicStreamingTransferAdapter:
-    """Factory for basic transfer adapter with local storage"""
+    """Build a basic transfer adapter with local storage."""
     storage = get_callable(storage_class, __name__)
     return BasicStreamingTransferAdapter(
         storage(**storage_options), action_lifetime

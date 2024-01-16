@@ -53,21 +53,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 
-[tool.black]
-line-length = 79
-target-version = ["py310"]
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | build
-  | dist
-)/
-'''
 # Use single-quoted strings so TOML treats the string like a Python r-string
 # Multi-line strings are implicitly treated by black as regular expressions
 
@@ -165,7 +150,7 @@ python_files = [
 # Reference for rules: https://docs.astral.sh/ruff/rules/
 [tool.ruff]
 exclude = [
-    "docs/conf.py",
+    "docs/source/conf.py",
 ]
 line-length = 79
 ignore = [
@@ -185,6 +170,8 @@ ignore = [
     "D205",    # our documentation style allows a folded first line
     "EM101",   # justification (duplicate string in traceback) is silly
     "EM102",   # justification (duplicate string in traceback) is silly
+    "FBT001",  # positional booleans are normal for Pydantic field defaults
+    "FBT002",  # positional booleans are normal for Pydantic field defaults
     "FBT003",  # positional booleans are normal for Pydantic field defaults
     "FIX002",  # point of a TODO comment is that we're not ready to fix it
     "G004",    # forbidding logging f-strings is appealing, but not our style

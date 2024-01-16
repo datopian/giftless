@@ -1,8 +1,7 @@
-"""Multipart Transfer Adapter
-"""
+"""Multipart Transfer Adapter."""
 
 import posixpath
-from typing import Any, Optional
+from typing import Any
 
 from flask import Flask
 
@@ -12,17 +11,19 @@ from giftless.transfer.basic_streaming import VerifyView
 from giftless.util import get_callable
 from giftless.view import ViewProvider
 
-DEFAULT_PART_SIZE = 10240000  # 10mb
-DEFAULT_ACTION_LIFETIME = 6 * 3600  # 6 hours
+DEFAULT_PART_SIZE = 10240000  # 10MB (-ish)
+DEFAULT_ACTION_LIFETIME = 6 * 60 * 60  # 6 hours
 
 
 class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
+    """Transfer Adapter supporting multipart methods."""
+
     def __init__(
         self,
         storage: MultipartStorage,
         default_action_lifetime: int,
         max_part_size: int = DEFAULT_PART_SIZE,
-    ):
+    ) -> None:
         super().__init__()
         self.storage = storage
         self.max_part_size = max_part_size
@@ -34,7 +35,7 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         prefix = posixpath.join(organization, repo)
         response = {"oid": oid, "size": size}
@@ -56,7 +57,7 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
                 oid=oid,
                 lifetime=self.VERIFY_LIFETIME,
             )
-            response["actions"]["verify"] = {  # type: ignore
+            response["actions"]["verify"] = {  # type: ignore[index]
                 "href": VerifyView.get_verify_url(organization, repo),
                 "header": headers,
                 "expires_in": self.VERIFY_LIFETIME,
@@ -70,7 +71,7 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
         repo: str,
         oid: str,
         size: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict:
         prefix = posixpath.join(organization, repo)
         response = {"oid": oid, "size": size}
@@ -85,25 +86,28 @@ class MultipartTransferAdapter(PreAuthorizingTransferAdapter, ViewProvider):
         except exc.StorageError as e:
             response["error"] = e.as_dict()
 
-        if response.get("actions", {}).get("download"):  # type: ignore
+        if response.get("actions", {}).get("download"):  # type:ignore[attr-defined]
             response["authenticated"] = True
 
         return response
 
     def register_views(self, app: Flask) -> None:
-        # FIXME: this is broken. Need to find a smarter way for multiple transfer adapters to provide the same view
-        # VerifyView.register(app, init_argument=self.storage)
+        # TODO @rufuspollock: this is broken. Need to find a smarter
+        # way for multiple transfer adapters to provide the same view
+        #  -- broken: VerifyView.register(app, init_argument=self.storage)
+        # TODO @athornton: does this maybe indicate a classvar shadowing or
+        # updating issue? Investigate that.
         if isinstance(self.storage, ViewProvider):
             self.storage.register_views(app)
 
     def _check_object(self, prefix: str, oid: str, size: int) -> None:
-        """Raise specific domain error if object is not valid
+        """Raise specific domain error if object is not valid.
 
         NOTE: this does not use storage.verify_object directly because
-        we want ObjectNotFound errors to be propagated if raised
+        we want ObjectNotFoundError errors to be propagated if raised.
         """
         if self.storage.get_size(prefix, oid) != size:
-            raise exc.InvalidObject("Object size does not match")
+            raise exc.InvalidObjectError("Object size does not match")
 
 
 def factory(
@@ -112,11 +116,13 @@ def factory(
     action_lifetime: int = DEFAULT_ACTION_LIFETIME,
     max_part_size: int = DEFAULT_PART_SIZE,
 ) -> MultipartTransferAdapter:
-    """Factory for multipart transfer adapter with storage"""
+    """Build a multipart transfer adapter with storage."""
     try:
         storage = get_callable(storage_class, __name__)
     except (AttributeError, ImportError):
-        raise ValueError(f"Unable to load storage module: {storage_class}")
+        raise ValueError(
+            f"Unable to load storage module: {storage_class}"
+        ) from None
     return MultipartTransferAdapter(
         storage(**storage_options),
         action_lifetime,

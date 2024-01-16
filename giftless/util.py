@@ -1,16 +1,15 @@
-"""Miscellanea
-"""
+"""Miscellanea."""
 import importlib
 from collections.abc import Callable, Iterable
-from typing import Any, Optional
+from typing import Any, cast
 from urllib.parse import urlencode
 
 
 def get_callable(
-    callable_str: str, base_package: Optional[str] = None
+    callable_str: str, base_package: str | None = None
 ) -> Callable:
     """Get a callable function / class constructor from a string of the form
-    `package.subpackage.module:callable`
+    `package.subpackage.module:callable`.
 
     >>> type(get_callable('os.path:basename')).__name__
     'function'
@@ -29,11 +28,11 @@ def get_callable(
             "Expecting base_package to be set if only class name is provided"
         )
 
-    return getattr(module, callable_name)  # type: ignore
+    return cast(Callable, getattr(module, callable_name))
 
 
 def to_iterable(val: Any) -> Iterable:
-    """Get something we can iterate over from an unknown type
+    """Get something we can iterate over from an unknown type.
 
     >>> i = to_iterable([1, 2, 3])
     >>> next(iter(i))
@@ -55,7 +54,7 @@ def to_iterable(val: Any) -> Iterable:
     >>> next(iter(i))
     1
     """
-    if isinstance(val, Iterable) and not isinstance(val, (str, bytes)):
+    if isinstance(val, Iterable) and not isinstance(val, str | bytes):
         return val
     return (val,)
 
@@ -67,7 +66,7 @@ def add_query_params(url: str, params: dict[str, Any]) -> str:
     >>> add_query_params('https://example.org', {'param1': 'value1', 'param2': 'value2'})
     'https://example.org?param1=value1&param2=value2'
 
-    >>> add_query_params('https://example.org?param1=value1', {'param2': 'value2'})
+    >>> add_query_params('https://example.org?param1=value1', {'param2': 'value2'})  # noqa[E501]
     'https://example.org?param1=value1&param2=value2'
     """  # noqa: E501
     urlencoded_params = urlencode(params)
@@ -76,7 +75,7 @@ def add_query_params(url: str, params: dict[str, Any]) -> str:
 
 
 def safe_filename(original_filename: str) -> str:
-    """Returns a filename safe to use in HTTP headers, formed from the
+    """Return a filename safe to use in HTTP headers, formed from the
     given original filename.
 
     >>> safe_filename("example(1).txt")

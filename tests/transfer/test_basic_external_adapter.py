@@ -1,15 +1,16 @@
-from typing import Any, Optional
+"""Test basic_external transfer adapter functionality."""
+from typing import Any
 from urllib.parse import urlencode
 
 import pytest
 
 from giftless.storage import ExternalStorage
-from giftless.storage.exc import ObjectNotFound
+from giftless.storage.exc import ObjectNotFoundError
 from giftless.transfer import basic_external
 
 
 def test_factory_returns_object() -> None:
-    """Test that the basic_external factory returns the right object(s)"""
+    """Test that the basic_external factory returns the right object(s)."""
     base_url = "https://s4.example.com/"
     lifetime = 300
     adapter = basic_external.factory(
@@ -178,7 +179,7 @@ def test_download_action_extras_are_passed() -> None:
 
 
 class MockExternalStorageBackend(ExternalStorage):
-    """A mock adapter for the basic external transfer adapter
+    """Implementation of mock adapter for the basic external transfer adapter.
 
     Typically, "external" backends are cloud providers - so this backend can
     be used in testing to test the transfer adapter's behavior without
@@ -198,7 +199,7 @@ class MockExternalStorageBackend(ExternalStorage):
         try:
             return self.existing_objects[(prefix, oid)]
         except KeyError:
-            raise ObjectNotFound("Object does not exist")
+            raise ObjectNotFoundError("Object does not exist") from None
 
     def get_upload_action(
         self,
@@ -206,7 +207,7 @@ class MockExternalStorageBackend(ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return {
             "actions": {
@@ -226,7 +227,7 @@ class MockExternalStorageBackend(ExternalStorage):
         oid: str,
         size: int,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         return {
             "actions": {
@@ -245,7 +246,7 @@ class MockExternalStorageBackend(ExternalStorage):
         prefix: str,
         oid: str,
         expires_in: int,
-        extra: Optional[dict[str, Any]] = None,
+        extra: dict[str, Any] | None = None,
     ) -> str:
         url = f"{self.base_url}{prefix}/{oid}?expires_in={expires_in}"
         if extra:

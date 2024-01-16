@@ -1,13 +1,13 @@
-"""Test helpers
-"""
-import os
+"""Test helpers."""
+from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 
 def batch_request_payload(
-    delete_keys: list[str] = [], **kwargs: Any
+    delete_keys: Sequence[str] = (), **kwargs: Any
 ) -> dict[str, Any]:
-    """Generate sample batch request payload"""
+    """Generate sample batch request payload."""
     payload = {
         "operation": "download",
         "transfers": ["basic"],
@@ -25,15 +25,17 @@ def batch_request_payload(
 def create_file_in_storage(
     storage_path: str, org: str, repo: str, filename: str, size: int = 1
 ) -> None:
-    """Put a dummy file in the storage path for a specific org / repo / oid combination
+    """Put a dummy file in the storage path for a specific org / repo
+    / oid combination.
 
-    This is useful where we want to test download / verify actions without relying on
-    'put' actions to work
+    This is useful where we want to test download / verify actions
+    without relying on 'put' actions to work.
 
-    This assumes cleanup is done somewhere else (e.g. in the 'storage_path' fixture)
+    This assumes cleanup is done somewhere else (e.g. in the
+    'storage_path' fixture).
     """
-    repo_path = os.path.join(storage_path, org, repo)
-    os.makedirs(repo_path, exist_ok=True)
-    with open(os.path.join(repo_path, filename), "wb") as f:
+    repo_path = Path(storage_path) / org / repo
+    repo_path.mkdir(parents=True, exist_ok=True)
+    with Path(repo_path / filename).open("wb") as f:
         for c in (b"0" for _ in range(size)):
             f.write(c)

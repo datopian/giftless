@@ -1,5 +1,4 @@
-"""Tests for the Google Cloud Storage storage backend
-"""
+"""Tests for the Google Cloud Storage storage backend."""
 import os
 from collections.abc import Generator
 from typing import Any
@@ -58,7 +57,7 @@ MOCK_GCP_KEY_B64 = (
 
 @pytest.fixture
 def storage_backend() -> Generator[GoogleCloudStorage, None, None]:
-    """Provide a Google Cloud Storage backend for all GCS tests
+    """Provide a Google Cloud Storage backend for all GCS tests.
 
     For this to work against production Google Cloud, you need to set
     ``GCP_ACCOUNT_KEY_FILE``, ``GCP_PROJECT_NAME`` and ``GCP_BUCKET_NAME``
@@ -90,7 +89,7 @@ def storage_backend() -> Generator[GoogleCloudStorage, None, None]:
             except GoogleAPIError as e:
                 raise pytest.PytestWarning(
                     f"Could not clean up after test: {e}"
-                )
+                ) from None
     else:
         yield GoogleCloudStorage(
             project_name=MOCK_GCP_PROJECT_NAME,
@@ -107,24 +106,24 @@ def vcr_config() -> dict[str, Any]:
         and os.environ.get("GCP_PROJECT_NAME")
         and os.environ.get("GCP_BUCKET_NAME")
     )
-    if live_tests:
-        mode = "once"
-    else:
-        mode = "none"
+    mode = "once" if live_tests else "none"
     return {
         "filter_headers": [("authorization", "fake-authz-header")],
         "record_mode": mode,
     }
 
 
-# FIXME: updating the storage backends has caused the VCR cassettes to
-# become invalid.  Datopian will need to rebuild those cassettes with data
-# from the current implementation.
+# TODO @athornton: updating the storage backends has caused the VCR cassettes
+# to become invalid.  Datopian will need to rebuild those cassettes with data
+# from the current implementation, or (better) we should use something other
+# than pytest-vcr, which is opaque and unhelpful.
 #
 # I can confirm that the Google Cloud Storage Backend at least works in
 # conjunction with Workload Identity, since I'm using that for my own storage
 # in my Git LFS implementation.  -- AJT 20231220
 #
 # @pytest.mark.vcr()
-# class TestGoogleCloudStorageBackend(StreamingStorageAbstractTests, ExternalStorageAbstractTests):
-#     pass
+# class TestGoogleCloudStorageBackend(
+#           StreamingStorageAbstractTests, ExternalStorageAbstractTests
+#       ):
+#           pass

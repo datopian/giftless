@@ -1,12 +1,13 @@
-"""Transfer adapters
+"""Transfer adapters.
 
-See https://github.com/git-lfs/git-lfs/blob/master/docs/api/basic-transfers.md
+See
+https://github.com/git-lfs/git-lfs/blob/master/docs/api/basic-transfers.md
 for more information about what transfer APIs do in Git LFS.
 """
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from functools import partial
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from flask import Flask
 
@@ -21,9 +22,13 @@ from giftless.view import ViewProvider
 _registered_adapters: dict[str, "TransferAdapter"] = {}
 
 
-class TransferAdapter(ABC):
-    """A transfer adapter tells Git LFS Server how to respond to batch API requests"""
+class TransferAdapter(ABC):  # noqa:B024
+    """A transfer adapter tells Git LFS Server how to respond to batch
+    API requests.
+    """
 
+    # We don't want these to be abstract methods because the test suite
+    # actually instantiates a TransferAdapter, even though it's an ABC.
     def upload(
         self,
         organization: str,
@@ -51,14 +56,18 @@ class TransferAdapter(ABC):
     def get_action(
         self, name: str, organization: str, repo: str
     ) -> Callable[[str, int], dict]:
-        """Shortcut for quickly getting an action callable for transfer adapter objects"""
+        """Shortcut for quickly getting an action callable for
+        transfer adapter objects.
+        """
         return partial(
             getattr(self, name), organization=organization, repo=repo
         )
 
 
 class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
-    """A transfer adapter that can pre-authorize one or more of the actions it supports"""
+    """A transfer adapter that can pre-authorize one or more of the
+    actions it supports.
+    """
 
     @abstractmethod
     def __init__(self) -> None:
@@ -144,13 +153,14 @@ def init_flask_app(app: Flask) -> None:
 
 
 def register_adapter(key: str, adapter: TransferAdapter) -> None:
-    """Register a transfer adapter"""
+    """Register a transfer adapter."""
     _registered_adapters[key] = adapter
 
 
 def match_transfer_adapter(
     transfers: list[str],
 ) -> tuple[str, TransferAdapter]:
+    """Select a transfer adapter by key."""
     for t in transfers:
         if t in _registered_adapters:
             return t, _registered_adapters[t]
@@ -158,7 +168,7 @@ def match_transfer_adapter(
 
 
 def _init_adapter(config: dict) -> TransferAdapter:
-    """Call adapter factory to create a transfer adapter instance"""
+    """Call adapter factory to create a transfer adapter instance."""
     factory: Callable[..., TransferAdapter] = get_callable(config["factory"])
     adapter: TransferAdapter = factory(**config.get("options", {}))
     if isinstance(adapter, PreAuthorizingTransferAdapter):

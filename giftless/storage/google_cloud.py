@@ -1,9 +1,12 @@
+"""Google Cloud Storage backend supporting direct-to-cloud transfers via
+signed URLs.
+"""
 import base64
 import io
 import json
 import posixpath
 from datetime import timedelta
-from typing import Any, BinaryIO, Union
+from typing import Any, BinaryIO, cast
 
 import google.auth
 from google.auth import impersonated_credentials
@@ -12,12 +15,12 @@ from google.oauth2 import service_account
 
 from giftless.storage import ExternalStorage, StreamingStorage
 
-from .exc import ObjectNotFound
+from .exc import ObjectNotFoundError
 
 
 class GoogleCloudStorage(StreamingStorage, ExternalStorage):
     """Google Cloud Storage backend supporting direct-to-cloud
-    transfers.
+    transfers via signed URLs.
     """
 
     def __init__(
@@ -32,11 +35,11 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
     ) -> None:
         self.bucket_name = bucket_name
         self.path_prefix = path_prefix
-        self.credentials: Union[
-            service_account.Credentials,
-            impersonated_credentials.Credentials,
-            None,
-        ] = self._load_credentials(account_key_file, account_key_base64)
+        self.credentials: (
+            service_account.Credentials
+            | impersonated_credentials.Credentials
+            | None
+        ) = self._load_credentials(account_key_file, account_key_base64)
         self.storage_client = storage.Client(
             project=project_name, credentials=self.credentials
         )
@@ -52,7 +55,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.get_blob(self._get_blob_path(prefix, oid))
         if blob is None:
-            raise ObjectNotFound("Object does not exist")
+            raise ObjectNotFoundError("Object does not exist")
         stream = io.BytesIO()
         blob.download_to_file(stream)
         stream.seek(0)
@@ -67,14 +70,14 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
     def exists(self, prefix: str, oid: str) -> bool:
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.blob(self._get_blob_path(prefix, oid))
-        return blob.exists()  # type: ignore
+        return cast(bool, blob.exists())
 
     def get_size(self, prefix: str, oid: str) -> int:
         bucket = self.storage_client.bucket(self.bucket_name)
         blob = bucket.get_blob(self._get_blob_path(prefix, oid))
         if blob is None:
-            raise ObjectNotFound("Object does not exist")
-        return blob.size  # type: ignore
+            raise ObjectNotFoundError("Object does not exist")
+        return cast(int, blob.size)
 
     def get_upload_action(
         self,
@@ -126,7 +129,7 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
         }
 
     def _get_blob_path(self, prefix: str, oid: str) -> str:
-        """Get the path to a blob in storage"""
+        """Get the path to a blob in storage."""
         if not self.path_prefix:
             storage_prefix = ""
         elif self.path_prefix[0] == "/":
@@ -166,22 +169,22 @@ class GoogleCloudStorage(StreamingStorage, ExternalStorage):
     def _load_credentials(
         account_key_file: str | None, account_key_base64: str | None
     ) -> service_account.Credentials | None:
-        """Load Google Cloud credentials from passed configuration"""
+        """Load Google Cloud credentials from passed configuration."""
         if account_key_file and account_key_base64:
             raise ValueError(
-                "Provide either account_key_file or account_key_base64 but not both"
+                "Provide either account_key_file or account_key_base64"
+                " but not both"
             )
-        elif account_key_file:
+        if account_key_file:
             return service_account.Credentials.from_service_account_file(
                 account_key_file
             )
-        elif account_key_base64:
+        if account_key_base64:
             account_info = json.loads(base64.b64decode(account_key_base64))
             return service_account.Credentials.from_service_account_info(
                 account_info
             )
-        else:
-            return None  # Will use Workload Identity if available
+        return None  # Will use Workload Identity if available
 
     def _get_workload_identity_credentials(
         self, expires_in: int

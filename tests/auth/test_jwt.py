@@ -1,12 +1,12 @@
+"""Tests for JWT authorization."""
 import base64
-import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
 import flask
 import jwt
 import pytest
-import pytz
 
 from giftless.auth import Unauthorized
 from giftless.auth.identity import DefaultIdentity, Permission
@@ -16,16 +16,12 @@ from giftless.auth.jwt import JWTAuthenticator, Scope, factory
 JWT_HS_KEY = b"some-random-secret"
 
 # Asymmetric key files used in tests
-JWT_RS_PRI_KEY = os.path.join(
-    os.path.dirname(__file__), "data", "test-key.pem"
-)
-JWT_RS_PUB_KEY = os.path.join(
-    os.path.dirname(__file__), "data", "test-key.pub.pem"
-)
+JWT_RS_PRI_KEY = Path(__file__).parent / "data" / "test-key.pem"
+JWT_RS_PUB_KEY = Path(__file__).parent / "data" / "test-key.pub.pem"
 
 
 def test_jwt_can_authorize_request_symmetric_key(app: flask.Flask) -> None:
-    """Test basic JWT authorizer functionality"""
+    """Test basic JWT authorizer functionality: HS256 symmetric."""
     authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm="HS256")
     token = _get_test_token()
     with app.test_request_context(
@@ -39,7 +35,7 @@ def test_jwt_can_authorize_request_symmetric_key(app: flask.Flask) -> None:
 
 
 def test_jwt_can_authorize_request_asymmetric_key(app: flask.Flask) -> None:
-    """Test basic JWT authorizer functionality"""
+    """Test basic JWT authorizer functionality: RS256 asymmetric."""
     authz = factory(public_key_file=JWT_RS_PUB_KEY, algorithm="RS256")
     token = _get_test_token(algo="RS256")
     with app.test_request_context(
@@ -53,7 +49,7 @@ def test_jwt_can_authorize_request_asymmetric_key(app: flask.Flask) -> None:
 
 
 def test_jwt_can_authorize_request_token_in_qs(app: flask.Flask) -> None:
-    """Test basic JWT authorizer functionality"""
+    """Test basic JWT authorizer functionality with query param."""
     authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm="HS256")
     token = _get_test_token()
     with app.test_request_context(
@@ -67,7 +63,7 @@ def test_jwt_can_authorize_request_token_in_qs(app: flask.Flask) -> None:
 def test_jwt_can_authorize_request_token_as_basic_password(
     app: flask.Flask,
 ) -> None:
-    """Test that we can pass a JWT token as 'Basic' authorization password"""
+    """Test that we can pass a JWT token as 'Basic' authorization password."""
     authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm="HS256")
     token = _get_test_token()
     auth_value = base64.b64encode(
@@ -87,7 +83,9 @@ def test_jwt_can_authorize_request_token_as_basic_password(
 def test_jwt_can_authorize_request_token_basic_password_disabled(
     app: flask.Flask,
 ) -> None:
-    """Test that we can pass a JWT token as 'Basic' authorization password"""
+    """Test that we can pass a JWT token as 'Basic' authorization password
+    when user is None.
+    """
     authz = JWTAuthenticator(
         private_key=JWT_HS_KEY, algorithm="HS256", basic_auth_user=None
     )
@@ -106,7 +104,9 @@ def test_jwt_can_authorize_request_token_basic_password_disabled(
 
 
 def test_jwt_with_wrong_kid_doesnt_authorize_request(app: flask.Flask) -> None:
-    """JWT authorizer only considers a JWT token if it has the right key ID in the header"""
+    """JWT authorizer only considers a JWT token if it has the right key ID
+    in the header.
+    """
     authz = JWTAuthenticator(
         private_key=JWT_HS_KEY, algorithm="HS256", key_id="must-be-this-key"
     )
@@ -121,7 +121,7 @@ def test_jwt_with_wrong_kid_doesnt_authorize_request(app: flask.Flask) -> None:
 
 
 def test_jwt_expired_throws_401(app: flask.Flask) -> None:
-    """If we get a JWT token who's expired, we should raise a 401 error"""
+    """If we get a JWT token that has expired, we should raise a 401 error."""
     authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm="HS256")
     token = _get_test_token(lifetime=-600)  # expired 10 minutes ago
     with app.test_request_context(
@@ -154,7 +154,10 @@ def test_jwt_pre_authorize_action() -> None:
     # Check that now() - expiration time is within 5 seconds of 120 seconds
     assert (
         abs(
-            (datetime.fromtimestamp(payload["exp"]) - datetime.now()).seconds
+            (
+                datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
+                - datetime.now(tz=timezone.utc)
+            ).seconds
             - 120
         )
         < 5
@@ -182,7 +185,10 @@ def test_jwt_pre_authorize_action_custom_lifetime() -> None:
     # Check that now() - expiration time is within 5 seconds of 3600 seconds
     assert (
         abs(
-            (datetime.fromtimestamp(payload["exp"]) - datetime.now()).seconds
+            (
+                datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
+                - datetime.now(tz=timezone.utc)
+            ).seconds
             - 3600
         )
         < 5
@@ -190,7 +196,7 @@ def test_jwt_pre_authorize_action_custom_lifetime() -> None:
 
 
 @pytest.mark.parametrize(
-    "scopes, auth_check, expected",
+    ("scopes", "auth_check", "expected"),
     [
         (
             [],
@@ -236,15 +242,6 @@ def test_jwt_pre_authorize_action_custom_lifetime() -> None:
                 "permission": Permission.READ,
             },
             False,
-        ),
-        (
-            ["obj:myorg/myrepo/*"],
-            {
-                "organization": "myorg",
-                "repo": "myrepo",
-                "permission": Permission.READ,
-            },
-            True,
         ),
         (
             ["obj:myorg/myrepo/*:read"],
@@ -407,7 +404,7 @@ def test_jwt_pre_authorize_action_custom_lifetime() -> None:
 def test_jwt_scopes_authorize_actions(
     app: flask.Flask, scopes: str, auth_check: dict[str, Any], expected: bool
 ) -> None:
-    """Test that JWT token scopes can control authorization"""
+    """Test that JWT token scopes can control authorization."""
     authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm="HS256")
     token = _get_test_token(scopes=scopes)
     with app.test_request_context(
@@ -422,7 +419,9 @@ def test_jwt_scopes_authorize_actions(
 
 
 def test_jwt_scopes_authorize_actions_with_anon_user(app: flask.Flask) -> None:
-    """Test that authorization works even if we don't have any user ID / email / name"""
+    """Test that authorization works even if we don't have any user ID
+    / email / name.
+    """
     scopes = ["obj:myorg/myrepo/*"]
     authz = JWTAuthenticator(private_key=JWT_HS_KEY, algorithm="HS256")
     token = _get_test_token(scopes=scopes, sub=None, name=None, email=None)
@@ -440,7 +439,7 @@ def test_jwt_scopes_authorize_actions_with_anon_user(app: flask.Flask) -> None:
 
 
 @pytest.mark.parametrize(
-    "scope_str, expected",
+    ("scope_str", "expected"),
     [
         (
             "org:myorg:*",
@@ -535,14 +534,14 @@ def test_jwt_scopes_authorize_actions_with_anon_user(app: flask.Flask) -> None:
     ],
 )
 def test_scope_parsing(scope_str: str, expected: dict[str, Any]) -> None:
-    """Test scope string parsing works as expected"""
+    """Test scope string parsing works as expected."""
     scope = Scope.from_string(scope_str)
     for k, v in expected.items():
         assert getattr(scope, k) == v
 
 
 @pytest.mark.parametrize(
-    "scope, expected",
+    ("scope", "expected"),
     [
         (Scope("org", "myorg"), "org:myorg"),
         (Scope("org", "myorg", subscope="meta"), "org:myorg:meta:*"),
@@ -557,7 +556,7 @@ def test_scope_parsing(scope_str: str, expected: dict[str, Any]) -> None:
     ],
 )
 def test_scope_stringify(scope: Scope, expected: str) -> None:
-    """Test scope stringification works as expected"""
+    """Test scope stringification works as expected."""
     assert expected == str(scope)
 
 
@@ -568,7 +567,7 @@ def _get_test_token(
     **kwargs: Any,
 ) -> str:
     payload = {
-        "exp": datetime.now(tz=pytz.utc) + timedelta(seconds=lifetime),
+        "exp": datetime.now(tz=timezone.utc) + timedelta(seconds=lifetime),
         "sub": "some-user-id",
     }
 
@@ -577,7 +576,7 @@ def _get_test_token(
     if algo == "HS256":
         key = JWT_HS_KEY
     elif algo == "RS256":
-        with open(JWT_RS_PRI_KEY, "rb") as f:
+        with JWT_RS_PRI_KEY.open("rb") as f:
             key = f.read()
     else:
         raise ValueError(f"Don't know how to test algo: {algo}")
