@@ -38,7 +38,9 @@ jobs:
     strategy:
       matrix:
         python:
+          - "3.10"
           - "3.11"
+          - "3.12"
 
     steps:
       - uses: actions/checkout@v4
@@ -87,7 +89,7 @@ jobs:
       - name: Build and publish
         uses: lsst-sqre/build-and-publish-to-pypi@v2
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           upload: false
 
   pypi:
@@ -114,4 +116,4 @@ jobs:
       - name: Build and publish
         uses: lsst-sqre/build-and-publish-to-pypi@v2
         with:
-          python-version: "3.11"
+          python-version: "3.12"

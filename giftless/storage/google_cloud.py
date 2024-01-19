@@ -9,7 +9,7 @@ from datetime import timedelta
 from typing import Any, BinaryIO, cast
 
 import google.auth
-import google.cloud
+import google.cloud.storage
 from google.auth import impersonated_credentials
 from google.oauth2 import service_account
 
