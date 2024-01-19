@@ -10,8 +10,6 @@ pytest-env
 pytest-cov
 pytest-vcr
 
-cloud-storage-mocker
-
 pytz
 types-pytz
 types-jwt
