@@ -28,18 +28,18 @@ VERSION := $(shell $(PYTHON) -c "from importlib.metadata import version;print(ve
 
 default: help
 
-## Install packages necessary for make to work
-init:
-	pip install --upgrade pip pre-commit pip-tools tox
-
 ## Regenerate requirements files
 requirements: requirements/dev.txt requirements/dev.in requirements/main.txt requirements/main.in
 
 ## Set up the development environment
 dev-setup: $(SENTINELS)/dev-setup
 
+## Run all linting checks
+lint: $(SENTINELS)
+	pre-commit run --all-files
+
 ## Run all tests
-test: $(SENTINELS)/dev-setup
+test: $(SENTINELS)
 	$(PYTEST) $(PYTEST_EXTRA_ARGS) $(PACKAGE_DIRS) $(TESTS_DIR)
 
 ## Build a local Docker image
@@ -77,13 +77,14 @@ $(SENTINELS):
 	mkdir $@
 
 $(SENTINELS)/dist-setup: | $(SENTINELS)
-	$(PIP) install -U pip wheel twine pre-commit
+	$(PIP) install -U wheel twine
 	@touch $@
 
 $(SENTINELS)/dist: $(SENTINELS)/dist-setup $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(DIST_DIR)/$(PACKAGE_NAME)-$(VERSION)-py3-none-any.whl | $(SENTINELS)
 	@touch $@
 
-$(SENTINELS)/dev-setup: requirements/main.txt requirements/dev.txt | $(SENTINELS)
+$(SENTINELS)/dev-setup: init requirements/main.txt requirements/dev.txt | $(SENTINELS)
+	$(PIP) install -U pip pip-tools pre-commit tox
 	$(PIP) install -r requirements/main.txt
 	$(PIP) install -e .
 	$(PIP) install -r requirements/dev.txt
