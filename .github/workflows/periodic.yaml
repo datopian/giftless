@@ -1,0 +1,45 @@
+# This is a separate run of the Python test suite that doesn't cache the tox
+# environment and runs from a schedule. The purpose is to test whether
+# updating pinned dependencies would cause any tests to fail.
+
+name: Periodic CI
+
+"on":
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        python:
+          - "3.11"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run neophile
+        uses: lsst-sqre/run-neophile@v1
+        with:
+          python-version: ${{ matrix.python }}
+          mode: update
+
+      - name: Run tox
+        uses: lsst-sqre/run-tox@v1
+        with:
+          python-version: ${{ matrix.python }}
+          tox-envs: "lint,typing,py"
+
+      - name: Report status
+        if: always()
+        uses: ravsamhq/notify-slack-action@v2
+        with:
+          status: ${{ job.status }}
+          notify_when: "failure"
+          notification_title: "Periodic test for {repo} failed"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_ALERT_WEBHOOK }}
