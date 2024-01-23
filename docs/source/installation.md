@@ -78,4 +78,4 @@ production environment:
 (venv) $ ./flask-develop.sh
 ```
 
-In development mode, Giftless will be listening on <http://127.0.0.1:5000/>
+In development mode, Giftless will be listening on `http://127.0.0.1:5000`

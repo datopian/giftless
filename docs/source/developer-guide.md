@@ -53,4 +53,4 @@ it, for example:
 
 Will build a Docekr image tagged `mycompany/giftless:1.2.3`.
 
-[1]: https://github.com/jazzband/pip-tools
+[1]: [Pip Tools](https://github.com/jazzband/pip-tools)
