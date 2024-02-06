@@ -9,11 +9,11 @@ anyio==4.2.0
 azure-core==1.29.6
     # via azure-storage-blob
 azure-storage-blob==12.19.0
-    # via -r requirements/main.in
+    # via -r main.in
 blinker==1.7.0
     # via flask
 boto3==1.34.19
-    # via -r requirements/main.in
+    # via -r main.in
 botocore==1.34.19
     # via
     #   boto3
@@ -28,21 +28,21 @@ charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via flask
-cryptography==41.0.7
+cryptography==42.0.0
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   azure-storage-blob
 figcan==0.0.4
-    # via -r requirements/main.in
+    # via -r main.in
 flask==2.3.3
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   flask-classful
     #   flask-marshmallow
 flask-classful==0.16.0
-    # via -r requirements/main.in
+    # via -r main.in
 flask-marshmallow==0.15.0
-    # via -r requirements/main.in
+    # via -r main.in
 google-api-core==2.15.0
     # via
     #   google-cloud-core
@@ -55,7 +55,7 @@ google-auth==2.26.2
 google-cloud-core==2.4.1
     # via google-cloud-storage
 google-cloud-storage==2.14.0
-    # via -r requirements/main.in
+    # via -r main.in
 google-crc32c==1.5.0
     # via
     #   google-cloud-storage
@@ -69,7 +69,7 @@ idna==3.6
     #   anyio
     #   requests
 importlib-metadata==7.0.1 ; python_version < "3.13"
-    # via -r requirements/main.in
+    # via -r main.in
 isodate==0.6.1
     # via azure-storage-blob
 itsdangerous==2.1.2
@@ -90,7 +90,7 @@ marshmallow==3.20.2
     #   marshmallow-enum
     #   webargs
 marshmallow-enum==1.5.1
-    # via -r requirements/main.in
+    # via -r main.in
 packaging==23.2
     # via
     #   flask-marshmallow
@@ -109,15 +109,15 @@ pyasn1-modules==0.3.0
 pycparser==2.21
     # via cffi
 pyjwt==2.8.0
-    # via -r requirements/main.in
+    # via -r main.in
 python-dateutil==2.8.2
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   botocore
 python-dotenv==1.0.0
-    # via -r requirements/main.in
+    # via -r main.in
 pyyaml==6.0.1
-    # via -r requirements/main.in
+    # via -r main.in
 requests==2.31.0
     # via
     #   azure-core
@@ -136,7 +136,7 @@ sniffio==1.3.0
     # via anyio
 typing-extensions==4.9.0
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   azure-core
     #   azure-storage-blob
 urllib3==2.0.7
@@ -144,10 +144,10 @@ urllib3==2.0.7
     #   botocore
     #   requests
 webargs==8.4.0
-    # via -r requirements/main.in
+    # via -r main.in
 werkzeug==3.0.1
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   flask
 zipp==3.17.0
     # via importlib-metadata
