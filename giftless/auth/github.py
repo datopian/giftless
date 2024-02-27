@@ -8,7 +8,7 @@ from collections.abc import Callable, Mapping, MutableMapping
 from contextlib import AbstractContextManager
 from operator import attrgetter, itemgetter
 from threading import Condition, Lock, RLock
-from typing import Any
+from typing import Any, cast, overload
 
 import cachetools.keys
 import flask
@@ -16,8 +16,8 @@ import marshmallow as ma
 import marshmallow.validate
 import requests
 
-from giftless.auth import Identity, Unauthorized
-from giftless.auth.identity import Permission
+from giftless.auth import Unauthorized
+from giftless.auth.identity import Identity, Permission
 
 _logger = logging.getLogger(__name__)
 
@@ -45,12 +45,26 @@ def _ensure_lock(
     return existing_lock
 
 
+@overload
+def single_call_method(_method: Callable[..., Any]) -> Callable[..., Any]:
+    ...
+
+
+@overload
 def single_call_method(
-    _method: Callable[[...], Any] | None = None,
     *,
-    key: Callable = cachetools.keys.methodkey,
+    key: Callable[..., Any] = cachetools.keys.methodkey,
     lock: Callable[[Any], AbstractContextManager] | None = None,
-) -> Callable[[...], Any]:
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    ...
+
+
+def single_call_method(
+    _method: Callable[..., Any] | None = None,
+    *,
+    key: Callable[..., Any] = cachetools.keys.methodkey,
+    lock: Callable[[Any], AbstractContextManager] | None = None,
+) -> Callable[..., Any]:
     """Thread-safe decorator limiting concurrency of an idempotent method call.
     When multiple threads concurrently call the decorated method with the same
     arguments (governed by the 'key' callable argument), only the first one
@@ -68,9 +82,9 @@ def single_call_method(
     """
     lock = _ensure_lock(lock)
 
-    def decorator(method: Callable) -> Callable:
+    def decorator(method: Callable[..., Any]) -> Callable[..., Any]:
         # tracking concurrent calls per method arguments
-        concurrent_calls = {}
+        concurrent_calls: dict[Any, SingleCallContext] = {}
 
         @functools.wraps(method)
         def wrapper(self: Any, *args: tuple, **kwargs: dict) -> Any:
@@ -123,13 +137,13 @@ def single_call_method(
 
 def cachedmethod_threadsafe(
     cache: Callable[[Any], MutableMapping],
-    key: Callable = cachetools.keys.methodkey,
+    key: Callable[..., Any] = cachetools.keys.methodkey,
     lock: Callable[[Any], AbstractContextManager] | None = None,
-) -> Callable:
+) -> Callable[..., Any]:
     """Threadsafe variant of cachetools.cachedmethod."""
     lock = _ensure_lock(lock)
 
-    def decorator(method: Callable) -> Callable:
+    def decorator(method: Callable[..., Any]) -> Callable[..., Any]:
         @cachetools.cachedmethod(cache=cache, key=key, lock=lock)
         @single_call_method(key=key, lock=lock)
         @functools.wraps(method)
@@ -216,7 +230,7 @@ class Config:
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "Config":
-        return cls.Schema().load(data, unknown=ma.RAISE)
+        return cast(Config, cls.Schema().load(data, unknown=ma.RAISE))
 
 
 # CORE AUTH
@@ -288,19 +302,21 @@ class GithubIdentity(Identity):
         oid: str | None = None,
     ) -> bool:
         permissions = self.permissions(organization, repo)
-        return permissions and permission in permissions
+        return permission in permissions if permissions else False
 
     def cache_ttl(self, permissions: set[Permission]) -> float:
         """Return default cache TTL [seconds] for a certain permission set."""
         return self._auth_cache.ttu(None, permissions, 0.0)
 
     @staticmethod
-    def cache_key(data: dict) -> tuple:
+    def cache_key(data: Mapping[str, Any]) -> tuple:
         """Return caching key from significant fields."""
         return cachetools.keys.hashkey(*itemgetter("login", "id")(data))
 
     @classmethod
-    def from_dict(cls, data: dict, cc: CacheConfig) -> "GithubIdentity":
+    def from_dict(
+        cls, data: Mapping[str, Any], cc: CacheConfig
+    ) -> "GithubIdentity":
         return cls(*itemgetter("login", "id", "name", "email")(data), cc=cc)
 
 
@@ -344,26 +360,28 @@ class GithubAuthenticator:
         if cfg.api_version:
             self._api_headers["X-GitHub-Api-Version"] = cfg.api_version
         # user identities per raw user data (keeping them authorized)
-        self._user_cache = cachetools.LRUCache(maxsize=cfg.cache.user_max_size)
+        self._user_cache: MutableMapping[
+            Any, GithubIdentity
+        ] = cachetools.LRUCache(maxsize=cfg.cache.user_max_size)
         # user identities per token (shortcut to the cached entries above)
-        self._token_cache = cachetools.LRUCache(
-            maxsize=cfg.cache.token_max_size
-        )
+        self._token_cache: MutableMapping[
+            Any, GithubIdentity
+        ] = cachetools.LRUCache(maxsize=cfg.cache.token_max_size)
         self._cache_config = cfg.cache
 
-    def _api_get(self, uri: str, ctx: CallContext) -> dict:
+    def _api_get(self, uri: str, ctx: CallContext) -> Mapping[str, Any]:
         response = ctx.session.get(
             f"{self._api_url}{uri}",
             headers={"Authorization": f"Bearer {ctx.token}"},
         )
         response.raise_for_status()
-        return response.json()
+        return cast(Mapping[str, Any], response.json())
 
     @cachedmethod_threadsafe(
         attrgetter("_user_cache"),
         lambda self, data: GithubIdentity.cache_key(data),
     )
-    def _get_user_cached(self, data: dict) -> GithubIdentity:
+    def _get_user_cached(self, data: Mapping[str, Any]) -> GithubIdentity:
         """Return internal GitHub user identity from raw GitHub user data
         [cached per login & id].
         """
@@ -385,7 +403,7 @@ class GithubAuthenticator:
             raise Unauthorized(msg) from None
 
         # different tokens can bear the same identity
-        return self._get_user_cached(user_data)
+        return cast(GithubIdentity, self._get_user_cached(user_data))
 
     @staticmethod
     def _perm_list(permissions: set[Permission]) -> str:
@@ -448,7 +466,7 @@ class GithubAuthenticator:
         with requests.Session() as session:
             session.headers.update(self._api_headers)
             ctx = self.CallContext(request, session)
-            user = self._authenticate(ctx)
+            user: GithubIdentity = self._authenticate(ctx)
             _logger.info(f"Authenticated the user as {user}")
             self._authorize(ctx, user)
             return user
