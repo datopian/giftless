@@ -20,4 +20,7 @@ azure-storage-blob~=12.19
 google-cloud-storage~=2.14
 boto3~=1.34
 
+# GitHub AA Provider
+cachetools~=5.3
+
 importlib-metadata; python_version < '3.13'

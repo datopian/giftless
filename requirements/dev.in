@@ -15,6 +15,7 @@ types-pytz
 types-jwt
 types-python-dateutil
 types-PyYAML
+types-cachetools
 
 boto3-stubs
 botocore-stubs
