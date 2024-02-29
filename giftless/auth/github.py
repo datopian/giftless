@@ -5,10 +5,9 @@ import logging
 import os
 import threading
 from collections.abc import Callable, Mapping, MutableMapping
-from contextlib import AbstractContextManager
 from operator import attrgetter, itemgetter
-from threading import Condition, Lock, RLock
-from typing import Any, cast, overload
+from threading import Condition, Lock, RLock, _RLock
+from typing import Any, TypeAlias, Union, cast, overload
 
 import cachetools.keys
 import flask
@@ -20,6 +19,7 @@ from giftless.auth import Unauthorized
 from giftless.auth.identity import Identity, Permission
 
 _logger = logging.getLogger(__name__)
+_LockType: TypeAlias = Union["Lock", "_RLock"]
 
 
 # THREAD SAFE CACHING UTILS
@@ -37,8 +37,8 @@ class SingleCallContext:
 
 
 def _ensure_lock(
-    existing_lock: Callable[[Any], AbstractContextManager] | None,
-) -> Callable[[Any], AbstractContextManager]:
+    existing_lock: Callable[[Any], _LockType] | None = None,
+) -> Callable[[Any], _LockType]:
     if existing_lock is None:
         default_lock = RLock()
         return lambda _self: default_lock
@@ -54,7 +54,7 @@ def single_call_method(_method: Callable[..., Any]) -> Callable[..., Any]:
 def single_call_method(
     *,
     key: Callable[..., Any] = cachetools.keys.methodkey,
-    lock: Callable[[Any], AbstractContextManager] | None = None,
+    lock: Callable[[Any], _LockType] | None = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     ...
 
@@ -63,7 +63,7 @@ def single_call_method(
     _method: Callable[..., Any] | None = None,
     *,
     key: Callable[..., Any] = cachetools.keys.methodkey,
-    lock: Callable[[Any], AbstractContextManager] | None = None,
+    lock: Callable[[Any], _LockType] | None = None,
 ) -> Callable[..., Any]:
     """Thread-safe decorator limiting concurrency of an idempotent method call.
     When multiple threads concurrently call the decorated method with the same
@@ -138,7 +138,7 @@ def single_call_method(
 def cachedmethod_threadsafe(
     cache: Callable[[Any], MutableMapping],
     key: Callable[..., Any] = cachetools.keys.methodkey,
-    lock: Callable[[Any], AbstractContextManager] | None = None,
+    lock: Callable[[Any], _LockType] | None = None,
 ) -> Callable[..., Any]:
     """Threadsafe variant of cachetools.cachedmethod."""
     lock = _ensure_lock(lock)
