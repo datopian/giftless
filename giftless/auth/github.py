@@ -2,9 +2,11 @@
 import dataclasses
 import functools
 import logging
+import math
 import os
 import threading
 from collections.abc import Callable, Mapping, MutableMapping
+from contextlib import suppress
 from operator import attrgetter, itemgetter
 from threading import Lock, RLock, _RLock
 from typing import Any, TypeAlias, Union, cast, overload
@@ -170,15 +172,14 @@ class CacheConfig:
         token_max_size = ma.fields.Int(
             load_default=32, validate=ma.validate.Range(min=0)
         )
-        # the auth cache must have at least one valid slot
         auth_max_size = ma.fields.Int(
-            load_default=32, validate=ma.validate.Range(min=1)
+            load_default=32, validate=ma.validate.Range(min=0)
         )
         auth_write_ttl = ma.fields.Float(
-            load_default=15 * 60.0, validate=ma.validate.Range(min=1.0)
+            load_default=15 * 60.0, validate=ma.validate.Range(min=0)
         )
         auth_other_ttl = ma.fields.Float(
-            load_default=30.0, validate=ma.validate.Range(min=1.0)
+            load_default=30.0, validate=ma.validate.Range(min=0)
         )
 
         @ma.post_load
@@ -254,6 +255,10 @@ class GithubIdentity(Identity):
             )
             return now + ttl
 
+        # size-unlimited proxy cache to ensure at least one successful hit
+        self._auth_cache_read_proxy: MutableMapping[
+            Any, set[Permission]
+        ] = cachetools.TTLCache(math.inf, 60.0)
         self._auth_cache = cachetools.TLRUCache(cc.auth_max_size, expiration)
         self._auth_cache_lock = Lock()
 
@@ -272,17 +277,28 @@ class GithubIdentity(Identity):
     def __hash__(self) -> int:
         return hash((self.login, self.id))
 
-    def permissions(self, org: str, repo: str) -> set[Permission] | None:
+    def permissions(
+        self, org: str, repo: str, *, authoritative: bool = False
+    ) -> set[Permission] | None:
         key = cachetools.keys.hashkey(org, repo)
         with self._auth_cache_lock:
-            return self._auth_cache.get(key)
+            if authoritative:
+                permission = self._auth_cache_read_proxy.pop(key, None)
+            else:
+                permission = self._auth_cache_read_proxy.get(key)
+            if permission is None:
+                return self._auth_cache.get(key)
+            if authoritative:
+                with suppress(ValueError):
+                    self._auth_cache[key] = permission
+            return permission
 
     def authorize(
         self, org: str, repo: str, permissions: set[Permission] | None
     ) -> None:
         key = cachetools.keys.hashkey(org, repo)
         with self._auth_cache_lock:
-            self._auth_cache[key] = (
+            self._auth_cache_read_proxy[key] = (
                 permissions if permissions is not None else set()
             )
 
@@ -293,7 +309,7 @@ class GithubIdentity(Identity):
         permission: Permission,
         oid: str | None = None,
     ) -> bool:
-        permissions = self.permissions(organization, repo)
+        permissions = self.permissions(organization, repo, authoritative=True)
         return permission in permissions if permissions else False
 
     def cache_ttl(self, permissions: set[Permission]) -> float:

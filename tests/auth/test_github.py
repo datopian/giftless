@@ -5,7 +5,11 @@ from random import shuffle
 from time import sleep
 from typing import Any
 
+import pytest
+from marshmallow.exceptions import ValidationError
+
 import giftless.auth.github as gh
+from giftless.auth.identity import Permission
 
 
 def test_ensure_default_lock() -> None:
@@ -142,3 +146,93 @@ def test_cachedmethod_threadsafe_call_once() -> None:
     assert len(cache) == 1
     cached_result = next(iter(cache.values()))
     assert cached_result in chosen_ones
+
+
+def test_config_schema_defaults() -> None:
+    config = gh.Config.from_dict({})
+    assert isinstance(config, gh.Config)
+    assert hasattr(config, "cache")
+    assert isinstance(config.cache, gh.CacheConfig)
+
+
+def test_config_schema_default_cache() -> None:
+    config = gh.Config.from_dict({"cache": {}})
+    assert isinstance(config, gh.Config)
+    assert hasattr(config, "cache")
+    assert isinstance(config.cache, gh.CacheConfig)
+
+
+def test_config_schema_empty_cache() -> None:
+    options = {"cache": None}
+    with pytest.raises(ValidationError):
+        _config = gh.Config.from_dict(options)
+
+
+DEFAULT_CONFIG = gh.Config.from_dict({})
+DEFAULT_USER_ARGS = (
+    "kingofthebritons",
+    "123456",
+    "arthur",
+    "arthur@camelot.gov.uk",
+)
+ZERO_CACHE_CONFIG = gh.CacheConfig(
+    user_max_size=0,
+    token_max_size=0,
+    auth_max_size=0,
+    # deliberately non-zero to not get rejected on setting by the timeout logic
+    auth_write_ttl=60.0,
+    auth_other_ttl=30.0,
+)
+
+
+def test_github_identity_core() -> None:
+    user_dict = {
+        "login": "kingofthebritons",
+        "id": "123456",
+        "name": "arthur",
+        "email": "arthur@camelot.gov.uk",
+        "other_field": "other_value",
+    }
+    cache_cfg = DEFAULT_CONFIG.cache
+    user = gh.GithubIdentity.from_dict(user_dict, cc=cache_cfg)
+    assert (user.login, user.id, user.name, user.email) == DEFAULT_USER_ARGS
+    assert all(arg in repr(user) for arg in DEFAULT_USER_ARGS[:3])
+    assert hash(user) == hash((user.login, user.id))
+
+    args2 = (*DEFAULT_USER_ARGS[:2], "spammer", "spam@camelot.gov.uk")
+    user2 = gh.GithubIdentity(*args2, cc=cache_cfg)
+    assert user == user2
+    user2.id = "654321"
+    assert user != user2
+
+    assert user.cache_ttl({Permission.WRITE}) == cache_cfg.auth_write_ttl
+    assert (
+        user.cache_ttl({Permission.READ_META, Permission.READ})
+        == cache_cfg.auth_other_ttl
+    )
+
+
+def test_github_identity_authorization_cache() -> None:
+    user = gh.GithubIdentity(*DEFAULT_USER_ARGS, cc=DEFAULT_CONFIG.cache)
+    org, repo = "org", "repo"
+    assert not user.is_authorized(org, repo, Permission.READ_META)
+    user.authorize(org, repo, {Permission.READ_META, Permission.READ})
+    assert user.permissions(org, repo) == {
+        Permission.READ_META,
+        Permission.READ,
+    }
+    assert user.is_authorized(org, repo, Permission.READ_META)
+    assert user.is_authorized(org, repo, Permission.READ)
+    assert not user.is_authorized(org, repo, Permission.WRITE)
+
+
+def test_github_identity_authorization_proxy_cache_only() -> None:
+    user = gh.GithubIdentity(*DEFAULT_USER_ARGS, cc=ZERO_CACHE_CONFIG)
+    org, repo, repo2 = "org", "repo", "repo2"
+    user.authorize(org, repo, Permission.all())
+    user.authorize(org, repo2, Permission.all())
+    assert user.is_authorized(org, repo, Permission.READ_META)
+    # without cache, the authorization expires after 1st is_authorized
+    assert not user.is_authorized(org, repo, Permission.READ_META)
+    assert user.is_authorized(org, repo2, Permission.READ_META)
+    assert not user.is_authorized(org, repo2, Permission.READ_META)
