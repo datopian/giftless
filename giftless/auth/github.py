@@ -6,7 +6,7 @@ import os
 import threading
 from collections.abc import Callable, Mapping, MutableMapping
 from operator import attrgetter, itemgetter
-from threading import Condition, Lock, RLock, _RLock
+from threading import Lock, RLock, _RLock
 from typing import Any, TypeAlias, Union, cast, overload
 
 import cachetools.keys
@@ -28,10 +28,8 @@ class SingleCallContext:
     """Thread-safety context for the single_call_method decorator."""
 
     # condition variable blocking a call with particular arguments
-    cond: Condition = dataclasses.field(default_factory=Condition)
-    # None - call not started, False - call ongoing, True - call done
-    # the three states are needed to cover any spurious (pthread-like) wake-ups
-    call_status: bool | None = None
+    rlock: _RLock = dataclasses.field(default_factory=RLock)
+    start_call: bool = True
     result: Any = None
     error: BaseException | None = None
 
@@ -78,7 +76,7 @@ def single_call_method(
 
     It's possible to provide a "getter" callable for the lock guarding the main
     call cache, called as 'lock(self)'. There's a built-in lock by default.
-    Each concurrent call is then guarded by its own lock/conditional variable.
+    Each concurrent call is then guarded by its own reentrant lock variable.
     """
     lock = _ensure_lock(lock)
 
@@ -97,35 +95,29 @@ def single_call_method(
                     concurrent_calls[k] = ctx = SingleCallContext()
                     # start locked for the current thread, so the following
                     # gap won't let other threads populate the result
-                    ctx.cond.acquire()
+                    ctx.rlock.acquire()
 
-            with ctx.cond:
-                if ctx.call_status is None:
-                    # populating the result
-                    ctx.call_status = False
+            with ctx.rlock:
+                if ctx.start_call:
+                    ctx.start_call = False
+                    ctx.rlock.release()  # unlock the starting lock
                     try:
                         result = method(self, *args, **kwargs)
                     except BaseException as e:
                         ctx.error = e
                         raise
                     finally:
-                        # call is done, cleanup its entry and notify threads
+                        # call is done, cleanup its entry
                         with lck:
                             del concurrent_calls[k]
-                        ctx.cond.release()  # unlock the starting lock
-                        ctx.cond.notify_all()
                     ctx.result = result
-                    ctx.call_status = True
                     return result
 
                 else:
-                    # waiting for the result to get populated
-                    while True:
-                        if ctx.error:
-                            raise ctx.error
-                        if ctx.call_status:
-                            return ctx.result
-                        ctx.cond.wait()
+                    # call is done
+                    if ctx.error:
+                        raise ctx.error
+                    return ctx.result
 
         return wrapper
 
