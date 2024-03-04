@@ -29,7 +29,7 @@ _LockType: TypeAlias = Union["Lock", "_RLock"]
 class SingleCallContext:
     """Thread-safety context for the single_call_method decorator."""
 
-    # condition variable blocking a call with particular arguments
+    # reentrant lock guarding a call with particular arguments
     rlock: _RLock = dataclasses.field(default_factory=RLock)
     start_call: bool = True
     result: Any = None
