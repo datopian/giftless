@@ -9,6 +9,7 @@ pytest-mypy
 pytest-env
 pytest-cov
 pytest-vcr
+responses
 
 pytz
 types-pytz

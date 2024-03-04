@@ -163,13 +163,17 @@ pytz==2023.3.post1
 pyyaml==6.0.1
     # via
     #   -c requirements/main.txt
+    #   responses
     #   vcrpy
 recommonmark==0.7.1
     # via -r requirements/dev.in
 requests==2.31.0
     # via
     #   -c requirements/main.txt
+    #   responses
     #   sphinx
+responses==0.25.0
+    # via -r requirements/dev.in
 rsa==4.9
     # via
     #   -c requirements/main.txt
@@ -241,6 +245,7 @@ urllib3==2.0.7
     # via
     #   -c requirements/main.txt
     #   requests
+    #   responses
     #   types-requests
 vcrpy==5.1.0
     # via pytest-vcr
