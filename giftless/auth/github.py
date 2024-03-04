@@ -217,8 +217,9 @@ class Config:
 
         @ma.post_load
         def make_object(
-            self, data: Mapping[str, Any], **_kwargs: Mapping
+            self, data: MutableMapping[str, Any], **_kwargs: Mapping
         ) -> "Config":
+            data["api_url"] = data["api_url"].rstrip("/")
             return Config(**data)
 
     @classmethod
@@ -363,7 +364,7 @@ class GithubAuthenticator:
             self.token = self._extract_token(request)
 
     def __init__(self, cfg: Config) -> None:
-        self._api_url = cfg.api_url.rstrip("/")
+        self._api_url = cfg.api_url
         self._api_headers = {"Accept": "application/vnd.github+json"}
         if cfg.api_version:
             self._api_headers["X-GitHub-Api-Version"] = cfg.api_version
@@ -479,8 +480,12 @@ class GithubAuthenticator:
             self._authorize(ctx, user)
             return user
 
+    @property
+    def api_url(self) -> str:
+        return self._api_url
 
-def factory(**options: Mapping[str, Any]) -> GithubAuthenticator:
+
+def factory(**options: Any) -> GithubAuthenticator:
     """Build GitHub Authenticator from supplied options."""
     config = Config.from_dict(options)
     return GithubAuthenticator(config)
