@@ -6,10 +6,10 @@ import math
 import os
 import threading
 from collections.abc import Callable, Mapping, MutableMapping
-from contextlib import suppress
+from contextlib import AbstractContextManager, suppress
 from operator import attrgetter, itemgetter
-from threading import Lock, RLock, _RLock
-from typing import Any, TypeAlias, Union, cast, overload
+from threading import Lock, RLock
+from typing import Any, Protocol, cast, overload
 
 import cachetools.keys
 import flask
@@ -21,16 +21,25 @@ from giftless.auth import Unauthorized
 from giftless.auth.identity import Identity, Permission
 
 _logger = logging.getLogger(__name__)
-_LockType: TypeAlias = Union["Lock", "_RLock"]
 
 
 # THREAD SAFE CACHING UTILS
+class _LockType(AbstractContextManager, Protocol):
+    """Generic type for threading.Lock and RLock."""
+
+    def acquire(self, blocking: bool = ..., timeout: float = ...) -> bool:
+        ...
+
+    def release(self) -> None:
+        ...
+
+
 @dataclasses.dataclass(kw_only=True)
 class SingleCallContext:
     """Thread-safety context for the single_call_method decorator."""
 
     # reentrant lock guarding a call with particular arguments
-    rlock: _RLock = dataclasses.field(default_factory=RLock)
+    rlock: _LockType = dataclasses.field(default_factory=RLock)
     start_call: bool = True
     result: Any = None
     error: BaseException | None = None
