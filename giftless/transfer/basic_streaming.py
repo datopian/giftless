@@ -10,7 +10,7 @@ import posixpath
 from typing import Any, BinaryIO, cast
 
 import marshmallow
-from flask import Flask, Response, request, url_for
+from flask import Flask, Response, current_app, request, url_for
 from flask_classful import route
 from webargs.flaskparser import parser
 
@@ -61,7 +61,10 @@ class VerifyView(BaseView):
         cls, organization: str, repo: str, oid: str | None = None
     ) -> str:
         """Get the URL for upload / download requests for this object."""
-        op_name = f"{cls.__name__}:verify"
+        # Use the legacy endpoint when enabled
+        # see giftless.view.BaseView:register for details
+        legacy = "Legacy" if current_app.config["LEGACY_ENDPOINTS"] else ""
+        op_name = f"{legacy}{cls.__name__}:verify"
         url: str = url_for(
             op_name,
             organization=organization,
@@ -138,7 +141,10 @@ class ObjectsView(BaseView):
         oid: str | None = None,
     ) -> str:
         """Get the URL for upload / download requests for this object."""
-        op_name = f"{cls.__name__}:{operation}"
+        # Use the legacy endpoint when enabled
+        # see giftless.view.BaseView:register for details
+        legacy = "Legacy" if current_app.config["LEGACY_ENDPOINTS"] else ""
+        op_name = f"{legacy}{cls.__name__}:{operation}"
         url: str = url_for(
             op_name,
             organization=organization,

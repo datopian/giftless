@@ -1,5 +1,5 @@
 """Flask-Classful View Classes."""
-from typing import Any, ClassVar
+from typing import Any, ClassVar, cast
 
 from flask import Flask
 from flask_classful import FlaskView
@@ -31,10 +31,30 @@ class BaseView(FlaskView):
     trailing_slash = False
 
     @classmethod
-    def register(cls, *args: Any, **kwargs: Any) -> Any:
+    def register(cls, app: Flask, *args: Any, **kwargs: Any) -> Any:
         if kwargs.get("base_class") is None:
             kwargs["base_class"] = BaseView
-        return super().register(*args, **kwargs)
+        if (
+            app.config["LEGACY_ENDPOINTS"]
+            and kwargs.get("route_prefix") is None
+            and not hasattr(cls, "_legacy_")  # break the cycle
+        ):
+            # To span any transition required for the switch to the current
+            # endpoint URI, create a "Legacy" class "copy" of this view and
+            # register it too, for both the views and their endpoints to
+            # coexist.
+            legacy_view = type(
+                f"Legacy{cls.__name__}",
+                (cls,),
+                {
+                    "route_prefix": "<organization>/<repo>/",
+                    "_legacy_": True,
+                },
+            )
+            legacy_view = cast(BaseView, legacy_view)
+            legacy_view.register(app, *args, **kwargs)
+
+        return super().register(app, *args, **kwargs)
 
     @classmethod
     def _check_authorization(

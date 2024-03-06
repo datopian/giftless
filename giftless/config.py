@@ -1,5 +1,6 @@
 """Configuration handling helper functions and default configuration."""
 import os
+import warnings
 from pathlib import Path
 from typing import Any
 
@@ -29,9 +30,10 @@ default_transfer_config = {
 }
 
 default_config = {
-    "TRANSFER_ADAPTERS": Extensible(default_transfer_config),
     "TESTING": False,
     "DEBUG": False,
+    "LEGACY_ENDPOINTS": True,
+    "TRANSFER_ADAPTERS": Extensible(default_transfer_config),
     "AUTH_PROVIDERS": ["giftless.auth.allow_anon:read_only"],
     "PRE_AUTHORIZED_ACTION_PROVIDER": {
         "factory": "giftless.auth.jwt:factory",
@@ -55,6 +57,17 @@ def configure(app: Flask, additional_config: dict | None = None) -> Flask:
     """Configure a Flask app using Figcan managed configuration object."""
     config = _compose_config(additional_config)
     app.config.update(config)
+    if app.config["LEGACY_ENDPOINTS"]:
+        warnings.warn(
+            FutureWarning(
+                "LEGACY_ENDPOINTS (starting with '<org>/<repo>/') are enabled"
+                " as the default. They will be eventually removed in favor of"
+                " those starting with '<org-path>/<repo>.git/info/lfs/')."
+                " Switch your clients to them and set the configuration"
+                " option to False to disable this warning."
+            ),
+            stacklevel=1,
+        )
     return app
 
 

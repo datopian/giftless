@@ -51,7 +51,7 @@ def test_upload_request_with_x_forwarded_middleware(
     json = cast(dict[str, Any], response.json)
     upload_action = json["objects"][0]["actions"]["upload"]
     href = upload_action["href"]
-    base_uri = "myorg/myrepo.git/info/lfs"
+    base_uri = "myorg/myrepo"
     assert href == f"http://localhost/{base_uri}/objects/storage/12345678"
 
     response = test_client.post(
@@ -71,5 +71,5 @@ def test_upload_request_with_x_forwarded_middleware(
     href = upload_action["href"]
     assert (
         href
-        == "https://mycompany.xyz:1234/lfs/myorg/myrepo.git/info/lfs/objects/storage/12345678"
+        == f"https://mycompany.xyz:1234/lfs/{base_uri}/objects/storage/12345678"
     )
