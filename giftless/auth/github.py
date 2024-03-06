@@ -369,7 +369,8 @@ class GithubAuthenticator:
             return token
 
         def __post_init__(self, request: flask.Request) -> None:
-            self.org, self.repo = request.path.split("/", maxsplit=3)[1:3]
+            org_repo_getter = itemgetter("organization", "repo")
+            self.org, self.repo = org_repo_getter(request.view_args or {})
             self.token = self._extract_token(request)
 
     def __init__(self, cfg: Config) -> None:
