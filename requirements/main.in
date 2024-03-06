@@ -1,7 +1,6 @@
 figcan==0.0.*
 flask~=2.3
 flask-marshmallow~=0.15
-marshmallow-enum~=1.5
 pyyaml~=6.0
 PyJWT~=2.4
 webargs~=8.3
