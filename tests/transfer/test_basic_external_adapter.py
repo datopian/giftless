@@ -45,7 +45,7 @@ def test_upload_action_new_file() -> None:
                 "expires_in": 900,
             },
             "verify": {
-                "href": "http://giftless.local/myorg/myrepo/objects/storage/verify",
+                "href": "http://giftless.local/myorg/myrepo.git/info/lfs/objects/storage/verify",
                 "header": {},
                 "expires_in": 43200,
             },
@@ -73,7 +73,7 @@ def test_upload_action_extras_are_passed() -> None:
                 "expires_in": 900,
             },
             "verify": {
-                "href": "http://giftless.local/myorg/myrepo/objects/storage/verify",
+                "href": "http://giftless.local/myorg/myrepo.git/info/lfs/objects/storage/verify",
                 "header": {},
                 "expires_in": 43200,
             },

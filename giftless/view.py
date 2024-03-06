@@ -23,6 +23,11 @@ class BaseView(FlaskView):
         "flask-classful/default": representation.output_git_lfs_json,
     }
 
+    route_prefix: ClassVar = "<path:organization>/<repo>.git/info/lfs/"
+    # [flask-classful bug/feat?] Placeholders in route_prefix not skipped for
+    # building the final rule for methods with them (FlaskView.build_rule).
+    base_args: ClassVar = ["organization", "repo"]
+
     trailing_slash = False
 
     @classmethod
@@ -64,7 +69,7 @@ class BaseView(FlaskView):
 class BatchView(BaseView):
     """Batch operations."""
 
-    route_base = "<organization>/<repo>/objects/batch"
+    route_base = "objects/batch"
 
     def post(self, organization: str, repo: str) -> dict[str, Any]:
         """Batch operations."""

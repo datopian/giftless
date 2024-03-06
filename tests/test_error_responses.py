@@ -7,7 +7,7 @@ from .helpers import batch_request_payload
 def test_error_response_422(test_client: FlaskClient) -> None:
     """Test an invalid payload error."""
     response = test_client.post(
-        "/myorg/myrepo/objects/batch",
+        "/myorg/myrepo.git/info/lfs/objects/batch",
         json=batch_request_payload(delete_keys=["operation"]),
     )
 
@@ -30,7 +30,7 @@ def test_error_response_403(test_client: FlaskClient) -> None:
     read-only setup.
     """
     response = test_client.post(
-        "/myorg/myrepo/objects/batch",
+        "/myorg/myrepo.git/info/lfs/objects/batch",
         json=batch_request_payload(operation="upload"),
     )
 

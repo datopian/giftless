@@ -33,7 +33,7 @@ class VerifyView(BaseView):
     make the test structures a little less weird?
     """
 
-    route_base = "<organization>/<repo>/objects/storage"
+    route_base = "objects/storage"
 
     def __init__(self, storage: VerifiableStorage) -> None:
         self.storage = storage
@@ -75,7 +75,7 @@ class VerifyView(BaseView):
 class ObjectsView(BaseView):
     """Provides methods for object storage management."""
 
-    route_base = "<organization>/<repo>/objects/storage"
+    route_base = "objects/storage"
 
     def __init__(self, storage: StreamingStorage) -> None:
         self.storage = storage

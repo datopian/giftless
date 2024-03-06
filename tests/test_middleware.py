@@ -44,17 +44,18 @@ def test_upload_request_with_x_forwarded_middleware(
     """
     request_payload = batch_request_payload(operation="upload")
     response = test_client.post(
-        "/myorg/myrepo/objects/batch", json=request_payload
+        "/myorg/myrepo.git/info/lfs/objects/batch", json=request_payload
     )
 
     assert response.status_code == 200
     json = cast(dict[str, Any], response.json)
     upload_action = json["objects"][0]["actions"]["upload"]
     href = upload_action["href"]
-    assert href == "http://localhost/myorg/myrepo/objects/storage/12345678"
+    base_uri = "myorg/myrepo.git/info/lfs"
+    assert href == f"http://localhost/{base_uri}/objects/storage/12345678"
 
     response = test_client.post(
-        "/myorg/myrepo/objects/batch",
+        "/myorg/myrepo.git/info/lfs/objects/batch",
         json=request_payload,
         headers={
             "X-Forwarded-Host": "mycompany.xyz",
@@ -70,5 +71,5 @@ def test_upload_request_with_x_forwarded_middleware(
     href = upload_action["href"]
     assert (
         href
-        == "https://mycompany.xyz:1234/lfs/myorg/myrepo/objects/storage/12345678"
+        == "https://mycompany.xyz:1234/lfs/myorg/myrepo.git/info/lfs/objects/storage/12345678"
     )
