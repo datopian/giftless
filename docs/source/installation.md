@@ -37,11 +37,6 @@ It is recommended to install Giftless into a virtual environment:
 (venv) $ pip install giftless
 ```
 
-**IMPORTANT**: as of the time of writing, a bug in one of Giftless' dependencies
-requires that you explicitly install dependencies after installing using `pip`:
-
-    (venv) $ pip install -Ur https://raw.githubusercontent.com/datopian/giftless/master/requirements.txt
-
 Once installed, you can run Giftless locally with uWSGI:
 
 ```
