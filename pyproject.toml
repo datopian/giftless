@@ -96,7 +96,6 @@ warn_unused_ignores = true
 [[tool.mypy.overrides]]
 module = [
     "flask_classful",
-    "marshmallow_enum",
     "webargs"
 ]
 ignore_missing_imports = true

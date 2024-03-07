@@ -5,7 +5,6 @@ from typing import Any
 import marshmallow
 from flask_marshmallow import Marshmallow
 from marshmallow import fields, pre_load, validate
-from marshmallow_enum import EnumField
 
 ma = Marshmallow()
 
@@ -32,7 +31,7 @@ class ObjectSchema(ma.Schema):  # type:ignore[name-defined]
     oid = fields.String(required=True)
     size = fields.Integer(required=True, validate=validate.Range(min=0))
 
-    extra = fields.Dict(required=False, missing=dict)
+    extra = fields.Dict(required=False, load_default=dict)
 
     @pre_load
     def set_extra_fields(
@@ -51,8 +50,10 @@ class ObjectSchema(ma.Schema):  # type:ignore[name-defined]
 class BatchRequest(ma.Schema):  # type:ignore[name-defined]
     """batch request schema."""
 
-    operation = EnumField(Operation, required=True)
-    transfers = fields.List(fields.String, required=False, missing=["basic"])
+    operation = fields.Enum(Operation, required=True)
+    transfers = fields.List(
+        fields.String, required=False, load_default=["basic"]
+    )
     ref = fields.Nested(RefSchema, required=False)
     objects = fields.Nested(
         ObjectSchema, validate=validate.Length(min=1), many=True, required=True
