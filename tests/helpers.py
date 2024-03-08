@@ -3,6 +3,8 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
+import flask
+
 
 def batch_request_payload(
     delete_keys: Sequence[str] = (), **kwargs: Any
@@ -39,3 +41,14 @@ def create_file_in_storage(
     with Path(repo_path / filename).open("wb") as f:
         for c in (b"0" for _ in range(size)):
             f.write(c)
+
+
+def legacy_endpoints_id(enabled: bool) -> str:
+    return "legacy-ep" if enabled else "current-ep"
+
+
+def expected_uri_prefix(app: flask.Flask, *args: str) -> str:
+    core_prefix = "/".join(args)
+    if not app.config.get("LEGACY_ENDPOINTS"):
+        return core_prefix + ".git/info/lfs"
+    return core_prefix

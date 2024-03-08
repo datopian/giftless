@@ -2,11 +2,13 @@
 from typing import Any
 from urllib.parse import urlencode
 
+import flask
 import pytest
 
 from giftless.storage import ExternalStorage
 from giftless.storage.exc import ObjectNotFoundError
 from giftless.transfer import basic_external
+from tests.helpers import expected_uri_prefix, legacy_endpoints_id
 
 
 def test_factory_returns_object() -> None:
@@ -26,13 +28,17 @@ def test_factory_returns_object() -> None:
 
 
 @pytest.mark.usefixtures("app_context")
-def test_upload_action_new_file() -> None:
+@pytest.mark.parametrize(
+    "app", [False, True], ids=legacy_endpoints_id, indirect=True
+)
+def test_upload_action_new_file(app: flask.Flask) -> None:
     adapter = basic_external.factory(
         f"{__name__}:MockExternalStorageBackend",
         {},
         900,
     )
     response = adapter.upload("myorg", "myrepo", "abcdef123456", 1234)
+    exp_uri_prefix = expected_uri_prefix(app, "myorg", "myrepo")
 
     assert response == {
         "oid": "abcdef123456",
@@ -45,7 +51,7 @@ def test_upload_action_new_file() -> None:
                 "expires_in": 900,
             },
             "verify": {
-                "href": "http://giftless.local/myorg/myrepo/objects/storage/verify",
+                "href": f"http://giftless.local/{exp_uri_prefix}/objects/storage/verify",
                 "header": {},
                 "expires_in": 43200,
             },
@@ -54,13 +60,17 @@ def test_upload_action_new_file() -> None:
 
 
 @pytest.mark.usefixtures("app_context")
-def test_upload_action_extras_are_passed() -> None:
+@pytest.mark.parametrize(
+    "app", [False, True], ids=legacy_endpoints_id, indirect=True
+)
+def test_upload_action_extras_are_passed(app: flask.Flask) -> None:
     adapter = basic_external.factory(
         f"{__name__}:MockExternalStorageBackend", {}, 900
     )
     response = adapter.upload(
         "myorg", "myrepo", "abcdef123456", 1234, {"filename": "foo.csv"}
     )
+    exp_uri_prefix = expected_uri_prefix(app, "myorg", "myrepo")
 
     assert response == {
         "oid": "abcdef123456",
@@ -73,7 +83,7 @@ def test_upload_action_extras_are_passed() -> None:
                 "expires_in": 900,
             },
             "verify": {
-                "href": "http://giftless.local/myorg/myrepo/objects/storage/verify",
+                "href": f"http://giftless.local/{exp_uri_prefix}/objects/storage/verify",
                 "header": {},
                 "expires_in": 43200,
             },

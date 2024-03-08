@@ -2,6 +2,7 @@
 import pathlib
 import shutil
 from collections.abc import Generator
+from typing import Any
 
 import flask
 import pytest
@@ -10,6 +11,7 @@ from flask.testing import FlaskClient
 
 from giftless.app import init_app
 from giftless.auth import allow_anon, authentication
+from tests.helpers import legacy_endpoints_id
 
 
 @pytest.fixture
@@ -22,12 +24,14 @@ def storage_path(tmp_path: pathlib.Path) -> Generator:
         shutil.rmtree(path)
 
 
-@pytest.fixture
-def app(storage_path: str) -> flask.Flask:
+@pytest.fixture(params=[False], ids=legacy_endpoints_id)
+def app(storage_path: str, request: Any) -> flask.Flask:
     """Session fixture to configure the Flask app."""
+    legacy_endpoints = request.param
     app = init_app(
         additional_config={
             "TESTING": True,
+            "LEGACY_ENDPOINTS": legacy_endpoints,
             "TRANSFER_ADAPTERS": {
                 "basic": {
                     "options": {"storage_options": {"path": storage_path}}

@@ -1,17 +1,21 @@
 """Tests for using middleware and some specific middleware."""
 from typing import Any, cast
 
+import flask
 import pytest
-from flask import Flask
 from flask.testing import FlaskClient
 
 from giftless.app import init_app
 
-from .helpers import batch_request_payload
+from .helpers import (
+    batch_request_payload,
+    expected_uri_prefix,
+    legacy_endpoints_id,
+)
 
 
 @pytest.fixture
-def app(storage_path: str) -> Flask:
+def app(storage_path: str) -> flask.Flask:
     """Session fixture to configure the Flask app."""
     return init_app(
         additional_config={
@@ -36,7 +40,11 @@ def app(storage_path: str) -> Flask:
 
 
 @pytest.mark.usefixtures("_authz_full_access")
+@pytest.mark.parametrize(
+    "app", [False, True], ids=legacy_endpoints_id, indirect=True
+)
 def test_upload_request_with_x_forwarded_middleware(
+    app: flask.Flask,
     test_client: FlaskClient,
 ) -> None:
     """Test the ProxyFix middleware generates correct URLs if
@@ -51,8 +59,10 @@ def test_upload_request_with_x_forwarded_middleware(
     json = cast(dict[str, Any], response.json)
     upload_action = json["objects"][0]["actions"]["upload"]
     href = upload_action["href"]
-    base_uri = "myorg/myrepo"
-    assert href == f"http://localhost/{base_uri}/objects/storage/12345678"
+    exp_uri_prefix = expected_uri_prefix(app, "myorg", "myrepo")
+    assert (
+        href == f"http://localhost/{exp_uri_prefix}/objects/storage/12345678"
+    )
 
     response = test_client.post(
         "/myorg/myrepo.git/info/lfs/objects/batch",
@@ -71,5 +81,5 @@ def test_upload_request_with_x_forwarded_middleware(
     href = upload_action["href"]
     assert (
         href
-        == f"https://mycompany.xyz:1234/lfs/{base_uri}/objects/storage/12345678"
+        == f"https://mycompany.xyz:1234/lfs/{exp_uri_prefix}/objects/storage/12345678"
     )
