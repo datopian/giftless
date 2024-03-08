@@ -126,6 +126,8 @@ filterwarnings = [
     "ignore:.*pkg_resources\\.declare_namespace:DeprecationWarning",
     # Bug in kopf
     "ignore:.*require all values to be sortable:DeprecationWarning:kopf.*",
+    # Our warnings towards users
+    "ignore::FutureWarning",
 ]
 # The python_files setting is not for test detection (pytest will pick up any
 # test files named *_test.py without this setting) but to enable special
