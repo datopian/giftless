@@ -12,7 +12,7 @@ def test_upload_batch_request(test_client: FlaskClient) -> None:
     """Test basic batch API with a basic successful upload request."""
     request_payload = batch_request_payload(operation="upload")
     response = test_client.post(
-        "/myorg/myrepo/objects/batch", json=request_payload
+        "/myorg/myrepo.git/info/lfs/objects/batch", json=request_payload
     )
 
     assert response.status_code == 200
@@ -40,7 +40,7 @@ def test_download_batch_request(
     create_file_in_storage(storage_path, "myorg", "myrepo", oid, size=8)
 
     response = test_client.post(
-        "/myorg/myrepo/objects/batch", json=request_payload
+        "/myorg/myrepo.git/info/lfs/objects/batch", json=request_payload
     )
 
     assert response.status_code == 200
@@ -70,7 +70,7 @@ def test_download_batch_request_two_files_one_missing(
     request_payload["objects"].append({"oid": "12345679", "size": 5555})
 
     response = test_client.post(
-        "/myorg/myrepo/objects/batch", json=request_payload
+        "/myorg/myrepo.git/info/lfs/objects/batch", json=request_payload
     )
 
     assert response.status_code == 200
@@ -104,7 +104,7 @@ def test_download_batch_request_two_files_missing(
     request_payload["objects"].append({"oid": "12345679", "size": 5555})
 
     response = test_client.post(
-        "/myorg/myrepo/objects/batch", json=request_payload
+        "/myorg/myrepo.git/info/lfs/objects/batch", json=request_payload
     )
 
     assert response.status_code == 404
@@ -139,7 +139,7 @@ def test_download_batch_request_two_files_one_mismatch(
     )
 
     response = test_client.post(
-        "/myorg/myrepo/objects/batch", json=request_payload
+        "/myorg/myrepo.git/info/lfs/objects/batch", json=request_payload
     )
 
     assert response.status_code == 200
@@ -177,7 +177,7 @@ def test_download_batch_request_one_file_mismatch(
     )
 
     response = test_client.post(
-        "/myorg/myrepo/objects/batch", json=request_payload
+        "/myorg/myrepo.git/info/lfs/objects/batch", json=request_payload
     )
 
     assert response.status_code == 422
@@ -206,7 +206,7 @@ def test_download_batch_request_two_files_different_errors(
     )
 
     response = test_client.post(
-        "/myorg/myrepo/objects/batch", json=request_payload
+        "/myorg/myrepo.git/info/lfs/objects/batch", json=request_payload
     )
 
     assert response.status_code == 422
