@@ -259,7 +259,7 @@ def auth_request(
         headers = {"Authorization": req_auth_header}
 
     with app.test_request_context(
-        f"/{org}/{repo}/objects/batch",
+        f"/{org}/{repo}.git/info/lfs/objects/batch",
         method="POST",
         headers=headers,
     ):
