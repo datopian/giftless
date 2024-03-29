@@ -55,12 +55,9 @@ WORKDIR /app
 
 ENV UWSGI_MODULE "giftless.wsgi_entrypoint"
 
-ARG PORT=5000
-EXPOSE $PORT
-
 ENTRYPOINT ["tini", "uwsgi", "--"]
+CMD ["-s", "127.0.0.1:5000", "-M", "-T", "--threads", "2", "-p", "2", \
+     "--manage-script-name", "--callable", "app"]
+
 # TODO remove this STOPSIGNAL override after uwsgi>=2.1
 STOPSIGNAL SIGQUIT
-
-CMD ["-s", "127.0.0.1:${PORT}", "-M", "-T", "--threads", "2", "-p", "2", \
-     "--manage-script-name", "--callable", "app"]
