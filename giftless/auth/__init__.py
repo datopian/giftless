@@ -53,7 +53,7 @@ class PreAuthorizedActionAuthenticator(abc.ABC):
         oid: str | None = None,
         lifetime: int | None = None,
     ) -> dict[str, str]:
-        """Authorize an action by adding credientaisl to the query string."""
+        """Authorize an action by adding credentials to the query string."""
 
     @abc.abstractmethod
     def get_authz_header(

@@ -60,7 +60,7 @@ class BasicExternalBackendTransferAdapter(
             )
         )
         if response.get("actions", {}).get("upload"):  # type:ignore[attr-defined]
-            response["authenticated"] = True
+            response["authenticated"] = self._provides_preauth
             headers = self._preauth_headers(
                 organization,
                 repo,
@@ -98,7 +98,7 @@ class BasicExternalBackendTransferAdapter(
             response["error"] = e.as_dict()
 
         if response.get("actions", {}).get("download"):  # type:ignore[attr-defined]
-            response["authenticated"] = True
+            response["authenticated"] = self._provides_preauth
 
         return response
 
