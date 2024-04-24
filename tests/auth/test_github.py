@@ -197,7 +197,12 @@ def test_github_identity_core() -> None:
     user_dict = DEFAULT_USER_DICT | {"other_field": "other_value"}
     cache_cfg = DEFAULT_CONFIG.cache
     user = gh.GithubIdentity.from_dict(user_dict, cc=cache_cfg)
-    assert (user.id, user.github_id, user.name, user.email) == DEFAULT_USER_ARGS
+    assert (
+        user.id,
+        user.github_id,
+        user.name,
+        user.email,
+    ) == DEFAULT_USER_ARGS
     assert all(arg in repr(user) for arg in DEFAULT_USER_ARGS[:3])
     assert hash(user) == hash((user.id, user.github_id))
 
