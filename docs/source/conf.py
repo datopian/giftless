@@ -11,7 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
-import importlib
+import importlib.metadata
 
 from recommonmark.transform import AutoStructify
 

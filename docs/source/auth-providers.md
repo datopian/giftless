@@ -23,6 +23,7 @@ Giftless provides the following authentication and authorization modules by defa
 
 * `giftless.auth.jwt:JWTAuthenticator` - uses [JWT tokens](https://jwt.io/) to both identify
   the user and grant permissions based on scopes embedded in the token payload.
+* `giftless.auth.github:GithubAuthenticator` - uses [GitHub Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) to both identify the user and grant permissions based on those for a GitHub repository of the same organization/name.
 * `giftless.auth.allow_anon:read_only` - grants read-only permissions on everything to every
   request; Typically, this is only useful in testing environments or in very limited
   deployments.
@@ -190,6 +191,21 @@ time in the future, or, of course, an invalid signature.
 The `leeway` parameter allows for providing a leeway / grace time to be
 considered when checking expiry times, to cover for clock skew between
 servers.
+
+## GitHub Authenticator
+This authenticator lets you provide a frictionless LFS backend for existing GitHub repositories. It plays nicely with `git` credential helpers and allows you to use GitHub as the single authentication & authorization provider.
+
+### Auth details
+The authenticator uses [GitHub Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens), the same ones used for cloning a GitHub repo over HTTPS. The provided token (passed as a `Bearer` token or a password via `Basic` HTTP auth (username is ignored)) to make a couple GitHub API calls that identify the token's identity and [its permissions](https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#get-repository-permissions-for-a-user) for the GitHub organization & repository.
+
+The GitHub repository permissions are mapped to [Giftless permissions](#permissions) in the straightforward sense that those able to write will be able to write, same with read; invalid tokens or identities with no repository access will get rejected.
+
+To minimize the traffic to GitHub for each LFS action, most of the auth data is being temporarily cached in memory, which mostly improves performance, but also has an impact for identities that just got granted or revoked some permissions.
+
+### Configuration Options
+TODO
+
+
 
 ## Understanding Authentication and Authorization Providers
 
