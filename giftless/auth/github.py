@@ -9,7 +9,7 @@ from collections.abc import Callable, Mapping, MutableMapping
 from contextlib import AbstractContextManager, suppress
 from operator import attrgetter, itemgetter
 from threading import Lock, RLock
-from typing import Any, Protocol, cast, overload
+from typing import Any, Protocol, TypeVar, cast, overload
 
 import cachetools.keys
 import flask
@@ -24,6 +24,10 @@ _logger = logging.getLogger(__name__)
 
 
 # THREAD SAFE CACHING UTILS
+# original type preserving "return type" for the decorators below
+_RT = TypeVar("_RT")
+
+
 class _LockType(AbstractContextManager, Protocol):
     """Generic type for threading.Lock and RLock."""
 
@@ -55,7 +59,7 @@ def _ensure_lock(
 
 
 @overload
-def single_call_method(_method: Callable[..., Any]) -> Callable[..., Any]:
+def single_call_method(_method: Callable[..., _RT]) -> Callable[..., _RT]:
     ...
 
 
@@ -64,16 +68,16 @@ def single_call_method(
     *,
     key: Callable[..., Any] = cachetools.keys.methodkey,
     lock: Callable[[Any], _LockType] | None = None,
-) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+) -> Callable[[Callable[..., _RT]], Callable[..., _RT]]:
     ...
 
 
 def single_call_method(
-    _method: Callable[..., Any] | None = None,
+    _method: Callable[..., _RT] | None = None,
     *,
     key: Callable[..., Any] = cachetools.keys.methodkey,
     lock: Callable[[Any], _LockType] | None = None,
-) -> Callable[..., Any]:
+) -> Callable[..., _RT] | Callable[[Callable[..., _RT]], Callable[..., _RT]]:
     """Thread-safe decorator limiting concurrency of an idempotent method call.
     When multiple threads concurrently call the decorated method with the same
     arguments (governed by the 'key' callable argument), only the first one
@@ -91,12 +95,12 @@ def single_call_method(
     """
     lock = _ensure_lock(lock)
 
-    def decorator(method: Callable[..., Any]) -> Callable[..., Any]:
+    def decorator(method: Callable[..., _RT]) -> Callable[..., _RT]:
         # tracking concurrent calls per method arguments
         concurrent_calls: dict[Any, SingleCallContext] = {}
 
         @functools.wraps(method)
-        def wrapper(self: Any, *args: tuple, **kwargs: dict) -> Any:
+        def wrapper(self: Any, *args: tuple, **kwargs: dict) -> _RT:
             lck = lock(self)
             k = key(self, *args, **kwargs)
             with lck:
@@ -128,7 +132,8 @@ def single_call_method(
                     # call is done
                     if ctx.error:
                         raise ctx.error
-                    return ctx.result
+                    # https://github.com/python/mypy/issues/3737
+                    return cast(_RT, ctx.result)
 
         return wrapper
 
@@ -142,15 +147,15 @@ def cachedmethod_threadsafe(
     cache: Callable[[Any], MutableMapping],
     key: Callable[..., Any] = cachetools.keys.methodkey,
     lock: Callable[[Any], _LockType] | None = None,
-) -> Callable[..., Any]:
+) -> Callable[..., Callable[..., _RT]]:
     """Threadsafe variant of cachetools.cachedmethod."""
     lock = _ensure_lock(lock)
 
-    def decorator(method: Callable[..., Any]) -> Callable[..., Any]:
+    def decorator(method: Callable[..., _RT]) -> Callable[..., _RT]:
         @cachetools.cachedmethod(cache=cache, key=key, lock=lock)
         @single_call_method(key=key, lock=lock)
         @functools.wraps(method)
-        def wrapper(self: Any, *args: tuple, **kwargs: dict) -> Any:
+        def wrapper(self: Any, *args: tuple, **kwargs: dict) -> _RT:
             return method(self, *args, **kwargs)
 
         return wrapper
@@ -163,9 +168,9 @@ def cachedmethod_threadsafe(
 class CacheConfig:
     """Cache configuration."""
 
-    # max number of entries in the unique user LRU cache
+    # max number of entries in the raw user data -> user LRU cache
     user_max_size: int
-    # max number of entries in the token -> user LRU cache
+    # max number of entries in the token -> raw user data LRU cache
     token_max_size: int
     # max number of authenticated org/repos TTL(LRU) for each user
     auth_max_size: int
@@ -237,25 +242,30 @@ class Config:
 
 
 # CORE AUTH
+@dataclasses.dataclass(frozen=True, slots=True)
+class _RawGithubIdentity:
+    """Identity-compatible dataclass holding static data from a token."""
+
+    id: str
+    github_id: str
+    name: str
+    email: str
+
+    @classmethod
+    def from_token(cls, token_data: Mapping[str, Any]) -> "_RawGithubIdentity":
+        return cls(*itemgetter("login", "id", "name", "email")(token_data))
+
+
 class GithubIdentity(Identity):
     """User identity belonging to an authentication token.
     Tracks user's permission for particular organizations/repositories.
     """
 
     def __init__(
-        self,
-        login: str,
-        github_id: str,
-        name: str,
-        email: str,
-        *,
-        cc: CacheConfig,
+        self, raw_identity: _RawGithubIdentity, cc: CacheConfig
     ) -> None:
         super().__init__()
-        self.id = login
-        self.github_id = github_id
-        self.name = name
-        self.email = email
+        self._raw_identity = raw_identity
 
         # Expiring cache of authorized repos with different TTL for each
         # permission type. It's assumed that anyone granted the WRITE
@@ -278,20 +288,12 @@ class GithubIdentity(Identity):
         self._auth_cache = cachetools.TLRUCache(cc.auth_max_size, expiration)
         self._auth_cache_lock = Lock()
 
-    def __repr__(self) -> str:
-        return (
-            f"<{self.__class__.__name__} "
-            f"id:{self.id} github_id:{self.github_id} name:{self.name}>"
-        )
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__) and (
-            self.id,
-            self.github_id,
-        ) == (other.id, other.github_id)
-
-    def __hash__(self) -> int:
-        return hash((self.id, self.github_id))
+    def __getattribute__(self, attr: str) -> Any:
+        # proxy to the raw_identity for its attributes
+        raw_identity = super().__getattribute__("_raw_identity")
+        if attr in raw_identity.__slots__:
+            return getattr(raw_identity, attr)
+        return super().__getattribute__(attr)
 
     def permissions(
         self, org: str, repo: str, *, authoritative: bool = False
@@ -341,17 +343,6 @@ class GithubIdentity(Identity):
         """Return default cache TTL [seconds] for a certain permission set."""
         return self._auth_cache.ttu(None, permissions, 0.0)
 
-    @staticmethod
-    def cache_key(data: Mapping[str, Any]) -> tuple:
-        """Return caching key from significant fields."""
-        return cachetools.keys.hashkey(*itemgetter("login", "id")(data))
-
-    @classmethod
-    def from_dict(
-        cls, data: Mapping[str, Any], cc: CacheConfig
-    ) -> "GithubIdentity":
-        return cls(*itemgetter("login", "id", "name", "email")(data), cc=cc)
-
 
 class GithubAuthenticator:
     """Main class performing GitHub "proxy" authentication/authorization."""
@@ -397,7 +388,7 @@ class GithubAuthenticator:
         self._user_cache: MutableMapping[
             Any, GithubIdentity
         ] = cachetools.LRUCache(maxsize=cfg.cache.user_max_size)
-        # user identities per token (shortcut to the cached entries above)
+        # filtered raw user data per token (key to the cached identities above)
         self._token_cache: MutableMapping[
             Any, GithubIdentity
         ] = cachetools.LRUCache(maxsize=cfg.cache.token_max_size)
@@ -411,33 +402,33 @@ class GithubAuthenticator:
         response.raise_for_status()
         return cast(Mapping[str, Any], response.json())
 
-    @cachedmethod_threadsafe(
-        attrgetter("_user_cache"),
-        lambda self, data: GithubIdentity.cache_key(data),
-    )
-    def _get_user_cached(self, data: Mapping[str, Any]) -> GithubIdentity:
+    @cachedmethod_threadsafe(attrgetter("_user_cache"))
+    def _get_user(self, raw_identity: _RawGithubIdentity) -> GithubIdentity:
         """Return internal GitHub user identity from raw GitHub user data
-        [cached per login & id].
+        (cached per raw_identity).
         """
-        return GithubIdentity.from_dict(data, self._cache_config)
+        return GithubIdentity(raw_identity, self._cache_config)
 
     @cachedmethod_threadsafe(
         attrgetter("_token_cache"),
         lambda self, ctx: cachetools.keys.hashkey(ctx.token),
     )
-    def _authenticate(self, ctx: CallContext) -> GithubIdentity:
-        """Return internal GitHub user identity for a GitHub token in ctx
-        [cached per token].
+    def _get_token_data(self, ctx: CallContext) -> _RawGithubIdentity:
+        """Return raw GitHub user data associated with a GitHub token
+        (cached per ctx.token).
         """
         _logger.debug("Authenticating user")
         try:
-            user_data = self._api_get("/user", ctx)
+            token_data = self._api_get("/user", ctx)
         except requests.exceptions.RequestException as e:
             _logger.warning(msg := f"Couldn't authenticate the user: {e}")
             raise Unauthorized(msg) from None
+        # pick apart token data to cache only what we need
+        return _RawGithubIdentity.from_token(token_data)
 
-        # different tokens can bear the same identity
-        return cast(GithubIdentity, self._get_user_cached(user_data))
+    def _authenticate(self, ctx: CallContext) -> GithubIdentity:
+        """Return internal GitHub user identity for a GitHub token in ctx."""
+        return self._get_user(self._get_token_data(ctx))
 
     @staticmethod
     def _perm_list(permissions: set[Permission]) -> str:

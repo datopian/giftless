@@ -173,13 +173,13 @@ def test_config_schema_empty_cache() -> None:
 
 
 DEFAULT_CONFIG = gh.Config.from_dict({})
-DEFAULT_USER_DICT = {
+DEFAULT_TOKEN_DICT = {
     "login": "kingofthebritons",
     "id": "12345678",
     "name": "arthur",
     "email": "arthur@camelot.gov.uk",
 }
-DEFAULT_USER_ARGS = tuple(DEFAULT_USER_DICT.values())
+DEFAULT_USER_ARGS = tuple(DEFAULT_TOKEN_DICT.values())
 ZERO_CACHE_CONFIG = gh.CacheConfig(
     user_max_size=0,
     token_max_size=0,
@@ -194,23 +194,13 @@ REPO = "my-repo"
 
 def test_github_identity_core() -> None:
     # use some value to get filtered out
-    user_dict = DEFAULT_USER_DICT | {"other_field": "other_value"}
+    token_dict = DEFAULT_TOKEN_DICT | {"other_field": "other_value"}
     cache_cfg = DEFAULT_CONFIG.cache
-    user = gh.GithubIdentity.from_dict(user_dict, cc=cache_cfg)
-    assert (
-        user.id,
-        user.github_id,
-        user.name,
-        user.email,
-    ) == DEFAULT_USER_ARGS
-    assert all(arg in repr(user) for arg in DEFAULT_USER_ARGS[:3])
-    assert hash(user) == hash((user.id, user.github_id))
-
-    args2 = (*DEFAULT_USER_ARGS[:2], "spammer", "spam@camelot.gov.uk")
-    user2 = gh.GithubIdentity(*args2, cc=cache_cfg)
-    assert user == user2
-    user2.id = "654321"
-    assert user != user2
+    raw_identity = gh._RawGithubIdentity.from_token(token_dict)
+    user = gh.GithubIdentity(raw_identity, cache_cfg)
+    assert (user.id, user.github_id, user.name, user.email) == tuple(
+        DEFAULT_TOKEN_DICT.values()
+    )
 
     assert user.cache_ttl({Permission.WRITE}) == cache_cfg.auth_write_ttl
     assert (
@@ -220,7 +210,8 @@ def test_github_identity_core() -> None:
 
 
 def test_github_identity_authorization_cache() -> None:
-    user = gh.GithubIdentity(*DEFAULT_USER_ARGS, cc=DEFAULT_CONFIG.cache)
+    raw_identity = gh._RawGithubIdentity.from_token(DEFAULT_TOKEN_DICT)
+    user = gh.GithubIdentity(raw_identity, DEFAULT_CONFIG.cache)
     assert not user.is_authorized(ORG, REPO, Permission.READ_META)
     user.authorize(ORG, REPO, {Permission.READ_META, Permission.READ})
     assert user.permissions(ORG, REPO) == {
@@ -233,7 +224,8 @@ def test_github_identity_authorization_cache() -> None:
 
 
 def test_github_identity_authorization_proxy_cache_only() -> None:
-    user = gh.GithubIdentity(*DEFAULT_USER_ARGS, cc=ZERO_CACHE_CONFIG)
+    raw_identity = gh._RawGithubIdentity.from_token(DEFAULT_TOKEN_DICT)
+    user = gh.GithubIdentity(raw_identity, ZERO_CACHE_CONFIG)
     org, repo, repo2 = ORG, REPO, "repo2"
     user.authorize(org, repo, Permission.all())
     user.authorize(org, repo2, Permission.all())
@@ -282,7 +274,7 @@ def mock_perm(
     auth: gh.GithubAuthenticator,
     org: str = ORG,
     repo: str = REPO,
-    login: str = DEFAULT_USER_DICT["login"],
+    login: str = DEFAULT_TOKEN_DICT["login"],
     *args: Any,
     **kwargs: Any,
 ) -> responses.BaseResponse:
@@ -317,7 +309,7 @@ def test_github_auth_request_bad_user(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_bad_perm(app: flask.Flask) -> None:
     auth = gh.factory(api_version=None)
-    mock_user(auth, json=DEFAULT_USER_DICT)
+    mock_user(auth, json=DEFAULT_TOKEN_DICT)
     mock_perm(auth, json={"error": "Forbidden"}, status=403)
 
     with pytest.raises(Unauthorized):
@@ -327,7 +319,7 @@ def test_github_auth_request_bad_perm(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_admin(app: flask.Flask) -> None:
     auth = gh.factory()
-    mock_user(auth, json=DEFAULT_USER_DICT)
+    mock_user(auth, json=DEFAULT_TOKEN_DICT)
     mock_perm(auth, json={"permission": "admin"})
 
     identity = auth_request(app, auth)
@@ -338,7 +330,7 @@ def test_github_auth_request_admin(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_read(app: flask.Flask) -> None:
     auth = gh.factory()
-    mock_user(auth, json=DEFAULT_USER_DICT)
+    mock_user(auth, json=DEFAULT_TOKEN_DICT)
     mock_perm(auth, json={"permission": "read"})
 
     identity = auth_request(app, auth)
@@ -350,7 +342,7 @@ def test_github_auth_request_read(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_none(app: flask.Flask) -> None:
     auth = gh.factory()
-    mock_user(auth, json=DEFAULT_USER_DICT)
+    mock_user(auth, json=DEFAULT_TOKEN_DICT)
     mock_perm(auth, json={"permission": "none"})
 
     identity = auth_request(app, auth)
@@ -362,7 +354,7 @@ def test_github_auth_request_none(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_cached(app: flask.Flask) -> None:
     auth = gh.factory()
-    user_resp = mock_user(auth, json=DEFAULT_USER_DICT)
+    user_resp = mock_user(auth, json=DEFAULT_TOKEN_DICT)
     perm_resp = mock_perm(auth, json={"permission": "admin"})
 
     auth_request(app, auth)
