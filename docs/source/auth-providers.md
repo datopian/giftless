@@ -195,7 +195,7 @@ servers.
 ## GitHub Authenticator
 This authenticator lets you provide a frictionless LFS backend for existing GitHub repositories. It plays nicely with `git` credential helpers and allows you to use GitHub as the single authentication & authorization provider.
 
-### Auth details
+### Details
 The authenticator uses [GitHub Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens), the same ones used for cloning a GitHub repo over HTTPS. The provided token (passed as a `Bearer` token or a password via `Basic` HTTP auth (username is ignored)) to make a couple GitHub API calls that identify the token's identity and [its permissions](https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#get-repository-permissions-for-a-user) for the GitHub organization & repository.
 
 The GitHub repository permissions are mapped to [Giftless permissions](#permissions) in the straightforward sense that those able to write will be able to write, same with read; invalid tokens or identities with no repository access will get rejected.
@@ -203,7 +203,15 @@ The GitHub repository permissions are mapped to [Giftless permissions](#permissi
 To minimize the traffic to GitHub for each LFS action, most of the auth data is being temporarily cached in memory, which mostly improves performance, but also has an impact for identities that just got granted or revoked some permissions.
 
 ### Configuration Options
-TODO
+* `api_url` (`str` = `"https://api.github.com"`): Base URL for the GitHub API (enterprise servers have API at `"https://<custom-hostname>/api/v3/"`).
+* `api_version` (`str | None` = `"2022-11-28"`): Target GitHub API version; set to `None` to use GitHub's latest (rather experimental).
+* `cache` (`dict`): Cache configuration section
+  * `user_max_size` (`int` = `32`): Max number of entries in the user LRU cache. This cache holds identity objects managing user's repo authorization. Evicted entries will lose all repo authorization data for the user in question and will need to get re-authorized.
+  * `token_max_size` (`int` = `32`): Max number of entries in the token -> user-data LRU cache. This cache holds the authentication data for a token. Evicted tokens will need to be re-authenticated.
+  * `auth_max_size` (`int` = `32`): Max number of [un]authorized org/repos TTL(LRU) for each user. Evicted repos will need to get re-authorized.
+  * `auth_write_ttl` (`float` = `15 * 60`): Max age [seconds] of user's org/repo authorizations able to `WRITE`. A repo writer will also need to be re-authorized after this period.
+  * `auth_other_ttl` (`float` = `30`): Max age [seconds] of user's org/repo authorizations **not** able to `WRITE`. A repo reader or a rejected user will get a chance for a permission upgrade after this period.
+
 
 
 
