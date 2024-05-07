@@ -7,18 +7,18 @@
 azure-core==1.30.1
     # via azure-storage-blob
 azure-storage-blob==12.19.1
-    # via -r requirements/main.in
+    # via -r main.in
 blinker==1.7.0
     # via flask
 boto3==1.34.59
-    # via -r requirements/main.in
+    # via -r main.in
 botocore==1.34.59
     # via
     #   boto3
     #   s3transfer
 cachetools==5.3.3
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   google-auth
 certifi==2024.2.2
     # via requests
@@ -30,19 +30,19 @@ click==8.1.7
     # via flask
 cryptography==42.0.5
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   azure-storage-blob
 figcan==0.0.4
-    # via -r requirements/main.in
+    # via -r main.in
 flask==2.3.3
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   flask-classful
     #   flask-marshmallow
 flask-classful==0.16.0
-    # via -r requirements/main.in
+    # via -r main.in
 flask-marshmallow==0.15.0
-    # via -r requirements/main.in
+    # via -r main.in
 google-api-core==2.17.1
     # via
     #   google-cloud-core
@@ -55,7 +55,7 @@ google-auth==2.28.2
 google-cloud-core==2.4.1
     # via google-cloud-storage
 google-cloud-storage==2.15.0
-    # via -r requirements/main.in
+    # via -r main.in
 google-crc32c==1.5.0
     # via
     #   google-cloud-storage
@@ -67,7 +67,7 @@ googleapis-common-protos==1.63.0
 idna==3.6
     # via requests
 importlib-metadata==7.0.2 ; python_version < "3.13"
-    # via -r requirements/main.in
+    # via -r main.in
 isodate==0.6.1
     # via azure-storage-blob
 itsdangerous==2.1.2
@@ -104,15 +104,15 @@ pyasn1-modules==0.3.0
 pycparser==2.21
     # via cffi
 pyjwt==2.8.0
-    # via -r requirements/main.in
+    # via -r main.in
 python-dateutil==2.9.0.post0
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   botocore
 python-dotenv==1.0.1
-    # via -r requirements/main.in
+    # via -r main.in
 pyyaml==6.0.1
-    # via -r requirements/main.in
+    # via -r main.in
 requests==2.31.0
     # via
     #   azure-core
@@ -129,7 +129,7 @@ six==1.16.0
     #   python-dateutil
 typing-extensions==4.10.0
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   azure-core
     #   azure-storage-blob
 urllib3==2.0.7
@@ -137,10 +137,10 @@ urllib3==2.0.7
     #   botocore
     #   requests
 webargs==8.4.0
-    # via -r requirements/main.in
-werkzeug==3.0.1
+    # via -r main.in
+werkzeug==3.0.3
     # via
-    #   -r requirements/main.in
+    #   -r main.in
     #   flask
 zipp==3.17.0
     # via importlib-metadata
