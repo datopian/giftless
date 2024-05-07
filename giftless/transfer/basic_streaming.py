@@ -204,7 +204,7 @@ class BasicStreamingTransferAdapter(
                     "expires_in": self.VERIFY_LIFETIME,
                 },
             }
-            response["authenticated"] = True
+            response["authenticated"] = self._provides_preauth
 
         return response
 
@@ -250,7 +250,7 @@ class BasicStreamingTransferAdapter(
                     "expires_in": self.action_lifetime,
                 }
             }
-            response["authenticated"] = True
+            response["authenticated"] = self._provides_preauth
 
         return response
 

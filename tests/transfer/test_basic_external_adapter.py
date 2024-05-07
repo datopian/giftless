@@ -43,7 +43,7 @@ def test_upload_action_new_file(app: flask.Flask) -> None:
     assert response == {
         "oid": "abcdef123456",
         "size": 1234,
-        "authenticated": True,
+        "authenticated": False,
         "actions": {
             "upload": {
                 "href": "https://cloudstorage.example.com/myorg/myrepo/abcdef123456?expires_in=900",
@@ -75,7 +75,7 @@ def test_upload_action_extras_are_passed(app: flask.Flask) -> None:
     assert response == {
         "oid": "abcdef123456",
         "size": 1234,
-        "authenticated": True,
+        "authenticated": False,
         "actions": {
             "upload": {
                 "href": "https://cloudstorage.example.com/myorg/myrepo/abcdef123456?expires_in=900&filename=foo.csv",
@@ -120,7 +120,7 @@ def test_download_action_existing_file() -> None:
     assert response == {
         "oid": "abcdef123456",
         "size": 1234,
-        "authenticated": True,
+        "authenticated": False,
         "actions": {
             "download": {
                 "href": "https://cloudstorage.example.com/myorg/myrepo/abcdef123456?expires_in=900",
@@ -177,7 +177,7 @@ def test_download_action_extras_are_passed() -> None:
     assert response == {
         "oid": "abcdef123456",
         "size": 1234,
-        "authenticated": True,
+        "authenticated": False,
         "actions": {
             "download": {
                 "href": "https://cloudstorage.example.com/myorg/myrepo/abcdef123456?expires_in=900&filename=foo.csv",

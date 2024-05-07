@@ -243,11 +243,17 @@ class GithubIdentity(Identity):
     """
 
     def __init__(
-        self, login: str, id_: str, name: str, email: str, *, cc: CacheConfig
+        self,
+        login: str,
+        github_id: str,
+        name: str,
+        email: str,
+        *,
+        cc: CacheConfig,
     ) -> None:
         super().__init__()
-        self.login = login
-        self.id = id_
+        self.id = login
+        self.github_id = github_id
         self.name = name
         self.email = email
 
@@ -274,30 +280,36 @@ class GithubIdentity(Identity):
 
     def __repr__(self) -> str:
         return (
-            f"<{self.__class__.__name__}"
-            f"login:{self.login} id:{self.id} name:{self.name}>"
+            f"<{self.__class__.__name__} "
+            f"id:{self.id} github_id:{self.github_id} name:{self.name}>"
         )
 
     def __eq__(self, other: object) -> bool:
-        return isinstance(other, self.__class__) and (self.login, self.id) == (
-            other.login,
-            other.id,
-        )
+        return isinstance(other, self.__class__) and (
+            self.id,
+            self.github_id,
+        ) == (other.id, other.github_id)
 
     def __hash__(self) -> int:
-        return hash((self.login, self.id))
+        return hash((self.id, self.github_id))
 
     def permissions(
         self, org: str, repo: str, *, authoritative: bool = False
     ) -> set[Permission] | None:
+        """Return user's permission set for an org/repo."""
         key = cachetools.keys.hashkey(org, repo)
         with self._auth_cache_lock:
+            # first check if the permissions are in the proxy cache
             if authoritative:
+                # pop the entry from the proxy cache to be stored properly
                 permission = self._auth_cache_read_proxy.pop(key, None)
             else:
+                # just get it when only peeking
                 permission = self._auth_cache_read_proxy.get(key)
+            # if not found in the proxy, check the regular auth cache
             if permission is None:
                 return self._auth_cache.get(key)
+            # try moving proxy permissions to the regular cache
             if authoritative:
                 with suppress(ValueError):
                     self._auth_cache[key] = permission
@@ -306,7 +318,10 @@ class GithubIdentity(Identity):
     def authorize(
         self, org: str, repo: str, permissions: set[Permission] | None
     ) -> None:
+        """Save user's permission set for an org/repo."""
         key = cachetools.keys.hashkey(org, repo)
+        # put the discovered permissions into the proxy cache
+        # to ensure at least one successful 'authoritative' read
         with self._auth_cache_lock:
             self._auth_cache_read_proxy[key] = (
                 permissions if permissions is not None else set()
@@ -439,21 +454,19 @@ class GithubAuthenticator:
         if (permissions := user.permissions(org, repo)) is not None:
             perm_list = self._perm_list(permissions)
             _logger.debug(
-                f"{user.login} is already temporarily authorized for "
+                f"{user.id} is already temporarily authorized for "
                 f"{org_repo}: {perm_list}"
             )
         else:
-            _logger.debug(
-                f"Checking {user.login}'s permissions for {org_repo}"
-            )
+            _logger.debug(f"Checking {user.id}'s permissions for {org_repo}")
             try:
                 repo_data = self._api_get(
-                    f"/repos/{org_repo}/collaborators/{user.login}/permission",
+                    f"/repos/{org_repo}/collaborators/{user.id}/permission",
                     ctx,
                 )
             except requests.exceptions.RequestException as e:
                 msg = (
-                    f"Failed to find {user.login}'s permissions for "
+                    f"Failed to find {user.id}'s permissions for "
                     f"{org_repo}: {e}"
                 )
                 _logger.warning(msg)
@@ -461,7 +474,7 @@ class GithubAuthenticator:
 
             gh_permission = repo_data.get("permission")
             _logger.debug(
-                f"User {user.login} has '{gh_permission}' GitHub permission "
+                f"User {user.id} has '{gh_permission}' GitHub permission "
                 f"for {org_repo}"
             )
             permissions = set()
@@ -472,7 +485,7 @@ class GithubAuthenticator:
             perm_list = self._perm_list(permissions)
             ttl = user.cache_ttl(permissions)
             _logger.debug(
-                f"Authorizing {user.login} (for {ttl}s) for "
+                f"Authorizing {user.id} (for {ttl}s) for "
                 f"{org_repo}: {perm_list}"
             )
             user.authorize(org, repo, permissions)

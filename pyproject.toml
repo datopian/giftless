@@ -56,6 +56,9 @@ build-backend = "setuptools.build_meta"
 # Use single-quoted strings so TOML treats the string like a Python r-string
 # Multi-line strings are implicitly treated by black as regular expressions
 
+[tool.setuptools.packages.find]
+include = ["giftless"]
+
 [tool.coverage.run]
 parallel = true
 branch = true

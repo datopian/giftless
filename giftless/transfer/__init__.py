@@ -16,6 +16,7 @@ from giftless.auth import (
     PreAuthorizedActionAuthenticator,
     authentication,
 )
+from giftless.auth.identity import Identity
 from giftless.util import add_query_params, get_callable
 from giftless.view import ViewProvider
 
@@ -82,6 +83,25 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
     def set_auth_module(self, auth_module: Authentication) -> None:
         self._auth_module = auth_module
 
+    @property
+    def _preauth_handler_and_identity(
+        self,
+    ) -> tuple[PreAuthorizedActionAuthenticator | None, Identity | None]:
+        if (
+            self._auth_module is None
+            or self._auth_module.preauth_handler is None
+        ):
+            return None, None
+        handler = cast(
+            PreAuthorizedActionAuthenticator, self._auth_module.preauth_handler
+        )
+        identity = self._auth_module.get_identity()
+        return handler, identity
+
+    @property
+    def _provides_preauth(self) -> bool:
+        return None not in self._preauth_handler_and_identity
+
     def _preauth_url(
         self,
         original_url: str,
@@ -91,16 +111,8 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         oid: str | None = None,
         lifetime: int | None = None,
     ) -> str:
-        if self._auth_module is None:
-            return original_url
-        if self._auth_module.preauth_handler is None:
-            return original_url
-
-        handler = cast(
-            PreAuthorizedActionAuthenticator, self._auth_module.preauth_handler
-        )
-        identity = self._auth_module.get_identity()
-        if identity is None:
+        handler, identity = self._preauth_handler_and_identity
+        if handler is None or identity is None:
             return original_url
 
         params = handler.get_authz_query_params(
@@ -117,18 +129,10 @@ class PreAuthorizingTransferAdapter(TransferAdapter, ABC):
         oid: str | None = None,
         lifetime: int | None = None,
     ) -> dict[str, str]:
-        if self._auth_module is None:
-            return {}
-        if self._auth_module.preauth_handler is None:
+        handler, identity = self._preauth_handler_and_identity
+        if handler is None or identity is None:
             return {}
 
-        handler = cast(
-            PreAuthorizedActionAuthenticator, self._auth_module.preauth_handler
-        )
-
-        identity = self._auth_module.get_identity()
-        if identity is None:
-            return {}
         return handler.get_authz_header(
             identity, org, repo, actions, oid, lifetime=lifetime
         )
