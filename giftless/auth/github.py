@@ -5,6 +5,7 @@ import logging
 import math
 import os
 import threading
+import weakref
 from collections.abc import Callable, Mapping, MutableMapping
 from contextlib import AbstractContextManager, suppress
 from operator import attrgetter, itemgetter
@@ -144,7 +145,7 @@ def single_call_method(
 
 
 def cachedmethod_threadsafe(
-    cache: Callable[[Any], MutableMapping],
+    cache: Callable[[Any], MutableMapping[Any, _RT]],
     key: Callable[..., Any] = cachetools.keys.methodkey,
     lock: Callable[[Any], _LockType] | None = None,
 ) -> Callable[..., Callable[..., _RT]]:
@@ -168,9 +169,7 @@ def cachedmethod_threadsafe(
 class CacheConfig:
     """Cache configuration."""
 
-    # max number of entries in the raw user data -> user LRU cache
-    user_max_size: int
-    # max number of entries in the token -> raw user data LRU cache
+    # max number of entries in the token -> user LRU cache
     token_max_size: int
     # max number of authenticated org/repos TTL(LRU) for each user
     auth_max_size: int
@@ -180,9 +179,6 @@ class CacheConfig:
     auth_other_ttl: float
 
     class Schema(ma.Schema):
-        user_max_size = ma.fields.Int(
-            load_default=32, validate=ma.validate.Range(min=0)
-        )
         token_max_size = ma.fields.Int(
             load_default=32, validate=ma.validate.Range(min=0)
         )
@@ -384,14 +380,18 @@ class GithubAuthenticator:
         self._api_headers = {"Accept": "application/vnd.github+json"}
         if cfg.api_version:
             self._api_headers["X-GitHub-Api-Version"] = cfg.api_version
-        # user identities per raw user data (keeping them authorized)
-        self._user_cache: MutableMapping[
-            Any, GithubIdentity
-        ] = cachetools.LRUCache(maxsize=cfg.cache.user_max_size)
-        # filtered raw user data per token (key to the cached identities above)
+        # user identities per token
         self._token_cache: MutableMapping[
             Any, GithubIdentity
         ] = cachetools.LRUCache(maxsize=cfg.cache.token_max_size)
+        # user identities per raw user data, to get the same identity that's
+        # potentially already cached for a different token (same user)
+        # If all the token entries for one user get evicted from the
+        # token cache, the user entry here automatically ceases to exist too.
+        self._cached_users: MutableMapping[
+            Any, GithubIdentity
+        ] = weakref.WeakValueDictionary()
+        self._cache_lock = RLock()
         self._cache_config = cfg.cache
 
     def _api_get(self, uri: str, ctx: CallContext) -> Mapping[str, Any]:
@@ -402,33 +402,30 @@ class GithubAuthenticator:
         response.raise_for_status()
         return cast(Mapping[str, Any], response.json())
 
-    @cachedmethod_threadsafe(attrgetter("_user_cache"))
-    def _get_user(self, raw_identity: _RawGithubIdentity) -> GithubIdentity:
-        """Return internal GitHub user identity from raw GitHub user data
-        (cached per raw_identity).
-        """
-        return GithubIdentity(raw_identity, self._cache_config)
-
     @cachedmethod_threadsafe(
         attrgetter("_token_cache"),
         lambda self, ctx: cachetools.keys.hashkey(ctx.token),
+        attrgetter("_cache_lock"),
     )
-    def _get_token_data(self, ctx: CallContext) -> _RawGithubIdentity:
-        """Return raw GitHub user data associated with a GitHub token
-        (cached per ctx.token).
-        """
+    def _authenticate(self, ctx: CallContext) -> GithubIdentity:
+        """Return internal GitHub user identity for a GitHub token in ctx."""
         _logger.debug("Authenticating user")
         try:
             token_data = self._api_get("/user", ctx)
         except requests.exceptions.RequestException as e:
             _logger.warning(msg := f"Couldn't authenticate the user: {e}")
             raise Unauthorized(msg) from None
-        # pick apart token data to cache only what we need
-        return _RawGithubIdentity.from_token(token_data)
-
-    def _authenticate(self, ctx: CallContext) -> GithubIdentity:
-        """Return internal GitHub user identity for a GitHub token in ctx."""
-        return self._get_user(self._get_token_data(ctx))
+        # pick apart token data to store only what we need
+        raw_identity = _RawGithubIdentity.from_token(token_data)
+        # check if we haven't seen this identity before
+        # guard the code with the same lock as the _token_cache
+        with self._cache_lock:
+            try:
+                user = self._cached_users[raw_identity]
+            except KeyError:
+                user = GithubIdentity(raw_identity, self._cache_config)
+                self._cached_users[raw_identity] = user
+        return user
 
     @staticmethod
     def _perm_list(permissions: set[Permission]) -> str:

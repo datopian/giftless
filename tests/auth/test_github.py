@@ -6,6 +6,7 @@ from random import shuffle
 from time import sleep
 from typing import Any, cast
 
+import cachetools.keys
 import flask
 import pytest
 import responses
@@ -181,7 +182,6 @@ DEFAULT_TOKEN_DICT = {
 }
 DEFAULT_USER_ARGS = tuple(DEFAULT_TOKEN_DICT.values())
 ZERO_CACHE_CONFIG = gh.CacheConfig(
-    user_max_size=0,
     token_max_size=0,
     auth_max_size=0,
     # deliberately non-zero to not get rejected on setting by the timeout logic
@@ -242,12 +242,12 @@ def auth_request(
     org: str = ORG,
     repo: str = REPO,
     req_auth_header: str | None = "",
+    token: str = "dummy-github-token",
 ) -> Identity | None:
     if req_auth_header is None:
         headers = None
     elif req_auth_header == "":
         # default - token
-        token = "dummy-github-token"
         basic_auth = base64.b64encode(
             b":".join([b"token", token.encode()])
         ).decode()
@@ -364,3 +364,53 @@ def test_github_auth_request_cached(app: flask.Flask) -> None:
     assert identity.is_authorized(ORG, REPO, Permission.WRITE)
     assert user_resp.call_count == 1
     assert perm_resp.call_count == 1
+
+
+@responses.activate
+def test_github_auth_request_cache_no_leak(app: flask.Flask) -> None:
+    auth = gh.factory()
+    user_resp = mock_user(auth, json=DEFAULT_TOKEN_DICT)
+    perm_resp = mock_perm(auth, json={"permission": "admin"})
+
+    # authenticate 1st token, check it got cached properly
+    token1 = "token-1"
+    token1_cache_key = cachetools.keys.hashkey(token1)
+    identity1 = auth_request(app, auth, token=token1)
+    assert len(auth._token_cache) == 1
+    assert token1_cache_key in auth._token_cache
+    assert len(auth._cached_users) == 1
+    assert any(i is identity1 for i in auth._cached_users.values())
+    # see both the authentication and authorization requests took place
+    assert user_resp.call_count == 1
+    assert perm_resp.call_count == 1
+
+    # authenticate the same user with different token
+    token2 = "token-2"
+    token2_cache_key = cachetools.keys.hashkey(token2)
+    identity2 = auth_request(app, auth, token=token2)
+    assert len(auth._token_cache) == 2
+    assert cachetools.keys.hashkey(token2) in auth._token_cache
+    assert len(auth._cached_users) == 1
+    assert any(i is identity2 for i in auth._cached_users.values())
+    # see only the authentication request took place
+    assert user_resp.call_count == 2
+    assert perm_resp.call_count == 1
+
+    # evict 1st cached token
+    del auth._token_cache[token1_cache_key]
+    del identity1  # remove identity strong reference too
+    assert len(auth._token_cache) == 1
+    assert len(auth._cached_users) == 1
+    # evict 2nd
+    del auth._token_cache[token2_cache_key]
+    del identity2
+    assert len(auth._token_cache) == 0
+    assert len(auth._cached_users) == 0
+
+    # try once more with 1st token
+    auth_request(app, auth, token=token1)
+    assert len(auth._token_cache) == 1
+    assert len(auth._cached_users) == 1
+    # see both the authentication and authorization requests took place
+    assert user_resp.call_count == 3
+    assert perm_resp.call_count == 2
