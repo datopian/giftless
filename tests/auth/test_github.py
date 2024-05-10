@@ -196,8 +196,8 @@ def test_github_identity_core() -> None:
     # use some value to get filtered out
     token_dict = DEFAULT_TOKEN_DICT | {"other_field": "other_value"}
     cache_cfg = DEFAULT_CONFIG.cache
-    raw_identity = gh._RawGithubIdentity.from_token(token_dict)
-    user = gh.GithubIdentity(raw_identity, cache_cfg)
+    core_identity = gh._CoreGithubIdentity.from_token(token_dict)
+    user = gh.GithubIdentity(core_identity, token_dict, cache_cfg)
     assert (user.id, user.github_id, user.name, user.email) == tuple(
         DEFAULT_TOKEN_DICT.values()
     )
@@ -210,8 +210,10 @@ def test_github_identity_core() -> None:
 
 
 def test_github_identity_authorization_cache() -> None:
-    raw_identity = gh._RawGithubIdentity.from_token(DEFAULT_TOKEN_DICT)
-    user = gh.GithubIdentity(raw_identity, DEFAULT_CONFIG.cache)
+    core_identity = gh._CoreGithubIdentity.from_token(DEFAULT_TOKEN_DICT)
+    user = gh.GithubIdentity(
+        core_identity, DEFAULT_TOKEN_DICT, DEFAULT_CONFIG.cache
+    )
     assert not user.is_authorized(ORG, REPO, Permission.READ_META)
     user.authorize(ORG, REPO, {Permission.READ_META, Permission.READ})
     assert user.permissions(ORG, REPO) == {
@@ -224,8 +226,10 @@ def test_github_identity_authorization_cache() -> None:
 
 
 def test_github_identity_authorization_proxy_cache_only() -> None:
-    raw_identity = gh._RawGithubIdentity.from_token(DEFAULT_TOKEN_DICT)
-    user = gh.GithubIdentity(raw_identity, ZERO_CACHE_CONFIG)
+    core_identity = gh._CoreGithubIdentity.from_token(DEFAULT_TOKEN_DICT)
+    user = gh.GithubIdentity(
+        core_identity, DEFAULT_TOKEN_DICT, ZERO_CACHE_CONFIG
+    )
     org, repo, repo2 = ORG, REPO, "repo2"
     user.authorize(org, repo, Permission.all())
     user.authorize(org, repo2, Permission.all())

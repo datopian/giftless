@@ -239,29 +239,38 @@ class Config:
 
 # CORE AUTH
 @dataclasses.dataclass(frozen=True, slots=True)
-class _RawGithubIdentity:
-    """Identity-compatible dataclass holding static data from a token."""
+class _CoreGithubIdentity:
+    """Entries uniquely identifying a GitHub user (from a token).
+
+    This serves as a key to mappings/caches of unique users.
+    """
 
     id: str
     github_id: str
-    name: str
-    email: str
 
     @classmethod
-    def from_token(cls, token_data: Mapping[str, Any]) -> "_RawGithubIdentity":
-        return cls(*itemgetter("login", "id", "name", "email")(token_data))
+    def from_token(
+        cls, token_data: Mapping[str, Any]
+    ) -> "_CoreGithubIdentity":
+        return cls(*itemgetter("login", "id")(token_data))
 
 
 class GithubIdentity(Identity):
     """User identity belonging to an authentication token.
+
     Tracks user's permission for particular organizations/repositories.
     """
 
     def __init__(
-        self, raw_identity: _RawGithubIdentity, cc: CacheConfig
+        self,
+        core_identity: _CoreGithubIdentity,
+        token_data: Mapping[str, Any],
+        cc: CacheConfig,
     ) -> None:
         super().__init__()
-        self._raw_identity = raw_identity
+        self.core_identity = core_identity
+        self.name = token_data.get("name")
+        self.email = token_data.get("email")
 
         # Expiring cache of authorized repos with different TTL for each
         # permission type. It's assumed that anyone granted the WRITE
@@ -285,10 +294,10 @@ class GithubIdentity(Identity):
         self._auth_cache_lock = Lock()
 
     def __getattribute__(self, attr: str) -> Any:
-        # proxy to the raw_identity for its attributes
-        raw_identity = super().__getattribute__("_raw_identity")
-        if attr in raw_identity.__slots__:
-            return getattr(raw_identity, attr)
+        # proxy to the core_identity for its attributes
+        core_identity = super().__getattribute__("core_identity")
+        if attr in core_identity.__slots__:
+            return getattr(core_identity, attr)
         return super().__getattribute__(attr)
 
     def permissions(
@@ -384,7 +393,7 @@ class GithubAuthenticator:
         self._token_cache: MutableMapping[
             Any, GithubIdentity
         ] = cachetools.LRUCache(maxsize=cfg.cache.token_max_size)
-        # user identities per raw user data, to get the same identity that's
+        # unique user identities, to get the same identity that's
         # potentially already cached for a different token (same user)
         # If all the token entries for one user get evicted from the
         # token cache, the user entry here automatically ceases to exist too.
@@ -415,16 +424,18 @@ class GithubAuthenticator:
         except requests.exceptions.RequestException as e:
             _logger.warning(msg := f"Couldn't authenticate the user: {e}")
             raise Unauthorized(msg) from None
-        # pick apart token data to store only what we need
-        raw_identity = _RawGithubIdentity.from_token(token_data)
+
+        core_identity = _CoreGithubIdentity.from_token(token_data)
         # check if we haven't seen this identity before
         # guard the code with the same lock as the _token_cache
         with self._cache_lock:
             try:
-                user = self._cached_users[raw_identity]
+                user = self._cached_users[core_identity]
             except KeyError:
-                user = GithubIdentity(raw_identity, self._cache_config)
-                self._cached_users[raw_identity] = user
+                user = GithubIdentity(
+                    core_identity, token_data, self._cache_config
+                )
+                self._cached_users[core_identity] = user
         return user
 
     @staticmethod
@@ -433,7 +444,7 @@ class GithubAuthenticator:
 
     @single_call_method(
         key=lambda self, ctx, user: cachetools.keys.hashkey(
-            ctx.org, ctx.repo, user
+            ctx.org, ctx.repo, user.core_identity
         )
     )
     def _authorize(self, ctx: CallContext, user: GithubIdentity) -> None:
