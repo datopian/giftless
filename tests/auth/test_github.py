@@ -372,7 +372,7 @@ def test_github_auth_request_cached(app: flask.Flask) -> None:
 
 @responses.activate
 def test_github_auth_request_cache_no_leak(app: flask.Flask) -> None:
-    auth = gh.factory()
+    auth = gh.factory(cache={"token_max_size": 2})
     user_resp = mock_user(auth, json=DEFAULT_TOKEN_DICT)
     perm_resp = mock_perm(auth, json={"permission": "admin"})
 
@@ -387,27 +387,42 @@ def test_github_auth_request_cache_no_leak(app: flask.Flask) -> None:
     # see both the authentication and authorization requests took place
     assert user_resp.call_count == 1
     assert perm_resp.call_count == 1
+    # remove local strong reference
+    del identity1
 
-    # authenticate the same user with different token
+    # authenticate the same user with different token (fill cache)
     token2 = "token-2"
     token2_cache_key = cachetools.keys.hashkey(token2)
     identity2 = auth_request(app, auth, token=token2)
     assert len(auth._token_cache) == 2
-    assert cachetools.keys.hashkey(token2) in auth._token_cache
+    assert token2_cache_key in auth._token_cache
     assert len(auth._cached_users) == 1
     assert any(i is identity2 for i in auth._cached_users.values())
     # see only the authentication request took place
     assert user_resp.call_count == 2
     assert perm_resp.call_count == 1
+    del identity2
 
-    # evict 1st cached token
-    del auth._token_cache[token1_cache_key]
-    del identity1  # remove identity strong reference too
+    # authenticate once more (cache will evict oldest)
+    token3 = "token-3"
+    token3_cache_key = cachetools.keys.hashkey(token3)
+    identity3 = auth_request(app, auth, token=token3)
+    assert len(auth._token_cache) == 2
+    assert token3_cache_key in auth._token_cache
+    assert token1_cache_key not in auth._token_cache
+    assert len(auth._cached_users) == 1
+    assert any(i is identity3 for i in auth._cached_users.values())
+    # see only the authentication request took place
+    assert user_resp.call_count == 3
+    assert perm_resp.call_count == 1
+    del identity3
+
+    # evict 2nd cached token
+    del auth._token_cache[token2_cache_key]
     assert len(auth._token_cache) == 1
     assert len(auth._cached_users) == 1
-    # evict 2nd
-    del auth._token_cache[token2_cache_key]
-    del identity2
+    # evict 3rd
+    del auth._token_cache[token3_cache_key]
     assert len(auth._token_cache) == 0
     assert len(auth._cached_users) == 0
 
@@ -416,5 +431,5 @@ def test_github_auth_request_cache_no_leak(app: flask.Flask) -> None:
     assert len(auth._token_cache) == 1
     assert len(auth._cached_users) == 1
     # see both the authentication and authorization requests took place
-    assert user_resp.call_count == 3
+    assert user_resp.call_count == 4
     assert perm_resp.call_count == 2
