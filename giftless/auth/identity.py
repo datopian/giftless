@@ -29,9 +29,15 @@ class Identity(ABC):
     perform some actions.
     """
 
-    name: str | None = None
-    id: str | None = None
-    email: str | None = None
+    def __init__(
+        self,
+        name: str | None = None,
+        id: str | None = None,
+        email: str | None = None,
+    ) -> None:
+        self.name = name
+        self.id = id
+        self.email = email
 
     @abstractmethod
     def is_authorized(
@@ -58,9 +64,7 @@ class DefaultIdentity(Identity):
         id: str | None = None,
         email: str | None = None,
     ) -> None:
-        self.name = name
-        self.id = id
-        self.email = email
+        super().__init__(name, id, email)
         self._allowed: PermissionTree = defaultdict(
             lambda: defaultdict(lambda: defaultdict(set))
         )

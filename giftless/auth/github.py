@@ -267,10 +267,10 @@ class GithubIdentity(Identity):
         token_data: Mapping[str, Any],
         cc: CacheConfig,
     ) -> None:
-        super().__init__()
+        super().__init__(
+            token_data.get("name"), core_identity.id, token_data.get("email")
+        )
         self.core_identity = core_identity
-        self.name = token_data.get("name")
-        self.email = token_data.get("email")
 
         # Expiring cache of authorized repos with different TTL for each
         # permission type. It's assumed that anyone granted the WRITE
@@ -293,12 +293,9 @@ class GithubIdentity(Identity):
         self._auth_cache = cachetools.TLRUCache(cc.auth_max_size, expiration)
         self._auth_cache_lock = Lock()
 
-    def __getattribute__(self, attr: str) -> Any:
+    def __getattr__(self, attr: str) -> Any:
         # proxy to the core_identity for its attributes
-        core_identity = super().__getattribute__("core_identity")
-        if attr in core_identity.__slots__:
-            return getattr(core_identity, attr)
-        return super().__getattribute__(attr)
+        return getattr(self.core_identity, attr)
 
     def permissions(
         self, org: str, repo: str, *, authoritative: bool = False
