@@ -22,7 +22,7 @@ git clone http://localhost:5000/$YOUR_ORG/$YOUR_REPO
 When you don't use a credential helper, you might get asked a few times for the same credentials before the call gets through. [Make sure to get one](https://git-scm.com/doc/credential-helpers) before it drives you insane.
 
 Thanks to the [automatic LFS server discovery](https://github.com/git-lfs/git-lfs/blob/main/docs/api/server-discovery.md) this is all you should need to become LFS-enabled!
- 
+
 ### Pushing binary blobs
 Let's try pushing some binary blobs then! See also [Quickstart](quickstart.md#create-a-local-repository-and-push-some-file).
 ```shell

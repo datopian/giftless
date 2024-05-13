@@ -19,11 +19,11 @@ services:
           basic:
             factory: giftless.transfer.basic_streaming:factory
             options:
-              # use the lfs-storage volume as local storage 
+              # use the lfs-storage volume as local storage
               storage_class: giftless.storage.local_storage:LocalStorage
               storage_options:
                 path: /lfs-storage
-        # disable the default JWT pre-auth provider, object up/downloads get also authorized via GitHub 
+        # disable the default JWT pre-auth provider, object up/downloads get also authorized via GitHub
         PRE_AUTHORIZED_ACTION_PROVIDER: null
     command: "--http=0.0.0.0:$GIFTLESS_PORT -M -T --threads 2 -p 2 --manage-script-name --callable app"
     pull_policy: never  # prefer local build

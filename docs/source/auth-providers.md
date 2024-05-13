@@ -254,6 +254,8 @@ request, and is expected to have the following interface:
 ```python
 from typing import Optional
 from giftless.auth.identity import Permission
+
+
 class Identity:
     name: Optional[str] = None
     id: Optional[str] = None
@@ -282,6 +284,8 @@ Giftless defines the following permissions on entities:
 
 ```python
 from enum import Enum
+
+
 class Permission(Enum):
     READ = "read"
     READ_META = "read-meta"
