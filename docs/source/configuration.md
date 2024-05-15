@@ -126,5 +126,17 @@ clients using these URLs. By default, the JWT auth provider is used here.
 
 There is typically no need to override the default behavior.
 
+#### `LEGACY_ENDPOINTS`
+This is a `bool` flag, default `true` (deprecated, use `false` where possible), that affects the base URI of all the service endpoints. Previously, the endpoints didn't adhere to the rules for [automatic LFS server discovery](https://github.com/git-lfs/git-lfs/blob/main/docs/api/server-discovery.md), which needed additional routing or client configuration.
+
+The default base URI for all giftless endpoints is now `/<org_path>/<repo>.git/info/lfs` while the legacy one is `/<org>/<repo>`.
+* `<org>` is a simple organization name not containing slashes (common for GitHub)
+* `<org_path>` is a more versatile organization path which can contain slashes (common for GitLab)
+* `<repo>` is a simple repository name not containing slashes
+
+With `LEGACY_ENDPOINTS` set to `true`, **both the current and legacy** endpoints work simultaneously. When using the `basic_streamimg` transfer adapter, for backward compatibility it is the **legacy URI** that is being used for the object URLs in the batch API responses.
+
+Setting `LEGACY_ENDPOINTS` to `false` makes everything use the current base URI, requests to the legacy URIs will get rejected.
+
 #### `DEBUG`
 If set to `true`, enables more verbose debugging output in logs.

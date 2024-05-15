@@ -9,3 +9,4 @@ This section includes several how-to guides designed to get you started with Gif
    quickstart
    using-gcs
    jwt-auth-guide
+   github-lfs

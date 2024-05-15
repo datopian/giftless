@@ -23,6 +23,7 @@ Giftless provides the following authentication and authorization modules by defa
 
 * `giftless.auth.jwt:JWTAuthenticator` - uses [JWT tokens](https://jwt.io/) to both identify
   the user and grant permissions based on scopes embedded in the token payload.
+* `giftless.auth.github:GithubAuthenticator` - uses [GitHub Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) to both identify the user and grant permissions based on those for a GitHub repository of the same organization/name.
 * `giftless.auth.allow_anon:read_only` - grants read-only permissions on everything to every
   request; Typically, this is only useful in testing environments or in very limited
   deployments.
@@ -75,7 +76,7 @@ Basic HTTP authentication.
 
 You can disable this functionality or change the expected username using the `basic_auth_user` configuration option.
 
-### Configuration Options
+### `giftless.auth.jwt` Configuration Options
 The following options are available for the `jwt` auth module:
 
 * `algorithm` (`str`): JWT algorithm to use, e.g. `HS256` (default) or `RS256`. Must match the algorithm
@@ -191,6 +192,37 @@ The `leeway` parameter allows for providing a leeway / grace time to be
 considered when checking expiry times, to cover for clock skew between
 servers.
 
+## GitHub Authenticator
+This authenticator lets you provide a frictionless LFS backend for existing GitHub repositories. It plays nicely with `git` credential helpers and allows you to use GitHub as the single authentication & authorization provider.
+
+### Details
+The authenticator uses [GitHub Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens), the same ones used for cloning a GitHub repo over HTTPS. The provided token is used in a couple GitHub API calls that identify the token's identity and [its permissions](https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#get-repository-permissions-for-a-user) for the GitHub organization & repository. The token is supposed to be passed in the password part of the `Basic` HTTP auth (username is ignored). `Bearer` token HTTP auth is also supported, although no git client will likely use it.
+
+For the authenticator to work properly the token must have the `read:org` for "Classic" or `metadata:read` permission for the fine-grained kind.
+
+ Note: Authentication via SSH that could be used to verify the user is [not possible with GitHub at the time of writing](https://github.com/datopian/giftless/issues/128#issuecomment-2037190728).
+
+The GitHub repository permissions are mapped to [Giftless permissions](#permissions) in the straightforward sense that those able to write will be able to write, same with read; invalid tokens or identities with no repository access will get rejected.
+
+To minimize the traffic to GitHub for each LFS action, most of the auth data is being temporarily cached in memory, which improves performance, but naturally also ignores immediate changes for identities with changed permissions.
+
+### GitHub Auth Flow
+Here's a description of the authentication & authorization flow. If any of these steps fails, the request gets rejected.
+
+1. The URI of the primary git LFS (HTTP) [`batch` request](https://github.com/git-lfs/git-lfs/blob/main/docs/api/batch.md) is used (as usual) to determine what GitHub organization and repository is being targeted (e.g. `https://<server>/<org>/<repo>.git/info/lfs/...`). The request's `Authentication` header is also searched for the required GitHub personal access token.
+2. The token is then used in a [`/user`](https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-the-authenticated-user) GitHub API call to get its identity data.
+3. Further on the GitHub API is asked for the [user's permissions](https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#get-repository-permissions-for-a-user) to the org/repo in question.
+4. Based on the information above the user will be granted or rejected access.
+
+### `giftless.auth.github` Configuration Options
+* `api_url` (`str` = `"https://api.github.com"`): Base URL for the GitHub API (enterprise servers have API at `"https://<custom-hostname>/api/v3/"`).
+* `api_version` (`str | None` = `"2022-11-28"`): Target GitHub API version; set to `None` to use GitHub's latest (rather experimental).
+* `cache` (`dict`): Cache configuration section
+  * `token_max_size` (`int` = `32`): Max number of entries in the token -> user LRU cache. This cache holds the authentication data for a token. Evicted tokens will need to be re-authenticated.
+  * `auth_max_size` (`int` = `32`): Max number of [un]authorized org/repos TTL(LRU) for each user. Evicted repos will need to get re-authorized.
+  * `auth_write_ttl` (`float` = `15 * 60`): Max age [seconds] of user's org/repo authorizations able to `WRITE`. A repo writer will also need to be re-authorized after this period.
+  * `auth_other_ttl` (`float` = `30`): Max age [seconds] of user's org/repo authorizations **not** able to `WRITE`. A repo reader or a rejected user will get a chance for a permission upgrade after this period.
+
 ## Understanding Authentication and Authorization Providers
 
 This part is more abstract, and will help you understand how Giftless handles
@@ -220,6 +252,10 @@ Very simply, an `Identity` object encapsulates information about the current use
 request, and is expected to have the following interface:
 
 ```python
+from typing import Optional
+from giftless.auth.identity import Permission
+
+
 class Identity:
     name: Optional[str] = None
     id: Optional[str] = None
@@ -244,9 +280,12 @@ Authorizer classes may use the default built-in `DefaultIdentity`, or implement 
 subclass of their own.
 
 #### Permissions
-Giftless defines the following permissions on entites:
+Giftless defines the following permissions on entities:
 
 ```python
+from enum import Enum
+
+
 class Permission(Enum):
     READ = "read"
     READ_META = "read-meta"
