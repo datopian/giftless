@@ -6,6 +6,7 @@ from random import shuffle
 from time import sleep
 from typing import Any, cast
 
+import cachetools.keys
 import flask
 import pytest
 import responses
@@ -173,15 +174,14 @@ def test_config_schema_empty_cache() -> None:
 
 
 DEFAULT_CONFIG = gh.Config.from_dict({})
-DEFAULT_USER_DICT = {
+DEFAULT_TOKEN_DICT = {
     "login": "kingofthebritons",
     "id": "12345678",
     "name": "arthur",
     "email": "arthur@camelot.gov.uk",
 }
-DEFAULT_USER_ARGS = tuple(DEFAULT_USER_DICT.values())
+DEFAULT_USER_ARGS = tuple(DEFAULT_TOKEN_DICT.values())
 ZERO_CACHE_CONFIG = gh.CacheConfig(
-    user_max_size=0,
     token_max_size=0,
     auth_max_size=0,
     # deliberately non-zero to not get rejected on setting by the timeout logic
@@ -194,23 +194,13 @@ REPO = "my-repo"
 
 def test_github_identity_core() -> None:
     # use some value to get filtered out
-    user_dict = DEFAULT_USER_DICT | {"other_field": "other_value"}
+    token_dict = DEFAULT_TOKEN_DICT | {"other_field": "other_value"}
     cache_cfg = DEFAULT_CONFIG.cache
-    user = gh.GithubIdentity.from_dict(user_dict, cc=cache_cfg)
-    assert (
-        user.id,
-        user.github_id,
-        user.name,
-        user.email,
-    ) == DEFAULT_USER_ARGS
-    assert all(arg in repr(user) for arg in DEFAULT_USER_ARGS[:3])
-    assert hash(user) == hash((user.id, user.github_id))
-
-    args2 = (*DEFAULT_USER_ARGS[:2], "spammer", "spam@camelot.gov.uk")
-    user2 = gh.GithubIdentity(*args2, cc=cache_cfg)
-    assert user == user2
-    user2.id = "654321"
-    assert user != user2
+    core_identity = gh._CoreGithubIdentity.from_token(token_dict)
+    user = gh.GithubIdentity(core_identity, token_dict, cache_cfg)
+    assert (user.id, user.github_id, user.name, user.email) == tuple(
+        DEFAULT_TOKEN_DICT.values()
+    )
 
     assert user.cache_ttl({Permission.WRITE}) == cache_cfg.auth_write_ttl
     assert (
@@ -220,7 +210,10 @@ def test_github_identity_core() -> None:
 
 
 def test_github_identity_authorization_cache() -> None:
-    user = gh.GithubIdentity(*DEFAULT_USER_ARGS, cc=DEFAULT_CONFIG.cache)
+    core_identity = gh._CoreGithubIdentity.from_token(DEFAULT_TOKEN_DICT)
+    user = gh.GithubIdentity(
+        core_identity, DEFAULT_TOKEN_DICT, DEFAULT_CONFIG.cache
+    )
     assert not user.is_authorized(ORG, REPO, Permission.READ_META)
     user.authorize(ORG, REPO, {Permission.READ_META, Permission.READ})
     assert user.permissions(ORG, REPO) == {
@@ -233,7 +226,10 @@ def test_github_identity_authorization_cache() -> None:
 
 
 def test_github_identity_authorization_proxy_cache_only() -> None:
-    user = gh.GithubIdentity(*DEFAULT_USER_ARGS, cc=ZERO_CACHE_CONFIG)
+    core_identity = gh._CoreGithubIdentity.from_token(DEFAULT_TOKEN_DICT)
+    user = gh.GithubIdentity(
+        core_identity, DEFAULT_TOKEN_DICT, ZERO_CACHE_CONFIG
+    )
     org, repo, repo2 = ORG, REPO, "repo2"
     user.authorize(org, repo, Permission.all())
     user.authorize(org, repo2, Permission.all())
@@ -250,12 +246,12 @@ def auth_request(
     org: str = ORG,
     repo: str = REPO,
     req_auth_header: str | None = "",
+    token: str = "dummy-github-token",
 ) -> Identity | None:
     if req_auth_header is None:
         headers = None
     elif req_auth_header == "":
         # default - token
-        token = "dummy-github-token"
         basic_auth = base64.b64encode(
             b":".join([b"token", token.encode()])
         ).decode()
@@ -282,7 +278,7 @@ def mock_perm(
     auth: gh.GithubAuthenticator,
     org: str = ORG,
     repo: str = REPO,
-    login: str = DEFAULT_USER_DICT["login"],
+    login: str = DEFAULT_TOKEN_DICT["login"],
     *args: Any,
     **kwargs: Any,
 ) -> responses.BaseResponse:
@@ -317,7 +313,7 @@ def test_github_auth_request_bad_user(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_bad_perm(app: flask.Flask) -> None:
     auth = gh.factory(api_version=None)
-    mock_user(auth, json=DEFAULT_USER_DICT)
+    mock_user(auth, json=DEFAULT_TOKEN_DICT)
     mock_perm(auth, json={"error": "Forbidden"}, status=403)
 
     with pytest.raises(Unauthorized):
@@ -327,7 +323,7 @@ def test_github_auth_request_bad_perm(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_admin(app: flask.Flask) -> None:
     auth = gh.factory()
-    mock_user(auth, json=DEFAULT_USER_DICT)
+    mock_user(auth, json=DEFAULT_TOKEN_DICT)
     mock_perm(auth, json={"permission": "admin"})
 
     identity = auth_request(app, auth)
@@ -338,7 +334,7 @@ def test_github_auth_request_admin(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_read(app: flask.Flask) -> None:
     auth = gh.factory()
-    mock_user(auth, json=DEFAULT_USER_DICT)
+    mock_user(auth, json=DEFAULT_TOKEN_DICT)
     mock_perm(auth, json={"permission": "read"})
 
     identity = auth_request(app, auth)
@@ -350,7 +346,7 @@ def test_github_auth_request_read(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_none(app: flask.Flask) -> None:
     auth = gh.factory()
-    mock_user(auth, json=DEFAULT_USER_DICT)
+    mock_user(auth, json=DEFAULT_TOKEN_DICT)
     mock_perm(auth, json={"permission": "none"})
 
     identity = auth_request(app, auth)
@@ -362,7 +358,7 @@ def test_github_auth_request_none(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_cached(app: flask.Flask) -> None:
     auth = gh.factory()
-    user_resp = mock_user(auth, json=DEFAULT_USER_DICT)
+    user_resp = mock_user(auth, json=DEFAULT_TOKEN_DICT)
     perm_resp = mock_perm(auth, json={"permission": "admin"})
 
     auth_request(app, auth)
@@ -372,3 +368,68 @@ def test_github_auth_request_cached(app: flask.Flask) -> None:
     assert identity.is_authorized(ORG, REPO, Permission.WRITE)
     assert user_resp.call_count == 1
     assert perm_resp.call_count == 1
+
+
+@responses.activate
+def test_github_auth_request_cache_no_leak(app: flask.Flask) -> None:
+    auth = gh.factory(cache={"token_max_size": 2})
+    user_resp = mock_user(auth, json=DEFAULT_TOKEN_DICT)
+    perm_resp = mock_perm(auth, json={"permission": "admin"})
+
+    # authenticate 1st token, check it got cached properly
+    token1 = "token-1"
+    token1_cache_key = cachetools.keys.hashkey(token1)
+    identity1 = auth_request(app, auth, token=token1)
+    assert len(auth._token_cache) == 1
+    assert token1_cache_key in auth._token_cache
+    assert len(auth._cached_users) == 1
+    assert any(i is identity1 for i in auth._cached_users.values())
+    # see both the authentication and authorization requests took place
+    assert user_resp.call_count == 1
+    assert perm_resp.call_count == 1
+    # remove local strong reference
+    del identity1
+
+    # authenticate the same user with different token (fill cache)
+    token2 = "token-2"
+    token2_cache_key = cachetools.keys.hashkey(token2)
+    identity2 = auth_request(app, auth, token=token2)
+    assert len(auth._token_cache) == 2
+    assert token2_cache_key in auth._token_cache
+    assert len(auth._cached_users) == 1
+    assert any(i is identity2 for i in auth._cached_users.values())
+    # see only the authentication request took place
+    assert user_resp.call_count == 2
+    assert perm_resp.call_count == 1
+    del identity2
+
+    # authenticate once more (cache will evict oldest)
+    token3 = "token-3"
+    token3_cache_key = cachetools.keys.hashkey(token3)
+    identity3 = auth_request(app, auth, token=token3)
+    assert len(auth._token_cache) == 2
+    assert token3_cache_key in auth._token_cache
+    assert token1_cache_key not in auth._token_cache
+    assert len(auth._cached_users) == 1
+    assert any(i is identity3 for i in auth._cached_users.values())
+    # see only the authentication request took place
+    assert user_resp.call_count == 3
+    assert perm_resp.call_count == 1
+    del identity3
+
+    # evict 2nd cached token
+    del auth._token_cache[token2_cache_key]
+    assert len(auth._token_cache) == 1
+    assert len(auth._cached_users) == 1
+    # evict 3rd
+    del auth._token_cache[token3_cache_key]
+    assert len(auth._token_cache) == 0
+    assert len(auth._cached_users) == 0
+
+    # try once more with 1st token
+    auth_request(app, auth, token=token1)
+    assert len(auth._token_cache) == 1
+    assert len(auth._cached_users) == 1
+    # see both the authentication and authorization requests took place
+    assert user_resp.call_count == 4
+    assert perm_resp.call_count == 2
