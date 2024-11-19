@@ -785,7 +785,9 @@ def test_github_auth_request_app_selected_repos(app: flask.Flask) -> None:
     resp_i = mock_org_installations(
         auth.api_url, json=DEFAULT_ORG_INSTALLATIONS
     )
-    resp_r = mock_installation_repos(auth.api_url, json=installation_repo_data())
+    resp_r = mock_installation_repos(
+        auth.api_url, json=installation_repo_data()
+    )
 
     identity = auth_request(
         app, auth, user=str(DEFAULT_SEL_ID), token=DEFAULT_APP_TOKEN
