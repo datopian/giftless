@@ -252,6 +252,8 @@ class Config:
     api_version: str | None
     # GitHub API requests timeout
     api_timeout: float | tuple[float, float]
+    # Orgs and repos this instance is restricted to
+    restrict_to: dict[str, list[str] | None] | None
     # cache config above
     cache: CacheConfig
 
@@ -261,6 +263,14 @@ class Config:
             load_default="2022-11-28", allow_none=True
         )
         api_timeout = RequestsTimeout(load_default=(5.0, 10.0))
+        restrict_to = ma.fields.Dict(
+            keys=ma.fields.String(),
+            values=ma.fields.List(
+                ma.fields.String(allow_none=True), allow_none=True
+            ),
+            load_default=None,
+            allow_none=True,
+        )
         # always provide default CacheConfig when not present in the input
         cache = ma.fields.Nested(
             CacheConfig.Schema(),
@@ -314,11 +324,26 @@ class CallContext:
         org_repo_getter = itemgetter("organization", "repo")
         self.org, self.repo = org_repo_getter(request.view_args or {})
         self.user, self.token = self._extract_auth(request)
+        self._check_restricted_to()
 
         self._api_url = self.cfg.api_url
         self._api_headers["Authorization"] = f"Bearer {self.token}"
         if self.cfg.api_version:
             self._api_headers["X-GitHub-Api-Version"] = self.cfg.api_version
+
+    def _check_restricted_to(self) -> None:
+        restrict_to = self.cfg.restrict_to
+        if restrict_to:
+            try:
+                rest_repos = restrict_to[self.org]
+            except KeyError:
+                raise Unauthorized(
+                    f"Unauthorized GitHub organization '{self.org}'"
+                ) from None
+            if rest_repos and self.repo not in rest_repos:
+                raise Unauthorized(
+                    f"Unauthorized GitHub repository '{self.repo}'"
+                )
 
     def __enter__(self) -> "CallContext":
         self._session = self._exit_stack.enter_context(requests.Session())

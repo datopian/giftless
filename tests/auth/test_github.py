@@ -410,6 +410,26 @@ def mock_installation_repos(
     return cast(responses.BaseResponse, ret)
 
 
+def test_call_context_restrict_to_org_only(app: flask.Flask) -> None:
+    cfg = gh.Config.from_dict({"restrict_to": {ORG: None}})
+    with auth_request_context(app):
+        ctx = gh.CallContext(cfg, flask.request)
+        assert ctx is not None
+    with auth_request_context(app, org="bogus"):
+        with pytest.raises(Unauthorized):
+            gh.CallContext(cfg, flask.request)
+
+
+def test_call_context_restrict_to_org_and_repo(app: flask.Flask) -> None:
+    cfg = gh.Config.from_dict({"restrict_to": {ORG: [REPO]}})
+    with auth_request_context(app):
+        ctx = gh.CallContext(cfg, flask.request)
+        assert ctx is not None
+    with auth_request_context(app, repo="bogus"):
+        with pytest.raises(Unauthorized):
+            gh.CallContext(cfg, flask.request)
+
+
 def test_call_context_api_get_no_session(app: flask.Flask) -> None:
     with auth_request_context(app):
         ctx = gh.CallContext(DEFAULT_CONFIG, flask.request)
