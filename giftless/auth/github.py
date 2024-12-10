@@ -265,9 +265,7 @@ class Config:
         api_timeout = RequestsTimeout(load_default=(5.0, 10.0))
         restrict_to = ma.fields.Dict(
             keys=ma.fields.String(),
-            values=ma.fields.List(
-                ma.fields.String(allow_none=True), allow_none=True
-            ),
+            values=ma.fields.List(ma.fields.String(), allow_none=True),
             load_default=None,
             allow_none=True,
         )
@@ -342,7 +340,7 @@ class CallContext:
                 ) from None
             if rest_repos and self.repo not in rest_repos:
                 raise Unauthorized(
-                    f"Unauthorized GitHub repository '{self.repo}'"
+                    f"Unauthorized GitHub repository '{self.org}/{self.repo}'"
                 )
 
     def __enter__(self) -> "CallContext":
