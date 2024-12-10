@@ -190,7 +190,7 @@ def test_config_schema_api_timeout() -> None:
 DEFAULT_CONFIG = gh.Config.from_dict({})
 DEFAULT_USER_DICT = {
     "login": "kingofthebritons",
-    "id": "12345678",
+    "id": "125678",
     "name": "arthur",
     "email": "arthur@camelot.gov.uk",
 }

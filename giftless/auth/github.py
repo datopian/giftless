@@ -350,7 +350,8 @@ class CallContext:
     def api_get(self, uri: str) -> dict[str, Any]:
         if self._session is None:
             raise RuntimeError(
-                "Calling CallContext.api_get() outside of a with block."
+                "CallContext is a context manager maintaining a requests "
+                "session. Call api_get() only within its entered context."
             )
         response = self._session.get(
             f"{self._api_url}{uri}",
@@ -365,8 +366,9 @@ class CallContext:
     ) -> Generator[dict[str, Any], None, None]:
         if self._session is None:
             raise RuntimeError(
-                "Calling CallContext.api_get_paginated() "
-                "outside of a with block."
+                "CallContext is a context manager maintaining a requests "
+                "session. Call api_get_paginated() only within its entered "
+                "context."
             )
 
         per_page = min(max(per_page, 1), 100)
@@ -384,7 +386,13 @@ class CallContext:
 
             yield from (item for item in response_json.get(list_name, []))
 
+            # check the 'link' header for the 'next' page URL
             if next_url := response.links.get("next", {}).get("url"):
+                # extract the page number from the URL that looks like
+                # https://api.github.com/some/collections?page=4
+                # urlparse(next_url).query returns "page=4"
+                # parse_qs() parses that into {'page': ['4']}
+                # when 'page' is missing, we supply a fake ['0'] to stop
                 next_page = int(
                     parse_qs(urlparse(next_url).query).get("page", ["0"])[0]
                 )
@@ -424,7 +432,8 @@ class GithubIdentity(Identity, abc.ABC):
             else:
                 return cc.auth_other_ttl
 
-        # expiration factory providing a 'ttu' function respecting least_ttl
+        # expiration factory providing a 'ttu' function for 'TLRUCache'
+        # respecting specified least_ttl
         def expiration(
             least_ttl: float | None = None,
         ) -> Callable[[Any, set[Permission], float], float]:

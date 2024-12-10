@@ -205,13 +205,13 @@ The GitHub repository permissions are mapped to [Giftless permissions](#permissi
 To minimize the traffic to GitHub for each LFS action, most of the auth data is being temporarily cached in memory, which improves performance, but naturally also ignores immediate changes for identities with changed permissions.
 
 ### GitHub Auth Flow
-Here's a description of the authentication & authorization flow. If any of these steps fails, the request gets rejected. As the supported token flavors have a very different way of authentication, they're described separately:
+Here's a description of the authentication & authorization flow. If any of these steps fails, the request gets rejected. As the supported token flavors have very different ways of authentication, they're described separately:
 
 #### Personal Access Tokens (`ghp_`, `_github_pat_` and likely other [token flavors](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github#githubs-token-formats) `gho_`, `ghu_`)
 These tokens eventually represent a real user. For the authenticator to work properly, the token must have these permissions:
 - `read:org` for "Classic" or
 - `metadata:read` for the fine-grained kind.
-- The user has to be a collaborator of the target repository with an adequate role for reading or writing.
+- The user has to be a collaborator on the target repository with an adequate role for reading or writing.
 
 1. The URI of the primary git LFS (HTTP) [`batch` request](https://github.com/git-lfs/git-lfs/blob/main/docs/api/batch.md) is used to determine what GitHub organization and repository is being targeted (e.g. `https://<server>/<org>/<repo>.git/info/lfs/...`). The request's `Authentication` header is searched for the required token in the `password` part of the `Basic` HTTP auth.
 2. The token is then used in a [`/user`](https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-the-authenticated-user) GitHub API call to get its identity data.
