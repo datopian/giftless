@@ -233,7 +233,7 @@ This token represents a special identity of an "application installation", actin
 * `api_url` (`str` = `"https://api.github.com"`): Base URL for the GitHub API (enterprise servers have API at `"https://<custom-hostname>/api/v3/"`).
 * `api_timeout` (`float | tuple[float, float]` = `(10.0, 20.0)`): Timeout for the GitHub API calls ([details](https://requests.readthedocs.io/en/stable/user/advanced/#timeouts)).
 * `api_version` (`str | None` = `"2022-11-28"`): Target GitHub API version; set to `None` to use GitHub's latest (rather experimental).
-* `restrict_to` (`dict[str, list[str] | None] | None` = `None`): Optional (but very recommended) dictionary of GitHub organizations/users the authentication is restricted to. Each key (organization name) in the dictionary can contain a list of further restricted repository names. When the list is empty (or null), only the organizations are considered.
+* `restrict_to` (`dict[str, list[str] | None] | None` = `None`): Optional (but highly recommended) dictionary of GitHub organizations/users the authentication is restricted to. Each key (organization name) in the dictionary can contain a list of further restricted repository names. When the list is empty (or null), only the organizations are considered.
 * `cache` (`dict`): Cache configuration section
   * `token_max_size` (`int` = `32`): Max number of entries in the token -> user LRU cache. This cache holds the authentication data for a token. Evicted tokens will need to be re-authenticated.
   * `auth_max_size` (`int` = `32`): Max number of [un]authorized org/repos TTL(LRU) for each user. Evicted repos will need to get re-authorized.
