@@ -5,8 +5,8 @@ TESTS_DIR := tests
 
 SHELL := bash
 PYTHON := python
-PIP := pip
-PIP_COMPILE := pip-compile
+PIP := uv pip
+PIP_COMPILE := uv pip compile
 PYTEST := pytest
 DOCKER := docker
 GIT := git
