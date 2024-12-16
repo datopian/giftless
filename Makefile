@@ -28,6 +28,9 @@ VERSION := $(shell $(PYTHON) -c "from importlib.metadata import version;print(ve
 
 default: help
 
+## Install uv (fast pip replacement)
+init: $(SENTINELS)/uv
+
 ## Regenerate requirements files
 requirements: requirements/dev.txt requirements/dev.in requirements/main.txt requirements/main.in
 
@@ -88,6 +91,10 @@ $(SENTINELS)/dev-setup: init requirements/main.txt requirements/dev.txt | $(SENT
 	$(PIP) install -r requirements/main.txt
 	$(PIP) install -e .
 	$(PIP) install -r requirements/dev.txt
+	@touch $@
+
+$(SENTINELS)/uv: $(SENTINELS)
+	pip install uv
 	@touch $@
 
 # Help related variables and targets
