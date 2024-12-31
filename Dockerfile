@@ -49,17 +49,21 @@ RUN chown $USER_NAME $STORAGE_DIR
 ARG EXTRA_PACKAGES="wsgi_cors_middleware"
 RUN pip install ${EXTRA_PACKAGES}
 
-USER $USER_NAME
-
 WORKDIR /app
 
 ENV UWSGI_MODULE "giftless.wsgi_entrypoint"
 
 ARG IS_DOCKERHUB
-ENV IS_DOCKERHUB=$IS_DOCKERHUB
+# Override default docker entrypoint for dockerhub
+RUN --mount=target=/build-ctx set -e ;\
+    if [ "$IS_DOCKERHUB" = true ]; then \
+        cp /build-ctx/scripts/docker-entrypoint-dockerhub.sh scripts/docker-entrypoint.sh ;\
+    fi
 
-ENTRYPOINT ["scripts/docker-prerun.sh"]
-CMD ["tini", "uwsgi", "--", "-s", "127.0.0.1:5000", "-M", "-T", "--threads", "2", "-p", "2", \
+USER $USER_NAME
+
+ENTRYPOINT ["tini", "--", "scripts/docker-entrypoint.sh"]
+CMD ["uwsgi", "-s", "127.0.0.1:5000", "-M", "-T", "--threads", "2", "-p", "2", \
      "--manage-script-name", "--callable", "app"]
 
 # TODO remove this STOPSIGNAL override after uwsgi>=2.1
