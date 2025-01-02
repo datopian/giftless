@@ -16,7 +16,7 @@ ARG VENV
 # Set WORKDIR (also creates the dir)
 WORKDIR $WORKDIR
 
-# Build wheels for uWSGI and all requirements
+# Install packages to build wheels for uWSGI and other requirements
 RUN set -eux ;\
     export DEBIAN_FRONTEND=noninteractive ;\
     apt-get update ;\
@@ -40,8 +40,8 @@ ENV PIP_REQUIRE_VIRTUALENV=1
 ENV PYTHONPYCACHEPREFIX=/tmp/__pycache__
 
 # Install runtime dependencies
-RUN --mount=source=requirements/main.txt,target=requirements/main.txt \
-    pip install -r requirements/main.txt
+RUN --mount=target=/build-ctx \
+    pip install -r /build-ctx/requirements/main.txt
 RUN pip install uwsgi==$UWSGI_VERSION
 # Install extra packages into the virtual env
 RUN pip install ${EXTRA_PACKAGES}
