@@ -22,7 +22,4 @@ boto3~=1.34
 # GitHub AA Provider
 cachetools~=5.3
 
-# uv: fast pip replacement
-uv
-
 importlib-metadata; python_version < '3.13'
