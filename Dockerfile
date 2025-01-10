@@ -2,6 +2,10 @@
 # Shared build ARGs among stages
 ARG WORKDIR=/app
 ARG VENV="$WORKDIR/.venv"
+ARG UV_VERSION=0.5.16
+
+### Distroless uv version layer to be copied from (because COPY --from does not interpolate variables)
+FROM ghcr.io/astral-sh/uv:$UV_VERSION AS uv
 
 ### --- Build Depdendencies ---
 FROM python:3.12 AS builder
@@ -23,28 +27,25 @@ RUN set -eux ;\
     apt-get install -y --no-install-recommends build-essential libpcre3 libpcre3-dev git ;\
     rm -rf /var/lib/apt/lists/*
 
-# Create virtual env to store dependencies, "activate" it
-RUN python -m venv --upgrade-deps "$VENV"
-ENV VIRTUAL_ENV="$VENV" PATH="$VENV/bin:$PATH"
+# Install uv to replace pip & friends
+COPY --from=uv /uv /uvx /bin/
 
-# Set a couple pip-related settings
+# Set a couple uv-related settings
 # Wait a bit longer for slow connections
-ENV PIP_TIMEOUT=100
-# Don't nag about newer pip
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-# Don't cache pip packages
-ENV PIP_NO_CACHE_DIR=1
-# Require activated virtual environment
-ENV PIP_REQUIRE_VIRTUALENV=1
-# Eventual python cache files go here (not to be copied)
-ENV PYTHONPYCACHEPREFIX=/tmp/__pycache__
+ENV UV_HTTP_TIMEOUT=100
+# Don't cache packages
+ENV UV_NO_CACHE=1
+
+# Create virtual env to store dependencies, "activate" it
+RUN uv venv "$VENV"
+ENV VIRTUAL_ENV="$VENV" PATH="$VENV/bin:$PATH"
 
 # Install runtime dependencies
 RUN --mount=target=/build-ctx \
-    pip install -r /build-ctx/requirements/main.txt
-RUN pip install uwsgi==$UWSGI_VERSION
+    uv pip install -r /build-ctx/requirements/main.txt
+RUN uv pip install uwsgi==$UWSGI_VERSION
 # Install extra packages into the virtual env
-RUN pip install ${EXTRA_PACKAGES}
+RUN uv pip install ${EXTRA_PACKAGES}
 
 # Copy project contents necessary for an editable install
 COPY .git .git/
@@ -52,7 +53,7 @@ COPY giftless giftless/
 COPY pyproject.toml .
 # Editable-install the giftless package (add a kind of a project path reference in site-packages)
 # To detect the package version dynamically, setuptools-scm needs the git binary
-RUN pip install -e .
+RUN uv pip install -e .
 
 ### --- Build Final Image ---
 FROM python:3.12-slim AS final
