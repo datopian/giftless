@@ -62,8 +62,6 @@ LABEL org.opencontainers.image.authors="Shahar Evron <shahar.evron@datopian.com>
 ARG USER_NAME=giftless
 # Writable path for local LFS storage
 ARG STORAGE_DIR=/lfs-storage
-# Set to true to add a runtime dockerhub deprecation warning
-ARG IS_DOCKERHUB
 # expose shared ARGs
 ARG WORKDIR
 ARG VENV
@@ -90,23 +88,13 @@ ENV VIRTUAL_ENV="$VENV" PATH="$VENV/bin:$PATH"
 # Copy project source back into the same path referenced by the editable install
 COPY --from=builder "$WORKDIR/giftless" "giftless"
 
-# Copy desired docker-entrypoint
-RUN --mount=target=/build-ctx set -eux ;\
-    target_de=scripts/docker-entrypoint.sh ;\
-    mkdir -p "$(dirname "$target_de")" ;\
-    if [ "${IS_DOCKERHUB:-}" = true ]; then \
-        cp /build-ctx/scripts/docker-entrypoint-dockerhub.sh "$target_de" ;\
-    else \
-        cp /build-ctx/scripts/docker-entrypoint.sh "$target_de" ;\
-    fi
-
 # Set runtime properties
 USER $USER_NAME
 ENV GIFTLESS_TRANSFER_ADAPTERS_basic_options_storage_options_path="$STORAGE_DIR"
 ENV UWSGI_MODULE="giftless.wsgi_entrypoint"
 
-ENTRYPOINT ["tini", "--", "scripts/docker-entrypoint.sh"]
-CMD ["uwsgi", "-s", "127.0.0.1:5000", "-M", "-T", "--threads", "2", "-p", "2", \
+ENTRYPOINT ["tini", "--", "uwsgi"]
+CMD ["-s", "127.0.0.1:5000", "-M", "-T", "--threads", "2", "-p", "2", \
      "--manage-script-name", "--callable", "app"]
 
 # TODO remove this STOPSIGNAL override after uwsgi>=2.1
