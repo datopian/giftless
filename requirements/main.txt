@@ -138,5 +138,5 @@ werkzeug==3.0.3
     # via
     #   -r requirements/main.in
     #   flask
-zipp==3.17.0
+zipp==3.19.1
     # via importlib-metadata
