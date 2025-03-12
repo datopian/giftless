@@ -24,7 +24,7 @@ WORKDIR $WORKDIR
 RUN set -eux ;\
     export DEBIAN_FRONTEND=noninteractive ;\
     apt-get update ;\
-    apt-get install -y --no-install-recommends build-essential libpcre3 libpcre3-dev git ;\
+    apt-get install -y --no-install-recommends build-essential libpcre3 libpcre3-dev git curl ;\
     rm -rf /var/lib/apt/lists/*
 
 # Install uv to replace pip & friends
@@ -79,7 +79,7 @@ RUN set -eux ;\
 RUN set -eux ;\
     export DEBIAN_FRONTEND=noninteractive ;\
     apt-get update ;\
-    apt-get install -y libpcre3 libxml2 tini ;\
+    apt-get install -y libpcre3 libxml2 tini curl ;\
     rm -rf /var/lib/apt/lists/*
 
 # Use the virtual env with dependencies from builder stage
