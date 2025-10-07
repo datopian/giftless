@@ -59,7 +59,7 @@ $ git clone https://github.com/datopian/giftless.git
 $ cd giftless
 $ python3 -m venv venv
 $ source venv/bin/activate
-(venv) $ pip install -r requirements.txt
+(venv) $ pip install -r requirements/main.txt
 ```
 
 You can then proceed to run Giftless with a WSGI server as

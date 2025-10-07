@@ -196,27 +196,44 @@ servers.
 This authenticator lets you provide a frictionless LFS backend for existing GitHub repositories. It plays nicely with `git` credential helpers and allows you to use GitHub as the single authentication & authorization provider.
 
 ### Details
-The authenticator uses [GitHub Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens), the same ones used for cloning a GitHub repo over HTTPS. The provided token is used in a couple GitHub API calls that identify the token's identity and [its permissions](https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#get-repository-permissions-for-a-user) for the GitHub organization & repository. The token is supposed to be passed in the password part of the `Basic` HTTP auth (username is ignored). `Bearer` token HTTP auth is also supported, although no git client will likely use it.
+The authenticator uses GitHub [Personal Access Tokens](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) and [App Installation tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation), the same ones used for cloning a GitHub repo over HTTPS. The provided token is used in a couple GitHub API calls that identify the token's identity and [its permissions](https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#get-repository-permissions-for-a-user) for the GitHub organization & repository.
 
-For the authenticator to work properly the token must have the `read:org` for "Classic" or `metadata:read` permission for the fine-grained kind.
-
- Note: Authentication via SSH that could be used to verify the user is [not possible with GitHub at the time of writing](https://github.com/datopian/giftless/issues/128#issuecomment-2037190728).
+Note: Authentication via SSH that could be used to verify the user is [not possible with GitHub at the time of writing](https://github.com/datopian/giftless/issues/128#issuecomment-2037190728).
 
 The GitHub repository permissions are mapped to [Giftless permissions](#permissions) in the straightforward sense that those able to write will be able to write, same with read; invalid tokens or identities with no repository access will get rejected.
 
 To minimize the traffic to GitHub for each LFS action, most of the auth data is being temporarily cached in memory, which improves performance, but naturally also ignores immediate changes for identities with changed permissions.
 
 ### GitHub Auth Flow
-Here's a description of the authentication & authorization flow. If any of these steps fails, the request gets rejected.
+Here's a description of the authentication & authorization flow. If any of these steps fails, the request gets rejected. As the supported token flavors have very different ways of authentication, they're described separately:
 
-1. The URI of the primary git LFS (HTTP) [`batch` request](https://github.com/git-lfs/git-lfs/blob/main/docs/api/batch.md) is used (as usual) to determine what GitHub organization and repository is being targeted (e.g. `https://<server>/<org>/<repo>.git/info/lfs/...`). The request's `Authentication` header is also searched for the required GitHub personal access token.
+#### Personal Access Tokens (`ghp_`, `_github_pat_` and likely other [token flavors](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/about-authentication-to-github#githubs-token-formats) `gho_`, `ghu_`)
+These tokens eventually represent a real user. For the authenticator to work properly, the token must have these permissions:
+- `read:org` for "Classic" or
+- `metadata:read` for the fine-grained kind.
+- The user has to be a collaborator on the target repository with an adequate role for reading or writing.
+
+1. The URI of the primary git LFS (HTTP) [`batch` request](https://github.com/git-lfs/git-lfs/blob/main/docs/api/batch.md) is used to determine what GitHub organization and repository is being targeted (e.g. `https://<server>/<org>/<repo>.git/info/lfs/...`). The request's `Authentication` header is searched for the required token in the `password` part of the `Basic` HTTP auth.
 2. The token is then used in a [`/user`](https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-the-authenticated-user) GitHub API call to get its identity data.
 3. Further on the GitHub API is asked for the [user's permissions](https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#get-repository-permissions-for-a-user) to the org/repo in question.
 4. Based on the information above the user will be granted or rejected access.
 
+#### App Installation Tokens (`ghs_`)
+This token represents a special identity of an "application installation", acting on behalf of an installed GitHub App (likely part of an automation integration). This installation is bound to a user or organization (owner) and gets a set of fine-grained permissions applying to `all` or `selected` repositories of the targeted owner. For the authenticator to work properly, the GitHub App must have these permissions:
+- `metadata:read` (default)
+- `contents:read|write` (the permission to the repository content)
+- `organization_administration:read` (required to [list owner's app installations](https://docs.github.com/en/rest/orgs/orgs?apiVersion=2022-11-28#list-app-installations-for-an-organization))
+- The installed App also has to have access to the target repository.
+
+1. The URI of the primary git LFS (HTTP) [`batch` request](https://github.com/git-lfs/git-lfs/blob/main/docs/api/batch.md) is used to determine what GitHub organization and repository is being targeted (e.g. `https://<server>/<org>/<repo>.git/info/lfs/...`). The request's `Authentication` header is searched for the required token in the `password` part of the `Basic` HTTP auth. **The `user` part must contain some identification of the app** (installation `id`, `app_id`, `client_id` or `app_slug` (its dashed name)).
+2. The token is then used in the [`/orgs/<org>/installations`](https://docs.github.com/en/rest/orgs/orgs?apiVersion=2022-11-28#list-app-installations-for-an-organization) GitHub API call to get the list of app installations in the target `org`. This list is then searched for the app identification from the `user` part above. The identified entry contains info about the app permissions and whether the installation targets `all` repositories or just `selected`. At this moment the LFS permissions are inferred from the provided `content` permission. If the repository access is `all`, this is everything the logic needs.
+3. If the repository access is just for `selected` ones, the GitHub API is asked for the [`/installation/repositories`](https://docs.github.com/en/rest/apps/installations?apiVersion=2022-11-28#list-repositories-accessible-to-the-app-installation), where it must find the target repository.
+
 ### `giftless.auth.github` Configuration Options
 * `api_url` (`str` = `"https://api.github.com"`): Base URL for the GitHub API (enterprise servers have API at `"https://<custom-hostname>/api/v3/"`).
+* `api_timeout` (`float | tuple[float, float]` = `(10.0, 20.0)`): Timeout for the GitHub API calls ([details](https://requests.readthedocs.io/en/stable/user/advanced/#timeouts)).
 * `api_version` (`str | None` = `"2022-11-28"`): Target GitHub API version; set to `None` to use GitHub's latest (rather experimental).
+* `restrict_to` (`dict[str, list[str] | None] | None` = `None`): Optional (but highly recommended) dictionary of GitHub organizations/users the authentication is restricted to. Each key (organization name) in the dictionary can contain a list of further restricted repository names. When the list is empty (or null), only the organizations are considered.
 * `cache` (`dict`): Cache configuration section
   * `token_max_size` (`int` = `32`): Max number of entries in the token -> user LRU cache. This cache holds the authentication data for a token. Evicted tokens will need to be re-authenticated.
   * `auth_max_size` (`int` = `32`): Max number of [un]authorized org/repos TTL(LRU) for each user. Evicted repos will need to get re-authorized.

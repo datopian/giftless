@@ -12,7 +12,7 @@ keywords = [
 # https://pypi.org/classifiers/
 classifiers = [
     "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved:: MIT License",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -37,6 +37,9 @@ email="hello@rufuspollock.com"
 [[project.authors]]
 name="Adam Thornton"
 email="athornton@lsst.org"
+
+[[project.authors]]
+name="Vit Zikmund"
 
 [project.urls]
 Homepage = "https://giftless.datopian.com"

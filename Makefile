@@ -5,8 +5,8 @@ TESTS_DIR := tests
 
 SHELL := bash
 PYTHON := python
-PIP := pip
-PIP_COMPILE := pip-compile
+PIP := uv pip
+PIP_COMPILE := uv pip compile
 PYTEST := pytest
 DOCKER := docker
 GIT := git
@@ -27,6 +27,9 @@ PYVER := $(shell $(PYTHON) -c "import sys;print(f'{sys.version_info[0]}{sys.vers
 VERSION := $(shell $(PYTHON) -c "from importlib.metadata import version;print(version('$(PACKAGE_NAME)'))")
 
 default: help
+
+## Install uv (fast pip replacement)
+init: $(SENTINELS)/uv
 
 ## Regenerate requirements files
 requirements: requirements/dev.txt requirements/dev.in requirements/main.txt requirements/main.in
@@ -88,6 +91,10 @@ $(SENTINELS)/dev-setup: init requirements/main.txt requirements/dev.txt | $(SENT
 	$(PIP) install -r requirements/main.txt
 	$(PIP) install -e .
 	$(PIP) install -r requirements/dev.txt
+	@touch $@
+
+$(SENTINELS)/uv: $(SENTINELS)
+	pip install uv
 	@touch $@
 
 # Help related variables and targets

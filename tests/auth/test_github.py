@@ -2,6 +2,7 @@
 import base64
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from copy import deepcopy
 from random import shuffle
 from time import sleep
 from typing import Any, cast
@@ -9,11 +10,13 @@ from typing import Any, cast
 import cachetools.keys
 import flask
 import pytest
+import requests
 import responses
 from marshmallow.exceptions import ValidationError
 
 import giftless.auth.github as gh
 from giftless.auth import Unauthorized
+from giftless.auth.github import GithubAppIdentity
 from giftless.auth.identity import Identity, Permission
 
 
@@ -173,14 +176,25 @@ def test_config_schema_empty_cache() -> None:
         _config = gh.Config.from_dict(options)
 
 
+def test_config_schema_api_timeout() -> None:
+    with pytest.raises(ValidationError):
+        _config = gh.Config.from_dict({"api_timeout": "invalid"})
+    cfg = gh.Config.from_dict({"api_timeout": 1})
+    assert cfg.api_timeout == 1.0
+    cfg = gh.Config.from_dict({"api_timeout": [1, 2]})
+    assert cfg.api_timeout == (1.0, 2.0)
+    with pytest.raises(ValidationError):
+        _config = gh.Config.from_dict({"api_timeout": [1, "invalid"]})
+
+
 DEFAULT_CONFIG = gh.Config.from_dict({})
-DEFAULT_TOKEN_DICT = {
+DEFAULT_USER_DICT = {
     "login": "kingofthebritons",
-    "id": "12345678",
+    "id": "125678",
     "name": "arthur",
     "email": "arthur@camelot.gov.uk",
 }
-DEFAULT_USER_ARGS = tuple(DEFAULT_TOKEN_DICT.values())
+DEFAULT_USER_ARGS = tuple(DEFAULT_USER_DICT.values())
 ZERO_CACHE_CONFIG = gh.CacheConfig(
     token_max_size=0,
     auth_max_size=0,
@@ -191,15 +205,69 @@ ZERO_CACHE_CONFIG = gh.CacheConfig(
 ORG = "my-org"
 REPO = "my-repo"
 
+DEFAULT_ORG_ACCOUNT = {
+    "login": ORG,
+    "id": 12345678,
+}
+DEFAULT_SEL_ID = 123
+DEFAULT_SEL_CLIENT_ID = "Iv1.4f5cb2a91609a823"
+DEFAULT_SEL_APP_ID = 123456
+DEFAULT_SEL_APP_SLUG = "app-with-selected-repos"
+DEFAULT_ALL_ID = 456
+DEFAULT_ALL_CLIENT_ID = "Iv23liEtURKGAMtEbGUy"
+DEFAULT_ALL_APP_ID = 456123
+DEFAULT_ALL_APP_SLUG = "app-with-all-repos"
+DEFAULT_APP_TOKEN = "ghs_tCnvkxzE2v7DgEE45fCGnMMbFLNO8T19EVAH"
+DEFAULT_ORG_INSTALLATIONS = {
+    "total_count": 2,
+    "installations": [
+        {
+            "id": DEFAULT_SEL_ID,
+            "client_id": DEFAULT_SEL_CLIENT_ID,
+            "account": DEFAULT_ORG_ACCOUNT,
+            "repository_selection": "selected",
+            "app_id": DEFAULT_SEL_APP_ID,
+            "app_slug": DEFAULT_SEL_APP_SLUG,
+            "target_id": DEFAULT_ORG_ACCOUNT["id"],
+            "target_type": "Organization",
+            "permissions": {"contents": "read", "metadata": "read"},
+        },
+        {
+            "id": DEFAULT_ALL_ID,
+            "client_id": DEFAULT_ALL_CLIENT_ID,
+            "account": DEFAULT_ORG_ACCOUNT,
+            "repository_selection": "all",
+            "app_id": DEFAULT_ALL_APP_ID,
+            "app_slug": DEFAULT_ALL_APP_SLUG,
+            "target_id": DEFAULT_ORG_ACCOUNT["id"],
+            "target_type": "Organization",
+            "permissions": {
+                "organization_administration": "read",
+                "contents": "read",
+                "metadata": "read",
+            },
+        },
+    ],
+}
 
-def test_github_identity_core() -> None:
+DEFAULT_INSTALLATION_REPO = {
+    "id": 123456789,
+    "name": REPO,
+    "full_name": f"{ORG}/{REPO}",
+    "owner": DEFAULT_ORG_ACCOUNT,
+}
+
+
+def test_github_user_identity_core() -> None:
     # use some value to get filtered out
-    token_dict = DEFAULT_TOKEN_DICT | {"other_field": "other_value"}
+    user_data = DEFAULT_USER_DICT | {"other_field": "other_value"}
     cache_cfg = DEFAULT_CONFIG.cache
-    core_identity = gh._CoreGithubIdentity.from_token(token_dict)
-    user = gh.GithubIdentity(core_identity, token_dict, cache_cfg)
+    core_identity = gh.GithubUserIdentity.CoreIdentity.from_user_data(
+        user_data
+    )
+    user = gh.GithubUserIdentity(core_identity, user_data, cache_cfg)
     assert (user.id, user.github_id, user.name, user.email) == tuple(
-        DEFAULT_TOKEN_DICT.values()
+        DEFAULT_USER_DICT.values()
     )
 
     assert user.cache_ttl({Permission.WRITE}) == cache_cfg.auth_write_ttl
@@ -210,13 +278,15 @@ def test_github_identity_core() -> None:
 
 
 def test_github_identity_authorization_cache() -> None:
-    core_identity = gh._CoreGithubIdentity.from_token(DEFAULT_TOKEN_DICT)
-    user = gh.GithubIdentity(
-        core_identity, DEFAULT_TOKEN_DICT, DEFAULT_CONFIG.cache
+    core_identity = gh.GithubUserIdentity.CoreIdentity.from_user_data(
+        DEFAULT_USER_DICT
+    )
+    user = gh.GithubUserIdentity(
+        core_identity, DEFAULT_USER_DICT, DEFAULT_CONFIG.cache
     )
     assert not user.is_authorized(ORG, REPO, Permission.READ_META)
-    user.authorize(ORG, REPO, {Permission.READ_META, Permission.READ})
-    assert user.permissions(ORG, REPO) == {
+    user._set_permissions(ORG, REPO, {Permission.READ_META, Permission.READ})
+    assert user._permissions(ORG, REPO) == {
         Permission.READ_META,
         Permission.READ,
     }
@@ -226,13 +296,15 @@ def test_github_identity_authorization_cache() -> None:
 
 
 def test_github_identity_authorization_proxy_cache_only() -> None:
-    core_identity = gh._CoreGithubIdentity.from_token(DEFAULT_TOKEN_DICT)
-    user = gh.GithubIdentity(
-        core_identity, DEFAULT_TOKEN_DICT, ZERO_CACHE_CONFIG
+    core_identity = gh.GithubUserIdentity.CoreIdentity.from_user_data(
+        DEFAULT_USER_DICT
+    )
+    user = gh.GithubUserIdentity(
+        core_identity, DEFAULT_USER_DICT, ZERO_CACHE_CONFIG
     )
     org, repo, repo2 = ORG, REPO, "repo2"
-    user.authorize(org, repo, Permission.all())
-    user.authorize(org, repo2, Permission.all())
+    user._set_permissions(org, repo, Permission.all())
+    user._set_permissions(org, repo2, Permission.all())
     assert user.is_authorized(org, repo, Permission.READ_META)
     # without cache, the authorization expires after 1st is_authorized
     assert not user.is_authorized(org, repo, Permission.READ_META)
@@ -240,30 +312,39 @@ def test_github_identity_authorization_proxy_cache_only() -> None:
     assert not user.is_authorized(org, repo2, Permission.READ_META)
 
 
-def auth_request(
+def auth_request_context(
     app: flask.Flask,
-    auth: gh.GithubAuthenticator,
     org: str = ORG,
     repo: str = REPO,
     req_auth_header: str | None = "",
+    user: str = "token",
     token: str = "dummy-github-token",
-) -> Identity | None:
+) -> flask.ctx.RequestContext:
     if req_auth_header is None:
         headers = None
     elif req_auth_header == "":
         # default - token
         basic_auth = base64.b64encode(
-            b":".join([b"token", token.encode()])
+            b":".join([user.encode(), token.encode()])
         ).decode()
         headers = {"Authorization": f"Basic {basic_auth}"}
     else:
         headers = {"Authorization": req_auth_header}
 
-    with app.test_request_context(
+    return app.test_request_context(
         f"/{org}/{repo}.git/info/lfs/objects/batch",
         method="POST",
         headers=headers,
-    ):
+    )
+
+
+def auth_request(
+    app: flask.Flask,
+    auth: gh.GithubAuthenticator,
+    *args: Any,
+    **kwargs: Any,
+) -> Identity | None:
+    with auth_request_context(app, *args, **kwargs):
         return auth(flask.request)
 
 
@@ -278,7 +359,7 @@ def mock_perm(
     auth: gh.GithubAuthenticator,
     org: str = ORG,
     repo: str = REPO,
-    login: str = DEFAULT_TOKEN_DICT["login"],
+    login: str = DEFAULT_USER_DICT["login"],
     *args: Any,
     **kwargs: Any,
 ) -> responses.BaseResponse:
@@ -288,6 +369,205 @@ def mock_perm(
         **kwargs,
     )
     return cast(responses.BaseResponse, ret)
+
+
+def mock_org_installations(
+    api_url: str,
+    org: str = ORG,
+    *args: Any,
+    **kwargs: Any,
+) -> responses.BaseResponse:
+    ret = responses.get(
+        f"{api_url}/orgs/{org}/installations",
+        *args,
+        **kwargs,
+    )
+    return cast(responses.BaseResponse, ret)
+
+
+def installation_repo_data(
+    repos: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    if repos is None:
+        repos = [DEFAULT_INSTALLATION_REPO]
+    return {
+        "total_count": len(repos),
+        "repository_selection": "selected",
+        "repositories": repos,
+    }
+
+
+def mock_installation_repos(
+    api_url: str,
+    *args: Any,
+    **kwargs: Any,
+) -> responses.BaseResponse:
+    ret = responses.get(
+        f"{api_url}/installation/repositories",
+        *args,
+        **kwargs,
+    )
+    return cast(responses.BaseResponse, ret)
+
+
+def test_call_context_restrict_to_org_only(app: flask.Flask) -> None:
+    cfg = gh.Config.from_dict({"restrict_to": {ORG: None}})
+    with auth_request_context(app):
+        ctx = gh.CallContext(cfg, flask.request)
+        assert ctx is not None
+    with auth_request_context(app, org="bogus"):
+        with pytest.raises(Unauthorized):
+            gh.CallContext(cfg, flask.request)
+
+
+def test_call_context_restrict_to_org_and_repo(app: flask.Flask) -> None:
+    cfg = gh.Config.from_dict({"restrict_to": {ORG: [REPO]}})
+    with auth_request_context(app):
+        ctx = gh.CallContext(cfg, flask.request)
+        assert ctx is not None
+    with auth_request_context(app, repo="bogus"):
+        with pytest.raises(Unauthorized):
+            gh.CallContext(cfg, flask.request)
+
+
+def test_call_context_api_get_no_session(app: flask.Flask) -> None:
+    with auth_request_context(app):
+        ctx = gh.CallContext(DEFAULT_CONFIG, flask.request)
+    with pytest.raises(RuntimeError):
+        ctx.api_get("/dummy")
+
+
+def test_call_context_api_get_paginated_no_session(app: flask.Flask) -> None:
+    with auth_request_context(app):
+        ctx = gh.CallContext(DEFAULT_CONFIG, flask.request)
+    with pytest.raises(RuntimeError):
+        next(ctx.api_get_paginated("/dummy"))
+
+
+@responses.activate
+def test_call_context_api_get_paginated_per_page_min_max(
+    app: flask.Flask,
+) -> None:
+    uri = "/items"
+    response_url = f"{DEFAULT_CONFIG.api_url}{uri}"
+    response_data = {"items": [{"item": 1}]}
+    resp_min = responses.get(
+        response_url,
+        match=[
+            responses.matchers.query_param_matcher(
+                # desired params in the request
+                {"per_page": 1},
+                strict_match=False,
+            )
+        ],
+        json=response_data,
+    )
+    resp_max = responses.get(
+        response_url,
+        match=[
+            responses.matchers.query_param_matcher(
+                {"per_page": 100}, strict_match=False
+            )
+        ],
+        json=response_data,
+    )
+    with auth_request_context(app):
+        with gh.CallContext(DEFAULT_CONFIG, flask.request) as ctx:
+            next(ctx.api_get_paginated(uri, per_page=0))
+            next(ctx.api_get_paginated(uri, per_page=101))
+    assert resp_min.call_count == 1
+    assert resp_max.call_count == 1
+
+
+@responses.activate
+def test_call_context_api_get_paginated_list_name(app: flask.Flask) -> None:
+    one_item = {"item": 1}
+    items = {"items": [one_item]}
+    uri_matching = "/items"
+    url_matching = f"{DEFAULT_CONFIG.api_url}{uri_matching}"
+    responses.get(url_matching, json=items)
+    uri_not_matching = "/nomatch"
+    url_not_matching = f"{DEFAULT_CONFIG.api_url}{uri_not_matching}"
+    responses.get(url_not_matching, json=items)
+    uri_explicit_matching = "/explicit-match"
+    url_explicit_matching = f"{DEFAULT_CONFIG.api_url}{uri_explicit_matching}"
+    responses.get(url_explicit_matching, json=items)
+
+    with auth_request_context(app):
+        with gh.CallContext(DEFAULT_CONFIG, flask.request) as ctx:
+            # verify getting one item works
+            paginated_gen = ctx.api_get_paginated(uri_matching, per_page=1)
+            out_item = next(paginated_gen)
+            assert out_item == one_item
+            # verify the iteration ends properly
+            with pytest.raises(StopIteration):
+                next(paginated_gen)
+            # verify the iteration without match ends immediately
+            with pytest.raises(StopIteration):
+                next(ctx.api_get_paginated(uri_not_matching, per_page=1))
+            # verify the explicitly matching entry works again
+            out_item = next(
+                ctx.api_get_paginated(
+                    uri_explicit_matching, per_page=1, list_name="items"
+                )
+            )
+            assert out_item == one_item
+
+
+@responses.activate
+def test_call_context_api_get_paginated_link(app: flask.Flask) -> None:
+    one_item = {"item": 1}
+    other_item = {"item": 2}
+    uri = "/items"
+    url = f"{DEFAULT_CONFIG.api_url}{uri}"
+    # return first page with a link to the second
+    resp_1 = responses.get(
+        url,
+        match=[
+            responses.matchers.query_param_matcher(
+                {"page": 1}, strict_match=False
+            )
+        ],
+        json={"items": [one_item]},
+        headers={"link": f'<{url}?page=2>; rel="next"'},
+    )
+    # return second page with a link to the third (which is bad)
+    resp_2 = responses.get(
+        url,
+        match=[
+            responses.matchers.query_param_matcher(
+                {"page": 2}, strict_match=False
+            )
+        ],
+        json={"items": [other_item]},
+        headers={"link": f'<{url}?page=3>; rel="next"'},
+    )
+    resp_3 = responses.get(
+        url,
+        match=[
+            responses.matchers.query_param_matcher(
+                {"page": 3}, strict_match=False
+            )
+        ],
+        json={"error": "not found"},
+        status=404,
+    )
+
+    with auth_request_context(app):
+        with gh.CallContext(DEFAULT_CONFIG, flask.request) as ctx:
+            # verify reading the first page works
+            paginated_gen = ctx.api_get_paginated(uri, per_page=1)
+            out_item = next(paginated_gen)
+            assert out_item == one_item
+            # verify reading the second page works
+            out_item = next(paginated_gen)
+            assert out_item == other_item
+            # verify the bad iteration
+            with pytest.raises(requests.exceptions.RequestException):
+                next(paginated_gen)
+    assert resp_1.call_count == 1
+    assert resp_2.call_count == 1
+    assert resp_3.call_count == 1
 
 
 def test_github_auth_request_missing_auth(app: flask.Flask) -> None:
@@ -313,7 +593,7 @@ def test_github_auth_request_bad_user(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_bad_perm(app: flask.Flask) -> None:
     auth = gh.factory(api_version=None)
-    mock_user(auth, json=DEFAULT_TOKEN_DICT)
+    mock_user(auth, json=DEFAULT_USER_DICT)
     mock_perm(auth, json={"error": "Forbidden"}, status=403)
 
     with pytest.raises(Unauthorized):
@@ -323,7 +603,7 @@ def test_github_auth_request_bad_perm(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_admin(app: flask.Flask) -> None:
     auth = gh.factory()
-    mock_user(auth, json=DEFAULT_TOKEN_DICT)
+    mock_user(auth, json=DEFAULT_USER_DICT)
     mock_perm(auth, json={"permission": "admin"})
 
     identity = auth_request(app, auth)
@@ -334,7 +614,7 @@ def test_github_auth_request_admin(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_read(app: flask.Flask) -> None:
     auth = gh.factory()
-    mock_user(auth, json=DEFAULT_TOKEN_DICT)
+    mock_user(auth, json=DEFAULT_USER_DICT)
     mock_perm(auth, json={"permission": "read"})
 
     identity = auth_request(app, auth)
@@ -346,7 +626,7 @@ def test_github_auth_request_read(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_none(app: flask.Flask) -> None:
     auth = gh.factory()
-    mock_user(auth, json=DEFAULT_TOKEN_DICT)
+    mock_user(auth, json=DEFAULT_USER_DICT)
     mock_perm(auth, json={"permission": "none"})
 
     identity = auth_request(app, auth)
@@ -358,7 +638,7 @@ def test_github_auth_request_none(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_cached(app: flask.Flask) -> None:
     auth = gh.factory()
-    user_resp = mock_user(auth, json=DEFAULT_TOKEN_DICT)
+    user_resp = mock_user(auth, json=DEFAULT_USER_DICT)
     perm_resp = mock_perm(auth, json={"permission": "admin"})
 
     auth_request(app, auth)
@@ -373,17 +653,20 @@ def test_github_auth_request_cached(app: flask.Flask) -> None:
 @responses.activate
 def test_github_auth_request_cache_no_leak(app: flask.Flask) -> None:
     auth = gh.factory(cache={"token_max_size": 2})
-    user_resp = mock_user(auth, json=DEFAULT_TOKEN_DICT)
+    user_resp = mock_user(auth, json=DEFAULT_USER_DICT)
     perm_resp = mock_perm(auth, json={"permission": "admin"})
 
     # authenticate 1st token, check it got cached properly
     token1 = "token-1"
     token1_cache_key = cachetools.keys.hashkey(token1)
     identity1 = auth_request(app, auth, token=token1)
+    assert isinstance(identity1, gh.GithubUserIdentity)
     assert len(auth._token_cache) == 1
     assert token1_cache_key in auth._token_cache
-    assert len(auth._cached_users) == 1
-    assert any(i is identity1 for i in auth._cached_users.values())
+    assert len(gh.GithubUserIdentity._cached_users) == 1
+    assert any(
+        i is identity1 for i in gh.GithubUserIdentity._cached_users.values()
+    )
     # see both the authentication and authorization requests took place
     assert user_resp.call_count == 1
     assert perm_resp.call_count == 1
@@ -396,8 +679,10 @@ def test_github_auth_request_cache_no_leak(app: flask.Flask) -> None:
     identity2 = auth_request(app, auth, token=token2)
     assert len(auth._token_cache) == 2
     assert token2_cache_key in auth._token_cache
-    assert len(auth._cached_users) == 1
-    assert any(i is identity2 for i in auth._cached_users.values())
+    assert len(gh.GithubUserIdentity._cached_users) == 1
+    assert any(
+        i is identity2 for i in gh.GithubUserIdentity._cached_users.values()
+    )
     # see only the authentication request took place
     assert user_resp.call_count == 2
     assert perm_resp.call_count == 1
@@ -410,8 +695,10 @@ def test_github_auth_request_cache_no_leak(app: flask.Flask) -> None:
     assert len(auth._token_cache) == 2
     assert token3_cache_key in auth._token_cache
     assert token1_cache_key not in auth._token_cache
-    assert len(auth._cached_users) == 1
-    assert any(i is identity3 for i in auth._cached_users.values())
+    assert len(gh.GithubUserIdentity._cached_users) == 1
+    assert any(
+        i is identity3 for i in gh.GithubUserIdentity._cached_users.values()
+    )
     # see only the authentication request took place
     assert user_resp.call_count == 3
     assert perm_resp.call_count == 1
@@ -420,16 +707,251 @@ def test_github_auth_request_cache_no_leak(app: flask.Flask) -> None:
     # evict 2nd cached token
     del auth._token_cache[token2_cache_key]
     assert len(auth._token_cache) == 1
-    assert len(auth._cached_users) == 1
+    assert len(gh.GithubUserIdentity._cached_users) == 1
     # evict 3rd
     del auth._token_cache[token3_cache_key]
     assert len(auth._token_cache) == 0
-    assert len(auth._cached_users) == 0
+    assert len(gh.GithubUserIdentity._cached_users) == 0
 
     # try once more with 1st token
     auth_request(app, auth, token=token1)
     assert len(auth._token_cache) == 1
-    assert len(auth._cached_users) == 1
+    assert len(gh.GithubUserIdentity._cached_users) == 1
     # see both the authentication and authorization requests took place
     assert user_resp.call_count == 4
     assert perm_resp.call_count == 2
+
+
+@responses.activate
+def test_github_auth_request_app_no_user(app: flask.Flask) -> None:
+    auth = gh.factory()
+    mock_org_installations(auth.api_url, json=DEFAULT_ORG_INSTALLATIONS)
+
+    with pytest.raises(Unauthorized):
+        auth_request(app, auth, user="", token=DEFAULT_APP_TOKEN)
+
+
+@responses.activate
+def test_github_auth_request_app_bad_user(app: flask.Flask) -> None:
+    auth = gh.factory()
+    mock_org_installations(auth.api_url, json=DEFAULT_ORG_INSTALLATIONS)
+
+    with pytest.raises(Unauthorized):
+        auth_request(app, auth, token=DEFAULT_APP_TOKEN)
+
+
+@responses.activate
+def test_github_auth_request_app_all_repos(app: flask.Flask) -> None:
+    auth = gh.factory(cache={"token_max_size": 0})
+    resp = mock_org_installations(auth.api_url, json=DEFAULT_ORG_INSTALLATIONS)
+
+    # match for installation id
+    identity_0 = auth_request(
+        app, auth, user=str(DEFAULT_ALL_ID), token=DEFAULT_APP_TOKEN
+    )
+    assert identity_0 is not None
+    assert identity_0.is_authorized(ORG, REPO, Permission.READ)
+    assert not identity_0.is_authorized(ORG, REPO, Permission.WRITE)
+    # match for app_id
+    identity = auth_request(
+        app, auth, user=str(DEFAULT_ALL_APP_ID), token=DEFAULT_APP_TOKEN
+    )
+    assert identity == identity_0
+    # match for client_id
+    identity = auth_request(
+        app, auth, user=DEFAULT_ALL_CLIENT_ID, token=DEFAULT_APP_TOKEN
+    )
+    assert identity == identity_0
+    # match for client_id
+    identity = auth_request(
+        app, auth, user=DEFAULT_ALL_APP_SLUG, token=DEFAULT_APP_TOKEN
+    )
+    assert identity == identity_0
+
+    assert resp.call_count == 4
+
+
+@responses.activate
+def test_github_auth_request_app_no_org_access(app: flask.Flask) -> None:
+    auth = gh.factory(cache={"token_max_size": 0})
+    resp = mock_org_installations(
+        auth.api_url, json={"error": "Insufficient access rights."}, status=403
+    )
+    with pytest.raises(Unauthorized):
+        auth_request(app, auth, token=DEFAULT_APP_TOKEN)
+    assert resp.call_count == 1
+
+
+@responses.activate
+def test_github_auth_request_app_reauth(app: flask.Flask) -> None:
+    auth = gh.factory(cache={"auth_max_size": 0})
+    resp = mock_org_installations(auth.api_url, json=DEFAULT_ORG_INSTALLATIONS)
+    identity = auth_request(
+        app, auth, user=str(DEFAULT_ALL_ID), token=DEFAULT_APP_TOKEN
+    )
+    assert identity is not None
+    assert identity.is_authorized(ORG, REPO, Permission.READ)
+    # the authorization shouldn't be cached
+    identity = auth_request(app, auth, token=DEFAULT_APP_TOKEN)
+    assert identity is not None
+    assert identity.is_authorized(ORG, REPO, Permission.READ)
+
+    assert resp.call_count == 2
+
+
+@responses.activate
+def test_github_auth_request_app_selected_repos(app: flask.Flask) -> None:
+    auth = gh.factory(cache={"token_max_size": 0})
+    resp_i = mock_org_installations(
+        auth.api_url, json=DEFAULT_ORG_INSTALLATIONS
+    )
+    resp_r = mock_installation_repos(
+        auth.api_url, json=installation_repo_data()
+    )
+
+    identity = auth_request(
+        app, auth, user=str(DEFAULT_SEL_ID), token=DEFAULT_APP_TOKEN
+    )
+    assert identity is not None
+    assert identity.is_authorized(ORG, REPO, Permission.READ)
+    assert resp_i.call_count == 1
+    assert resp_r.call_count == 1
+
+
+@responses.activate
+def test_github_auth_request_app_selected_repos_no_match(
+    app: flask.Flask,
+) -> None:
+    auth = gh.factory(cache={"auth_max_size": 2})  # one gets casually cached
+    no_match_repo_1 = DEFAULT_INSTALLATION_REPO.copy()
+    no_match_repo_1_name = "no-match-1"
+    no_match_repo_1["name"] = no_match_repo_1_name
+    no_match_repo_2 = DEFAULT_INSTALLATION_REPO.copy()
+    no_match_repo_2["name"] = "no-match-2"
+    no_match_repos = [no_match_repo_1, no_match_repo_2]
+    mock_org_installations(auth.api_url, json=DEFAULT_ORG_INSTALLATIONS)
+    resp_r = mock_installation_repos(
+        auth.api_url, json=installation_repo_data(no_match_repos)
+    )
+
+    identity = auth_request(
+        app, auth, user=str(DEFAULT_SEL_ID), token=DEFAULT_APP_TOKEN
+    )
+    assert identity is not None
+    assert resp_r.call_count == 1
+    assert not identity.is_authorized(ORG, REPO, Permission.READ)
+    assert identity.is_authorized(ORG, no_match_repo_1_name, Permission.READ)
+
+
+@responses.activate
+def test_github_auth_request_app_selected_repos_no_access(
+    app: flask.Flask,
+) -> None:
+    auth = gh.factory()
+    mock_org_installations(auth.api_url, json=DEFAULT_ORG_INSTALLATIONS)
+    resp_r = mock_installation_repos(
+        auth.api_url, json={"error": "Insufficient access rights."}, status=403
+    )
+
+    with pytest.raises(Unauthorized):
+        auth_request(
+            app, auth, user=str(DEFAULT_SEL_ID), token=DEFAULT_APP_TOKEN
+        )
+
+    assert resp_r.call_count == 1
+
+
+@responses.activate
+def test_github_auth_request_app_selected_repos_bad_authorize(
+    app: flask.Flask,
+) -> None:
+    mock_org_installations(
+        DEFAULT_CONFIG.api_url, json=DEFAULT_ORG_INSTALLATIONS
+    )
+    with auth_request_context(
+        app, user=str(DEFAULT_SEL_ID), token=DEFAULT_APP_TOKEN
+    ):
+        with gh.CallContext(DEFAULT_CONFIG, flask.request) as ctx:
+            identity = GithubAppIdentity.authenticate(ctx)
+            ctx.org = "whoops"
+            with pytest.raises(RuntimeError):
+                identity.authorize(ctx)
+
+
+@responses.activate
+def test_github_auth_request_app_missing_permissions(app: flask.Flask) -> None:
+    auth = gh.factory()
+    no_perm = deepcopy(DEFAULT_ORG_INSTALLATIONS)
+    inst = next(
+        _i
+        for _i in cast(list, no_perm["installations"])
+        if _i["id"] == DEFAULT_SEL_ID
+    )
+    del inst["permissions"]
+    resp_i = mock_org_installations(auth.api_url, json=no_perm)
+
+    with pytest.raises(Unauthorized):
+        auth_request(
+            app, auth, user=str(DEFAULT_SEL_ID), token=DEFAULT_APP_TOKEN
+        )
+    assert resp_i.call_count == 1
+
+
+@responses.activate
+def test_github_auth_request_app_missing_permissions_contents(
+    app: flask.Flask,
+) -> None:
+    auth = gh.factory()
+    no_perm = deepcopy(DEFAULT_ORG_INSTALLATIONS)
+    inst = next(
+        _i
+        for _i in cast(list, no_perm["installations"])
+        if _i["id"] == DEFAULT_SEL_ID
+    )
+    del inst["permissions"]["contents"]
+    resp_i = mock_org_installations(auth.api_url, json=no_perm)
+
+    with pytest.raises(Unauthorized):
+        auth_request(
+            app, auth, user=str(DEFAULT_SEL_ID), token=DEFAULT_APP_TOKEN
+        )
+    assert resp_i.call_count == 1
+
+
+@responses.activate
+def test_github_auth_request_app_write_permissions(app: flask.Flask) -> None:
+    auth = gh.factory()
+    no_perm = deepcopy(DEFAULT_ORG_INSTALLATIONS)
+    inst = next(
+        _i
+        for _i in cast(list, no_perm["installations"])
+        if _i["id"] == DEFAULT_ALL_ID
+    )
+    inst["permissions"]["contents"] = "write"
+    resp_i = mock_org_installations(auth.api_url, json=no_perm)
+
+    identity = auth_request(
+        app, auth, user=str(DEFAULT_ALL_ID), token=DEFAULT_APP_TOKEN
+    )
+    assert identity is not None
+    assert identity.is_authorized(ORG, REPO, Permission.WRITE)
+    assert resp_i.call_count == 1
+
+
+@responses.activate
+def test_github_auth_request_app_unknown_permissions(app: flask.Flask) -> None:
+    auth = gh.factory()
+    no_perm = deepcopy(DEFAULT_ORG_INSTALLATIONS)
+    inst = next(
+        _i
+        for _i in cast(list, no_perm["installations"])
+        if _i["id"] == DEFAULT_ALL_ID
+    )
+    inst["permissions"]["contents"] = "twist"
+    resp_i = mock_org_installations(auth.api_url, json=no_perm)
+
+    with pytest.raises(Unauthorized):
+        auth_request(
+            app, auth, user=str(DEFAULT_ALL_ID), token=DEFAULT_APP_TOKEN
+        )
+    assert resp_i.call_count == 1

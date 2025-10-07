@@ -1,5 +1,7 @@
 -c main.txt
 
+uv
+
 pip-tools
 tox
 flake8
@@ -28,4 +30,6 @@ furo
 sphinx
 sphinx-autodoc-typehints
 
+# Internal tooling
+scriv
 
